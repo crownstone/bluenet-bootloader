@@ -11,15 +11,15 @@ MEMORY
 }
 SECTIONS
 {
-  /* placing my named section at given address: */
-  .bootloaderSettings 0x0003FC00 :
-  {
-	
-  } 
+	/* placing my named section at given address: */
+	.bootloaderSettings 0x0003FC00 :
+	{
+
+	} 
 	.uicrBootStartAddress 0x10001014 :
 	{
-    
-  } 
+
+	} 
   /* other placements follow here... */
 }
 /*

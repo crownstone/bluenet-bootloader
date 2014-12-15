@@ -55,7 +55,7 @@
 
 #define IS_SRVC_CHANGED_CHARACT_PRESENT 0                                                       /**< Include or not the service_changed characteristic. if not enabled, the server's database cannot be changed for the lifetime of the device*/
 
-#define BOOTLOADER_BUTTON_PIN           BUTTON_7                                                /**< Button used to enter SW update mode. */
+//#define BOOTLOADER_BUTTON_PIN           BUTTON_7                                                /**< Button used to enter SW update mode. */
 
 #define APP_GPIOTE_MAX_USERS            1                                                       /**< Number of GPIOTE users in total. Used by button module and dfu_transport_serial module (flow control). */
 
@@ -164,13 +164,14 @@ static void timers_init(void)
 
 /**@brief Function for initializing the button module.
  */
+/*
 static void buttons_init(void)
 {   
     nrf_gpio_cfg_sense_input(BOOTLOADER_BUTTON_PIN,
                              BUTTON_PULL, 
                              NRF_GPIO_PIN_SENSE_LOW);
 }
-
+*/
 
 /**@brief Function for dispatching a BLE stack event to all modules with a BLE stack event handler.
  *
@@ -232,7 +233,7 @@ static void scheduler_init(void)
 int main(void)
 {
     uint32_t err_code;
-    bool     bootloader_is_pushed = false;
+    //bool     bootloader_is_pushed = false;
     
     leds_init();
 
@@ -242,13 +243,13 @@ int main(void)
     // Initialize.
     timers_init();
     gpiote_init();
-    buttons_init();
+    //buttons_init();
     ble_stack_init();
     scheduler_init();
 
-    bootloader_is_pushed = ((nrf_gpio_pin_read(BOOTLOADER_BUTTON_PIN) == 0)? true: false);
+    //bootloader_is_pushed = ((nrf_gpio_pin_read(BOOTLOADER_BUTTON_PIN) == 0)? true: false);
 		
-    if (bootloader_is_pushed || (!bootloader_app_is_valid(DFU_BANK_0_REGION_START)))
+    if (!bootloader_app_is_valid(DFU_BANK_0_REGION_START))
     {
 		
 				nrf_gpio_pin_set(LED_2);

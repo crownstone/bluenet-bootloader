@@ -596,9 +596,16 @@ static void on_ble_evt(ble_evt_t * p_ble_evt)
             break;
 
         case BLE_GAP_EVT_SEC_PARAMS_REQUEST:
+#ifdef S130
+            err_code = sd_ble_gap_sec_params_reply(m_conn_handle,
+                                                   BLE_GAP_SEC_STATUS_SUCCESS,
+                                                   &m_sec_params,
+						   NULL);
+#else
             err_code = sd_ble_gap_sec_params_reply(m_conn_handle,
                                                    BLE_GAP_SEC_STATUS_SUCCESS,
                                                    &m_sec_params);
+#endif
             APP_ERROR_CHECK(err_code);
             break;
 
@@ -757,7 +764,9 @@ static void services_init(void)
  */
 static void sec_params_init(void)
 {
+#ifndef S130
     m_sec_params.timeout      = SEC_PARAM_TIMEOUT;
+#endif
     m_sec_params.bond         = SEC_PARAM_BOND;
     m_sec_params.mitm         = SEC_PARAM_MITM;
     m_sec_params.io_caps      = SEC_PARAM_IO_CAPABILITIES;
