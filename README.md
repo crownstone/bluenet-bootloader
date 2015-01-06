@@ -49,6 +49,38 @@ sets the right LEDS to go on/off.
 The SoftDevice we currently use has a path at `/opt/softdevices/s130_nrf51822_0.5.0-1.alpha_API/include/`. You'll have
 to update it if your softdevice SDK resides at another path.
 
+## Configuration
+
+The configuration is described in `dfu_types.h`. Note that most of the changes for the `S130` series are similar to
+the ones of the `S310` series, so I use `S310_STACK` as a define on compilation!
+
+	#define CODE_REGION_START 0x0001C000  // start of application (SoftDevice S130 is big!)
+	#define BOOTLOADER_REGION_START 0x00034000 // start of bootloader at end of memory
+
+In the `main.c` you will see one macro:
+
+	#define SERIAL
+
+Disable that to get rid of the printing to uart.
+
+## Flashing
+
+If you use https://github.com/mrquincle/bluenet to write your binaries to your chip, you will have to use the following
+sequence:
+
+	./softdevice.sh all
+	./writebyte.sh 0x10001014 0x00034000
+	./firmware.sh all bootloader 0x00034000
+
+It is essential to erase the flash before writing to it with `writebyte`. The fastest way to do so is just by flashing
+a new softdevice, hence the first command. Do not use `writebyte.sh` without erasing that area first.
+
+In the https://github.com/mrquincle/bluenet/scripts directory, there is also a script to upload over the air:
+
+	./upload_over_the_air.sh
+
+If you use the firmware in that repository, you can also find code on how to enter the bootloader from the application.
+
 ### Bugs
 
 Make sure you do not have any breakpoints set in an attached debugger. It works fine, but you might be thinking at 
