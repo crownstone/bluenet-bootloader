@@ -31,6 +31,8 @@
 #include "pstorage.h"
 #include "nrf_gpio.h"
 
+#include "dobots_boards.h"
+
 /**@brief States of the DFU state machine. */
 typedef enum
 {
@@ -60,7 +62,8 @@ static dfu_callback_t          m_data_pkt_cb;
 
 #define IMAGE_WRITE_IN_PROGRESS() (m_app_data_received > 0)      /**< Macro for determining is image write in progress. */
 #define APP_TIMER_PRESCALER       0                                                                 /**< Value of the RTC1 PRESCALER register. */
-#define DFU_TIMEOUT_INTERVAL      APP_TIMER_TICKS(60000, APP_TIMER_PRESCALER)                       /**< DFU timeout interval in units of timer ticks. */             
+// This was 60.000
+#define DFU_TIMEOUT_INTERVAL      APP_TIMER_TICKS(600000, APP_TIMER_PRESCALER)                       /**< DFU timeout interval in units of timer ticks. */             
 
 
 static void pstorage_callback_handler(pstorage_handle_t * handle, uint8_t op_code, uint32_t result, uint8_t * p_data, uint32_t data_len)
@@ -86,6 +89,7 @@ static void dfu_timeout_handler(void * p_context)
 {
     UNUSED_PARAMETER(p_context);
     dfu_update_status_t update_status;
+    nrf_gpio_pin_set(PIN_LED5);
     
     m_dfu_timed_out           = true;
     update_status.status_code = DFU_TIMEOUT;
@@ -107,6 +111,7 @@ static uint32_t dfu_timer_restart(void)
         // The DFU timer had already timed out.
         return NRF_ERROR_INVALID_STATE;
     }
+    //nrf_gpio_pin_clear(PIN_LED1);
 
     uint32_t err_code = app_timer_stop(m_dfu_timer_id);
     APP_ERROR_CHECK(err_code);
@@ -123,6 +128,8 @@ uint32_t dfu_init(void)
     uint32_t              err_code;
     bootloader_settings_t bootloader_settings;
     dfu_update_status_t   update_status;
+    
+    nrf_gpio_pin_set(PIN_LED4);
     
     m_storage_module_param.cb          = pstorage_callback_handler;
     
@@ -161,11 +168,20 @@ uint32_t dfu_init(void)
     err_code = app_timer_create(&m_dfu_timer_id,
                                 APP_TIMER_MODE_SINGLE_SHOT,
                                 dfu_timeout_handler);
+
+    if (err_code != NRF_SUCCESS)
+    nrf_gpio_pin_clear(PIN_LED0);
+    //if (err_code != NRF_SUCCESS)
+    //	nrf_gpio_pin_set(PIN_LED5);
+    //	creation goes fine
     APP_ERROR_CHECK(err_code);
 
     // Start the DFU timer.
     err_code = app_timer_start(m_dfu_timer_id, DFU_TIMEOUT_INTERVAL, NULL);
+    if (err_code != NRF_SUCCESS)
+    	nrf_gpio_pin_set(PIN_LED6);
     APP_ERROR_CHECK(err_code);
+
 
     // Size which indicates how large application DFU are able to handle.
     // The area is not erased but has been locked by the running application, and is considered

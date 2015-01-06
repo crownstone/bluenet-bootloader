@@ -25,6 +25,11 @@
 #include "pstorage.h"
 #include "app_scheduler.h"
 #include "nrf_gpio.h"
+#ifdef S130
+#include "nrf_mbr.h"
+#endif
+
+#include "dobots_boards.h"
 
 #define IRQ_ENABLED             0x01                    /**< Field identifying if an interrupt is enabled. */
 #define MAX_NUMBER_INTERRUPTS   32                      /**< Maximum number of interrupts available. */
@@ -89,7 +94,9 @@ bool bootloader_app_is_valid(uint32_t app_addr)
     const bootloader_settings_t * p_bootloader_settings;
 
     // There exists an application in CODE region 1.
-    if (DFU_BANK_0_REGION_START == EMPTY_FLASH_MASK)
+    // this does check the value of DFU_BANK_0_REGION_START not the address
+    uint32_t val = *(uint32_t*)DFU_BANK_0_REGION_START;
+    if (val == EMPTY_FLASH_MASK)
     {
         return false;
     }
@@ -147,6 +154,8 @@ void bootloader_dfu_update_process(dfu_update_status_t update_status)
     const bootloader_settings_t * p_bootloader_settings;
 
     bootloader_util_settings_get(&p_bootloader_settings);
+    	
+    nrf_gpio_pin_set(PIN_LED5);
 
     if (update_status.status_code == DFU_UPDATE_COMPLETE)
     {
@@ -196,6 +205,7 @@ void bootloader_dfu_update_process(dfu_update_status_t update_status)
     {
         // No implementation needed.
     }
+    nrf_gpio_pin_clear(PIN_LED5);
 }
 
 
@@ -260,26 +270,46 @@ static void interrupts_disable(void)
 
 void bootloader_app_start(uint32_t app_addr)
 {
-    // If the applications CRC has been checked and passed, the magic number will be written and we
-    // can start the application safely.
-    uint32_t err_code = sd_softdevice_disable();
-    APP_ERROR_CHECK(err_code);
+    uint32_t err_code;
+
+    // was softdevice started to begin with?
+    uint8_t enabled;
+    sd_softdevice_is_enabled(&enabled);
+
+    if (enabled && false) {
+	    nrf_gpio_pin_set(PIN_LED4);
+	    sd_mbr_command_t com = {SD_MBR_COMMAND_INIT_SD, };
+	    err_code = sd_mbr_command(&com);
+	    APP_ERROR_CHECK(err_code);
+	    nrf_gpio_pin_clear(PIN_LED0);
+
+	    // If the applications CRC has been checked and passed, the magic number will be written and we
+	    // can start the application safely.
+	    err_code = sd_softdevice_disable();
+	    APP_ERROR_CHECK(err_code);
+    }
+    nrf_gpio_pin_set(PIN_LED5);
 
     interrupts_disable();
 
 #ifdef S310_STACK
 #ifdef S130
-    err_code = sd_softdevice_forward_to_application(CODE_REGION_1_START);
+    err_code = sd_softdevice_vector_table_base_set(CODE_REGION_1_START);
+    // this is the same as above
+    //err_code = sd_softdevice_forward_to_application(CODE_REGION_1_START);
 #else
     err_code = sd_softdevice_forward_to_application();
 #endif
 #else
+    // this is the same as above
     err_code = sd_softdevice_vector_table_base_set(CODE_REGION_1_START);
 #endif 
-
     APP_ERROR_CHECK(err_code);
+    nrf_gpio_pin_set(PIN_LED6);
+
 
     bootloader_util_app_start(CODE_REGION_1_START);
+    nrf_gpio_pin_clear(PIN_LED0);
 }
 
 
