@@ -339,14 +339,14 @@ int main(void)
 
 	write_string("Regret: ", 8);
 	char str2[15];
-	sprintf(str2, "%u", gpregret);
+	sprintf(str2, "%u", (unsigned int)gpregret);
 	write_string(str2, 8);
 	write_string("\r\n", 2);
 
 	gpregret = COMMAND_ENTER_RADIO_BOOTLOADER;
 	write_string("Regret: ", 8);
 	char str3[15];
-	sprintf(str3, "%u", gpregret);
+	sprintf(str3, "%u", (unsigned int)gpregret);
 	write_string(str3, 8);
 	write_string("\r\n", 2);
 
@@ -354,12 +354,12 @@ int main(void)
 	if(valid_app) {
 		write_string("Valid app: ", 11);
 		char str[15];
-		sprintf(str, "%x", DFU_BANK_0_REGION_START);
+		sprintf(str, "%x", (unsigned int) DFU_BANK_0_REGION_START);
 		write_string(str, 4);
 		write_string(" with value ", 12);
 		uint32_t val = *(uint32_t*)DFU_BANK_0_REGION_START;
 		char str1[15];
-		sprintf(str1, "%x", val);
+		sprintf(str1, "%x", (unsigned int)val);
 		write_string(str1, 8);
 		write_string("\r\n", 2);
 	}
