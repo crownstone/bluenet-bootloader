@@ -29,7 +29,7 @@
 #include "nrf_mbr.h"
 #endif
 
-#include "dobots_boards.h"
+//#include "dobots_boards.h"
 
 #define IRQ_ENABLED             0x01                    /**< Field identifying if an interrupt is enabled. */
 #define MAX_NUMBER_INTERRUPTS   32                      /**< Maximum number of interrupts available. */
@@ -155,7 +155,7 @@ void bootloader_dfu_update_process(dfu_update_status_t update_status)
 
     bootloader_util_settings_get(&p_bootloader_settings);
     	
-    nrf_gpio_pin_set(PIN_LED5);
+   // nrf_gpio_pin_set(PIN_LED5);
 
     if (update_status.status_code == DFU_UPDATE_COMPLETE)
     {
@@ -205,7 +205,7 @@ void bootloader_dfu_update_process(dfu_update_status_t update_status)
     {
         // No implementation needed.
     }
-    nrf_gpio_pin_clear(PIN_LED5);
+    //nrf_gpio_pin_clear(PIN_LED5);
 }
 
 
@@ -277,18 +277,20 @@ void bootloader_app_start(uint32_t app_addr)
     sd_softdevice_is_enabled(&enabled);
 
     if (enabled && false) {
-	    nrf_gpio_pin_set(PIN_LED4);
+	    //nrf_gpio_pin_set(PIN_LED4)
+#ifdef S130
 	    sd_mbr_command_t com = {SD_MBR_COMMAND_INIT_SD, };
 	    err_code = sd_mbr_command(&com);
 	    APP_ERROR_CHECK(err_code);
-	    nrf_gpio_pin_clear(PIN_LED0);
+#endif
+	    //nrf_gpio_pin_clear(PIN_LED0);
 
 	    // If the applications CRC has been checked and passed, the magic number will be written and we
 	    // can start the application safely.
 	    err_code = sd_softdevice_disable();
 	    APP_ERROR_CHECK(err_code);
     }
-    nrf_gpio_pin_set(PIN_LED5);
+    //nrf_gpio_pin_set(PIN_LED5);
 
     interrupts_disable();
 
@@ -305,11 +307,11 @@ void bootloader_app_start(uint32_t app_addr)
     err_code = sd_softdevice_vector_table_base_set(CODE_REGION_1_START);
 #endif 
     APP_ERROR_CHECK(err_code);
-    nrf_gpio_pin_set(PIN_LED6);
+    //nrf_gpio_pin_set(PIN_LED6);
 
 
     bootloader_util_app_start(CODE_REGION_1_START);
-    nrf_gpio_pin_clear(PIN_LED0);
+    //nrf_gpio_pin_clear(PIN_LED0);
 }
 
 

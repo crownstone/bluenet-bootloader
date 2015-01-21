@@ -31,7 +31,7 @@
 #include "pstorage.h"
 #include "nrf_gpio.h"
 
-#include "dobots_boards.h"
+//#include "dobots_boards.h"
 
 /**@brief States of the DFU state machine. */
 typedef enum
@@ -89,7 +89,7 @@ static void dfu_timeout_handler(void * p_context)
 {
     UNUSED_PARAMETER(p_context);
     dfu_update_status_t update_status;
-    nrf_gpio_pin_set(PIN_LED5);
+    //nrf_gpio_pin_set(PIN_LED5);
     
     m_dfu_timed_out           = true;
     update_status.status_code = DFU_TIMEOUT;
@@ -129,7 +129,7 @@ uint32_t dfu_init(void)
     bootloader_settings_t bootloader_settings;
     dfu_update_status_t   update_status;
     
-    nrf_gpio_pin_set(PIN_LED4);
+    //nrf_gpio_pin_set(PIN_LED4);
     
     m_storage_module_param.cb          = pstorage_callback_handler;
     
@@ -169,17 +169,14 @@ uint32_t dfu_init(void)
                                 APP_TIMER_MODE_SINGLE_SHOT,
                                 dfu_timeout_handler);
 
-    if (err_code != NRF_SUCCESS)
-    nrf_gpio_pin_clear(PIN_LED0);
     //if (err_code != NRF_SUCCESS)
-    //	nrf_gpio_pin_set(PIN_LED5);
-    //	creation goes fine
+    //  nrf_gpio_pin_clear(PIN_LED0);
     APP_ERROR_CHECK(err_code);
 
     // Start the DFU timer.
     err_code = app_timer_start(m_dfu_timer_id, DFU_TIMEOUT_INTERVAL, NULL);
-    if (err_code != NRF_SUCCESS)
-    	nrf_gpio_pin_set(PIN_LED6);
+    //if (err_code != NRF_SUCCESS)
+    //	nrf_gpio_pin_set(PIN_LED6);
     APP_ERROR_CHECK(err_code);
 
 
