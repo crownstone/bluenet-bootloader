@@ -38,9 +38,13 @@
     #define CODE_REGION_1_START         0x00016000                                              /**< This field should correspond to the size of Code Region 0, (which is identical to Start of Code Region 1), found in UICR.CLEN0 register. This value is used for compile safety, as the linker will fail if application expands into bootloader. Runtime, the bootloader will use the value found in UICR.CLEN0. */
 #endif 
 
+#ifdef S110
+// no reason to give bootloader not the same address, even if it doesn't need it
+#define BOOTLOADER_REGION_START         0x00034000
 //#define BOOTLOADER_REGION_START         0x00035000                                              /**< This field should correspond to start address of the bootloader, found in UICR.RESERVED, 0x10001014, register. This value is used for sanity check, so the bootloader will fail immediately if this value differs from runtime value. The value is used to determine max application size for updating. */
-
-#define BOOTLOADER_REGION_START         0x00034000                                              /**< This field should correspond to start address of the bootloader, found in UICR.RESERVED, 0x10001014, register. This value is used for sanity check, so the bootloader will fail immediately if this value differs from runtime value. The value is used to determine max application size for updating. */
+#else
+#define BOOTLOADER_REGION_START         0x00034000  
+#endif
 // check http://developer.mbed.org/forum/team-63-Bluetooth-Low-Energy-community/topic/5201/ for information
 #define BOOTLOADER_SETTINGS_ADDRESS     0x0003FC00                                              /**< The field specifies the page location of the bootloader settings address. */
 
