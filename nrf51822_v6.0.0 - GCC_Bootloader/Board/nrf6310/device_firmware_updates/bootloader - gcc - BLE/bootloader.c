@@ -267,6 +267,8 @@ static void interrupts_disable(void)
     }        
 }
 
+// something is wrong with disabling the SoftDevice with the S130
+#define DISABLE_TURN_OFF_FOR_S130
 
 void bootloader_app_start(uint32_t app_addr)
 {
@@ -276,7 +278,8 @@ void bootloader_app_start(uint32_t app_addr)
     uint8_t enabled;
     sd_softdevice_is_enabled(&enabled);
 
-    if (enabled && false) {
+#ifndef DISABLE_TURN_OFF_FOR_S130
+    if (enabled) {
 	    //nrf_gpio_pin_set(PIN_LED4)
 #ifdef S130
 	    sd_mbr_command_t com = {SD_MBR_COMMAND_INIT_SD, };
@@ -290,7 +293,12 @@ void bootloader_app_start(uint32_t app_addr)
 	    err_code = sd_softdevice_disable();
 	    APP_ERROR_CHECK(err_code);
     }
-    //nrf_gpio_pin_set(PIN_LED5);
+#else
+#ifndef S130
+    err_code = sd_softdevice_disable();
+    APP_ERROR_CHECK(err_code);
+#endif
+#endif
 
     interrupts_disable();
 
