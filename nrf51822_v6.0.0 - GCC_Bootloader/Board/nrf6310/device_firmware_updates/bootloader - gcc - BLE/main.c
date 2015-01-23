@@ -293,7 +293,9 @@ int main(void)
 	}
 
 	bool valid_app = bootloader_app_is_valid(DFU_BANK_0_REGION_START);
-
+	if(!valid_app) {
+		write_string("No valid app\r\n", 14);
+	}
 	// clear the register, so we don't end up all the time in the bootloader
 	err_code = sd_power_gpregret_clr(0xFF);
 	APP_ERROR_CHECK(err_code);

@@ -764,7 +764,9 @@ static void services_init(void)
  */
 static void sec_params_init(void)
 {
+#ifndef S130
     m_sec_params.timeout      = SEC_PARAM_TIMEOUT;
+#endif
     m_sec_params.bond         = SEC_PARAM_BOND;
     m_sec_params.mitm         = SEC_PARAM_MITM;
     m_sec_params.io_caps      = SEC_PARAM_IO_CAPABILITIES;
