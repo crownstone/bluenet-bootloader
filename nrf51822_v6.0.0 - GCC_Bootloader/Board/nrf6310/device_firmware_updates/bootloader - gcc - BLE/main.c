@@ -172,13 +172,14 @@ static void timers_init(void)
 
 /**@brief Function for initializing the button module.
  */
+/*
 static void buttons_init(void)
 {   
     nrf_gpio_cfg_sense_input(BOOTLOADER_BUTTON_PIN,
                              BUTTON_PULL, 
                              NRF_GPIO_PIN_SENSE_LOW);
 }
-
+   */
 
 /**@brief Function for dispatching a BLE stack event to all modules with a BLE stack event handler.
  *
@@ -191,7 +192,6 @@ static void sys_evt_dispatch(uint32_t event)
 {
     pstorage_sys_event_handler(event);
 }
-
 
 /**@brief Function for initializing the BLE stack.
  *
@@ -240,9 +240,15 @@ static void scheduler_init(void)
 int main(void)
 {
     uint32_t err_code;
-    bool     bootloader_is_pushed = false;
+	//sd_mbr_command_t com = {SD_MBR_COMMAND_INIT_SD, };
+	//err_code = sd_mbr_command(&com);
+
+//	clk_init();
+
+	//bool     bootloader_is_pushed = false;
     
     leds_init();
+    nrf_gpio_pin_set(LED_0); // indicates the bootloader is running
 
     APP_ERROR_CHECK_BOOL(*((uint32_t *)NRF_UICR_BOOT_START_ADDRESS) == BOOTLOADER_REGION_START);
     APP_ERROR_CHECK_BOOL(NRF_FICR->CODEPAGESIZE == CODE_PAGE_SIZE);
@@ -250,39 +256,47 @@ int main(void)
     // Initialize.
     timers_init();
     gpiote_init();
-    buttons_init();
     ble_stack_init();
     scheduler_init();
 
-    bootloader_is_pushed = ((nrf_gpio_pin_read(BOOTLOADER_BUTTON_PIN) == 0)? true: false);
-		
-    if (bootloader_is_pushed || (!bootloader_app_is_valid(DFU_BANK_0_REGION_START)))
-    {
-		
-				nrf_gpio_pin_set(LED_2);
+	bool manual_request = false;
+	uint32_t gpregret;
+	err_code = sd_power_gpregret_get(&gpregret);
+	APP_ERROR_CHECK(err_code);
+	if (gpregret == COMMAND_ENTER_RADIO_BOOTLOADER) {
+		nrf_gpio_pin_set(LED_1);
+		//write_string("Manual request\r\n", 17);
+		manual_request = true;
+	} else {
+		//write_string("No manual request\r\n", 19);
+	}
 
-        // Initiate an update of the firmware.
-        err_code = bootloader_dfu_start();
-        APP_ERROR_CHECK(err_code);
+	bool valid_app = bootloader_app_is_valid(DFU_BANK_0_REGION_START);
 
-        nrf_gpio_pin_clear(LED_2);
-    }
+	// clear the register, so we don't end up all the time in the bootloader
+	err_code = sd_power_gpregret_clr(0xFF);
+	APP_ERROR_CHECK(err_code);
 
-    if (bootloader_app_is_valid(DFU_BANK_0_REGION_START))
-    {
-        
-				leds_off();
-        
-        // Select a bank region to use as application region.
-        // @note: Only applications running from DFU_BANK_0_REGION_START is supported.
-        bootloader_app_start(DFU_BANK_0_REGION_START);
-        
-    }
+	if ((!valid_app) || manual_request) {
+		//write_string("Wait for new app!\r\n", 19);
+		nrf_gpio_pin_set(LED_2); // indicates DFU mode
+		leds_off();
 
-    nrf_gpio_pin_clear(LED_0);
-    nrf_gpio_pin_clear(LED_1);
-    nrf_gpio_pin_clear(LED_2);
-    nrf_gpio_pin_clear(LED_7);
+		// Initiate an update of the firmware.
+		err_code = bootloader_dfu_start();
+		APP_ERROR_CHECK(err_code);
+	} else {
+		//write_string("Load app\r\n", 10); // indicates app will be loaded
+		nrf_gpio_pin_set(LED_3);
+		leds_off();
+
+		// Select a bank region to use as application region.
+		// @note: Only applications running from DFU_BANK_0_REGION_START is supported.
+		//nrf_gpio_pin_clear(PIN_LED0); // indicates the bootloader stopped running
+		bootloader_app_start(DFU_BANK_0_REGION_START);
+	}
+
+	leds_off();
     
     NVIC_SystemReset();
 }
