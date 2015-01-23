@@ -56,6 +56,23 @@
 #include "softdevice_handler.h"
 #include "pstorage_platform.h"
 
+#define SERIAL
+
+#ifdef SERIAL
+#include "serial.h"
+#endif
+#include "dobots_boards.h"
+
+#ifndef SERIAL
+static void stub0() {}
+static void stub1(char * var, int var1) {}
+#define write_string stub1
+#define config_uart stub0
+#endif
+
+// forward declaration (is not present in softdevice_handler.h for now (remove if it gets added)
+void softdevice_assertion_handler(uint32_t pc, uint16_t line_num, const uint8_t * file_name);
+
 #define IS_SRVC_CHANGED_CHARACT_PRESENT 0                                                       /**< Include or not the service_changed characteristic. if not enabled, the server's database cannot be changed for the lifetime of the device*/
 
 #define BOOTLOADER_BUTTON_PIN           BUTTON_7                                                /**< Button used to enter SW update mode. */
@@ -256,6 +273,10 @@ int main(void)
     // Initialize.
     timers_init();
     gpiote_init();
+	config_uart();
+	write_string("Firmware 0.0.8\r\n", 16);
+
+	//buttons_init();
     ble_stack_init();
     scheduler_init();
 
@@ -265,10 +286,10 @@ int main(void)
 	APP_ERROR_CHECK(err_code);
 	if (gpregret == COMMAND_ENTER_RADIO_BOOTLOADER) {
 		nrf_gpio_pin_set(LED_1);
-		//write_string("Manual request\r\n", 17);
+		write_string("Manual request\r\n", 17);
 		manual_request = true;
 	} else {
-		//write_string("No manual request\r\n", 19);
+		write_string("No manual request\r\n", 19);
 	}
 
 	bool valid_app = bootloader_app_is_valid(DFU_BANK_0_REGION_START);
@@ -278,7 +299,7 @@ int main(void)
 	APP_ERROR_CHECK(err_code);
 
 	if ((!valid_app) || manual_request) {
-		//write_string("Wait for new app!\r\n", 19);
+		write_string("Wait for new app!\r\n", 19);
 		nrf_gpio_pin_set(LED_2); // indicates DFU mode
 		leds_off();
 
@@ -286,7 +307,7 @@ int main(void)
 		err_code = bootloader_dfu_start();
 		APP_ERROR_CHECK(err_code);
 	} else {
-		//write_string("Load app\r\n", 10); // indicates app will be loaded
+		write_string("Load app\r\n", 10); // indicates app will be loaded
 		nrf_gpio_pin_set(LED_3);
 		leds_off();
 

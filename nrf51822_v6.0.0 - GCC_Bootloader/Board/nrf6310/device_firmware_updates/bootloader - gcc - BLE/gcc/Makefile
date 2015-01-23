@@ -10,6 +10,7 @@ SDK_PATH = /opt/nrf51_sdk/v6/nrf51822/
 OUTPUT_FILENAME=dobots
 
 C_SOURCE_FILES += main.c
+C_SOURCE_FILES += serial.c
 C_SOURCE_FILES += dfu_dual_bank.c
 C_SOURCE_FILES += dfu_transport_ble.c
 C_SOURCE_FILES += bootloader.c
