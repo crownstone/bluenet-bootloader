@@ -31,6 +31,8 @@
 
 ; Description message
 
+; This one is not used!!!
+
 Stack_Size      EQU     2048
                 AREA    STACK, NOINIT, READWRITE, ALIGN=3
 Stack_Mem       SPACE   Stack_Size
