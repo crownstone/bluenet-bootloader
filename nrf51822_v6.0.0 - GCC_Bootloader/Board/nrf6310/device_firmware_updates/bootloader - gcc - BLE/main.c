@@ -38,6 +38,9 @@
 #ifndef S310_STACK
 #include "nrf_mbr.h"
 #endif // S310_STACK
+#ifdef S130
+#include "nrf_mbr.h"
+#endif
 #include "app_error.h"
 #include "nrf_gpio.h"
 #include "nrf51_bitfields.h"
@@ -69,6 +72,7 @@
 
 #define SCHED_QUEUE_SIZE                20                                                      /**< Maximum number of events in the scheduler queue. */
 
+#define	COMMAND_ENTER_RADIO_BOOTLOADER		1
 
 /**@brief Function for error handling, which is called when an error has occurred. 
  *
@@ -92,7 +96,11 @@ void app_error_handler(uint32_t error_code, uint32_t line_num, const uint8_t * p
     // ble_debug_assert_handler(error_code, line_num, p_file_name);
 
     // On assert, the system can only recover on reset.
-	while(1);
+        volatile uint32_t error __attribute__((unused)) = error_code;                                                   
+        volatile uint16_t line __attribute__((unused)) = line_num;                                                      
+        volatile const uint8_t* file __attribute__((unused)) = p_file_name;                                             
+        __asm("BKPT");                                                                                                  
+        while(1) {}     
 	
    // NVIC_SystemReset();
 }
