@@ -20,10 +20,10 @@
 
 
 // For the bootloader just hardcode for now
-#define BOARD                NRF6310
+//#define BOARD                NRF6310
 
 #ifndef BOARD
-#error "Add BOARD=... to CMakeBuild.config"
+#error "Add BOARD=... to Makefile"
 #endif
 
 #if(BOARD==RFDUINO)
