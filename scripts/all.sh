@@ -11,7 +11,7 @@ device_variant=xxaa
 
 output_path=~/myworkspace/ble/bluenet/build
 
-echo "++ Go to ../nrf51822_v6.0.0 - GCC_Bootloader/Board/nrf6310/device_firmware_updates/bootloader - gcc - BLE/gcc"
+echo '++ Go to "../nrf51822_v6.0.0 - GCC_Bootloader/Board/nrf6310/device_firmware_updates/bootloader - gcc - BLE/gcc"'
 cd "../nrf51822_v6.0.0 - GCC_Bootloader/Board/nrf6310/device_firmware_updates/bootloader - gcc - BLE/gcc"
 
 make $compilation_mode

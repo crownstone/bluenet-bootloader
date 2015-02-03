@@ -228,7 +228,11 @@ static void ble_stack_init(void)
     APP_ERROR_CHECK(err_code);
 #endif // S310_STACK
 
+#if BOARD == CROWNSTONE
+    SOFTDEVICE_HANDLER_INIT(NRF_CLOCK_LFCLKSRC_RC_250_PPM_8000MS_CALIBRATION, false);
+#else
     SOFTDEVICE_HANDLER_INIT(NRF_CLOCK_LFCLKSRC_XTAL_20_PPM, true);
+#endif
 
 #ifndef S310_STACK
     // Enable BLE stack 
@@ -256,29 +260,35 @@ static void scheduler_init(void)
  */
 int main(void)
 {
-    uint32_t err_code;
+	uint32_t err_code;
 	//sd_mbr_command_t com = {SD_MBR_COMMAND_INIT_SD, };
 	//err_code = sd_mbr_command(&com);
 
 //	clk_init();
 
 	//bool     bootloader_is_pushed = false;
-    
-    leds_init();
-    nrf_gpio_pin_set(LED_0); // indicates the bootloader is running
 
-    APP_ERROR_CHECK_BOOL(*((uint32_t *)NRF_UICR_BOOT_START_ADDRESS) == BOOTLOADER_REGION_START);
-    APP_ERROR_CHECK_BOOL(NRF_FICR->CODEPAGESIZE == CODE_PAGE_SIZE);
+	leds_init();
+#if BOARD != CROWNSTONE
+	nrf_gpio_pin_set(LED_0); // indicates the bootloader is running
+#endif
+	APP_ERROR_CHECK_BOOL(*((uint32_t *)NRF_UICR_BOOT_START_ADDRESS) == BOOTLOADER_REGION_START);
+	APP_ERROR_CHECK_BOOL(NRF_FICR->CODEPAGESIZE == CODE_PAGE_SIZE);
 
-    // Initialize.
-    timers_init();
-    gpiote_init();
+	// Initialize.
+	timers_init();
+	gpiote_init();
 	config_uart();
 	write_string("Firmware 0.0.8\r\n", 16);
-
 	//buttons_init();
-    ble_stack_init();
-    scheduler_init();
+#if BOARD == CROWNSTONE
+	write_string("Init BLE stack\r\n", 16);
+#endif
+	ble_stack_init();
+#if BOARD == CROWNSTONE
+	write_string("Init scheduler\r\n", 16);
+#endif
+	scheduler_init();
 
 	bool manual_request = false;
 	uint32_t gpregret;
