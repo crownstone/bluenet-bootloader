@@ -4,7 +4,7 @@ compilation_mode=release
 compilation_mode=debug
 
 objcopy=/opt/compiler/gcc-arm-none-eabi-4_8-2014q3/bin/arm-none-eabi-objcopy
-objsize=/opt/compiler/gcc-arm-none-eabi-4_8-2014q3/bin/arm-none-eabi-objsize
+objsize=/opt/compiler/gcc-arm-none-eabi-4_8-2014q3/bin/arm-none-eabi-size
 
 prefix=dobots
 device_variant=xxaa
