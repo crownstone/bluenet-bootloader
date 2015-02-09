@@ -1,20 +1,28 @@
-#!/bin/sh
+#!/bin/bash
 
 compilation_mode=release
 compilation_mode=debug
 
-objcopy=/opt/compiler/gcc-arm-none-eabi-4_8-2014q3/bin/arm-none-eabi-objcopy
-objsize=/opt/compiler/gcc-arm-none-eabi-4_8-2014q3/bin/arm-none-eabi-size
+path="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
+source ${path}/config.sh
+
+objcopy=${COMPILER_PATH}/bin/${COMPILER_TYPE}-objcopy
+objsize=${COMPILER_PATH}/bin/${COMPILER_TYPE}-size
 
 prefix=dobots
 device_variant=xxaa
 
-output_path=~/myworkspace/ble/bluenet/build
+output_path=${BLUENET_DIR}/build
+mkdir -p "$output_path"
 
-echo '++ Go to "../nrf51822_v6.0.0 - GCC_Bootloader/Board/nrf6310/device_firmware_updates/bootloader - gcc - BLE/gcc"'
-cd "../nrf51822_v6.0.0 - GCC_Bootloader/Board/nrf6310/device_firmware_updates/bootloader - gcc - BLE/gcc"
+echo "++ Go to \"${path}/../nrf51822_v6.0.0 - GCC_Bootloader/Board/nrf6310/device_firmware_updates/bootloader - gcc - BLE/gcc\""
+cd "${path}/../nrf51822_v6.0.0 - GCC_Bootloader/Board/nrf6310/device_firmware_updates/bootloader - gcc - BLE/gcc"
 
 make $compilation_mode
+if [ $? -ne 0 ]; then
+	exit 1
+fi
 
 # this creates a _build directory
 cd _build

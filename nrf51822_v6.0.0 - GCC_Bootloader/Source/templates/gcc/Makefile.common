@@ -9,7 +9,8 @@ OUTPUT_BINARY_DIRECTORY := _build
 ifeq ($(OS),Windows_NT)
 include $(TEMPLATE_PATH)Makefile.windows
 else
-include $(TEMPLATE_PATH)Makefile.posix
+#include $(TEMPLATE_PATH)Makefile.posix
+include $(dir $(lastword $(MAKEFILE_LIST)))/Makefile.posix
 endif
 
 ifeq ($(LINKER_SCRIPT),)

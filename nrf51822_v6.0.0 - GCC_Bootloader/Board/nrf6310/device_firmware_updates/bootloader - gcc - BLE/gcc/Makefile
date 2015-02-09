@@ -1,6 +1,5 @@
-TARGET_CHIP := NRF51822_QFAA_CA
-BOARD := BOARD_NRF6310
-ASMFLAGS += -D__HEAP_SIZE=16 -D__STACK_SIZE=2048
+# Retrieve config settings
+include $(BLUENET_DIR)/CMakeBuild.config
 
 #define PCA10001             0
 #define NRF6310              1
@@ -10,11 +9,15 @@ ASMFLAGS += -D__HEAP_SIZE=16 -D__STACK_SIZE=2048
 #define CROWNSTONE           5
 #define NRF51422             6
 
-CFLAGS += -DBLE_STACK_SUPPORT_REQD -DBOOTLOADER_BANKED -DBLE_STACK_SUPPORT_REQD -DS110 -DBOARD_NRF6310 -DBOARD=5
+CFLAGS += -DBLE_STACK_SUPPORT_REQD -DBOOTLOADER_BANKED -DBLE_STACK_SUPPORT_REQD -DS$(SOFTDEVICE_SERIES) -DBOARD_NRF6310 -DBOARD=$(BOARD)
+
+TARGET_CHIP := NRF51822_QFAA_CA
+BOARD := BOARD_NRF6310
+ASMFLAGS += -D__HEAP_SIZE=16 -D__STACK_SIZE=2048
 
 DEVICESERIES := nrf51
 
-SDK_PATH = /opt/nrf51_sdk/v6/nrf51822/
+SDK_PATH=$(NRF51822_DIR)/
 
 OUTPUT_FILENAME=dobots
 
@@ -38,10 +41,10 @@ C_SOURCE_FILES += $(SDK_PATH)Source/ble/softdevice_handler.c
 
 INCLUDEPATHS += -I"$(SDK_PATH)Include/ble"
 INCLUDEPATHS += -I"$(SDK_PATH)Include/app_common"
-INCLUDEPATHS += -I"/opt/softdevices/s110_nrf51822_7.0.0_API/include/"
-#INCLUDEPATHS += -I"/opt/softdevices/s130_nrf51822_0.5.0-1.alpha_API/include/"
+INCLUDEPATHS += -I"$(SOFTDEVICE_DIR)/$(SOFTDEVICE_DIR_API)/include/"
 INCLUDEPATHS += -I"$(SDK_PATH)Include/sd_common"
 INCLUDEPATHS += -I"$(SDK_PATH)Include/ble/ble_services"
+INCLUDEPATHS += -I"$(SDK_PATH)Include/s$(SOFTDEVICE_SERIES)/"
 INCLUDEPATHS += -I"../include/ble_transport"
 INCLUDEPATHS += -I"../include"
 INCLUDEPATHS += -I"../"
@@ -49,11 +52,15 @@ INCLUDEPATHS += -I"../"
 DEVICE_VARIANT := xxaa
 #DEVICE_VARIANT := xxab
 
-USE_SOFTDEVICE := S110
-#USE_SOFTDEVICE := S210
-#USE_SOFTDEVICE := S130
+USE_SOFTDEVICE := S$(SOFTDEVICE_SERIES)
 
 LINKER_SCRIPT = gcc_$(DEVICESERIES)_bootloader_$(DEVICE_VARIANT).ld
 OUTPUT_FILENAME := $(OUTPUT_FILENAME)_bootloader_$(DEVICE_VARIANT)
 
-include $(SDK_PATH)Source/templates/gcc/Makefile.common
+# Gets overwritten..
+#GNU_INSTALL_ROOT ?= $(COMPILER_PATH)
+#GNU_PREFIX ?= $(COMPILER_TYPE)
+
+#include $(SDK_PATH)Source/templates/gcc/Makefile.common
+# Include this common makefile, so that we can set the compiler path
+include ../../../../../Source/templates/gcc/Makefile.common
