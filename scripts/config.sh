@@ -1,7 +1,7 @@
 #!/bin/sh
 
-if [ -z $BLUENET_DIR ]; then
-	echo "ERROR: environment variable 'BLUENET_DIR' should be set."
+if [ ! -d "$BLUENET_DIR" ]; then
+	echo "ERROR: environment variable 'BLUENET_DIR' should be set to the dir containing \"CMakeBuild.config\""
 	exit 1
 fi
 
