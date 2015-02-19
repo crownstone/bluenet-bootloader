@@ -1,5 +1,5 @@
 # Retrieve config settings
-include $(CROWNSTONE_DIR)/CMakeBuild.config
+include $(BLUENET_CONFIG_DIR)/CMakeBuild.config
 
 #define PCA10001             0
 #define NRF6310              1
