@@ -1,8 +1,8 @@
 #!/bin/sh
 
-if [ ! -d "$BLUENET_DIR" ]; then
-	echo "ERROR: environment variable 'BLUENET_DIR' should be set to the dir containing \"CMakeBuild.config\""
+if [ ! -d "$CROWNSTONE_DIR" ]; then
+	echo "ERROR: environment variable 'CROWNSTONE_DIR' should be set to the dir containing \"CMakeBuild.config\""
 	exit 1
 fi
 
-source ${BLUENET_DIR}/CMakeBuild.config
+source ${CROWNSTONE_DIR}/CMakeBuild.config
