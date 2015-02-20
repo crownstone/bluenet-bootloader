@@ -90,8 +90,9 @@ bool bootloader_app_is_valid(uint32_t app_addr)
 
     // There exists an application in CODE region 1.
     // this does check the value of DFU_BANK_0_REGION_START not the address
-    uint32_t val = *(uint32_t*)DFU_BANK_0_REGION_START;
-    if (val == EMPTY_FLASH_MASK)
+//    uint32_t val = *(uint32_t*)DFU_BANK_0_REGION_START;
+//    if (val == EMPTY_FLASH_MASK)
+    if (DFU_BANK_0_REGION_START == EMPTY_FLASH_MASK) 
     {
         return false;
     }

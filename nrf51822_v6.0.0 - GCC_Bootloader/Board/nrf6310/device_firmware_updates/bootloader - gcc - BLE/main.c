@@ -102,7 +102,7 @@ void softdevice_assertion_handler(uint32_t pc, uint16_t line_num, const uint8_t 
  */
 void app_error_handler(uint32_t error_code, uint32_t line_num, const uint8_t * p_file_name)
 {    
-    nrf_gpio_pin_set(LED_7);
+    //nrf_gpio_pin_set(LED_7);
     // This call can be used for debug purposes during application development.
     // @note CAUTION: Activating this code will write the stack to flash on an error.
     //                This function should NOT be used in a final product.
@@ -137,34 +137,6 @@ void app_error_handler(uint32_t error_code, uint32_t line_num, const uint8_t * p
 void assert_nrf_callback(uint16_t line_num, const uint8_t * p_file_name)
 {
     app_error_handler(0xDEADBEEF, line_num, p_file_name);
-}
-
-
-/**@brief Function for initialization of LEDs.
- *
- * @details Initializes all LEDs used by the application.
- */
-static void leds_init(void)
-{
-    nrf_gpio_cfg_output(LED_0);
-    nrf_gpio_cfg_output(LED_1);
-    nrf_gpio_cfg_output(LED_2);
-    nrf_gpio_cfg_output(LED_7);
-	 nrf_gpio_cfg_output(12);
-	
-}
-
-
-/**@brief Function for clearing the LEDs.
- *
- * @details Clears all LEDs used by the application.
- */
-static void leds_off(void)
-{
-    nrf_gpio_pin_clear(LED_0);
-    nrf_gpio_pin_clear(LED_1);
-    nrf_gpio_pin_clear(LED_2);
-    nrf_gpio_pin_clear(LED_7);
 }
 
 
@@ -268,10 +240,6 @@ int main(void)
 
 	//bool     bootloader_is_pushed = false;
 
-	leds_init();
-#if BOARD != CROWNSTONE
-	nrf_gpio_pin_set(LED_0); // indicates the bootloader is running
-#endif
 	APP_ERROR_CHECK_BOOL(*((uint32_t *)NRF_UICR_BOOT_START_ADDRESS) == BOOTLOADER_REGION_START);
 	APP_ERROR_CHECK_BOOL(NRF_FICR->CODEPAGESIZE == CODE_PAGE_SIZE);
 
@@ -295,7 +263,7 @@ int main(void)
 	err_code = sd_power_gpregret_get(&gpregret);
 	APP_ERROR_CHECK(err_code);
 	if (gpregret == COMMAND_ENTER_RADIO_BOOTLOADER) {
-		nrf_gpio_pin_set(LED_1);
+		//nrf_gpio_pin_set(LED_1);
 		write_string("Manual request\r\n", 17);
 		manual_request = true;
 	} else {
@@ -312,16 +280,14 @@ int main(void)
 
 	if ((!valid_app) || manual_request) {
 		write_string("Wait for new app!\r\n", 19);
-		nrf_gpio_pin_set(LED_2); // indicates DFU mode
-		leds_off();
+		//nrf_gpio_pin_set(LED_2); // indicates DFU mode
 
 		// Initiate an update of the firmware.
 		err_code = bootloader_dfu_start();
 		APP_ERROR_CHECK(err_code);
 	} else {
 		write_string("Load app\r\n", 10); // indicates app will be loaded
-		nrf_gpio_pin_set(LED_3);
-		leds_off();
+		//nrf_gpio_pin_set(LED_3);
 
 		// Select a bank region to use as application region.
 		// @note: Only applications running from DFU_BANK_0_REGION_START is supported.
@@ -329,7 +295,5 @@ int main(void)
 		bootloader_app_start(DFU_BANK_0_REGION_START);
 	}
 
-	leds_off();
-    
     NVIC_SystemReset();
 }
