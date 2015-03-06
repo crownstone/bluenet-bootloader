@@ -125,6 +125,8 @@ disappearance of my running code under the debugger. I don't know what exactly h
        APP_ERROR_CHECK(err_code);
     #endif
 
-You see how I added `false` to this if clause for now.
+## Copyrights
 
+All copyrights belong to the original authors (except for its changes, which fall under the same license as the 
+original one). See: https://github.com/NordicSemiconductor/nrf51-dfu-bootloader-for-gcc-compiler
 
