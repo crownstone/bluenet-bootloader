@@ -33,7 +33,7 @@
 #define PACKET_HEADER_SIZE              sizeof(uint32_t)                                        /**< Size of the data packet header. */
 
 #ifdef S310_STACK
-    #define CODE_REGION_1_START         0x00020000                                              /**< This field should correspond to the size of Code Region 0, (which is identical to Start of Code Region 1), found in UICR.CLEN0 register. This value is used for compile safety, as the linker will fail if application expands into bootloader. Runtime, the bootloader will use the value found in UICR.CLEN0. */
+    #define CODE_REGION_1_START         0x0001C000 // was 0x00020000                                              /**< This field should correspond to the size of Code Region 0, (which is identical to Start of Code Region 1), found in UICR.CLEN0 register. This value is used for compile safety, as the linker will fail if application expands into bootloader. Runtime, the bootloader will use the value found in UICR.CLEN0. */
 #else
     #define CODE_REGION_1_START         0x00016000                                              /**< This field should correspond to the size of Code Region 0, (which is identical to Start of Code Region 1), found in UICR.CLEN0 register. This value is used for compile safety, as the linker will fail if application expands into bootloader. Runtime, the bootloader will use the value found in UICR.CLEN0. */
 #endif 
