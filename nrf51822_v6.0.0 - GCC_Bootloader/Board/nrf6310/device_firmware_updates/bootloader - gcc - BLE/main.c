@@ -87,7 +87,7 @@ void softdevice_assertion_handler(uint32_t pc, uint16_t line_num, const uint8_t 
 
 #define SCHED_QUEUE_SIZE                20 //10 doesn't matter                                                      /**< Maximum number of events in the scheduler queue. */
 
-#define	COMMAND_ENTER_RADIO_BOOTLOADER		1
+#define	COMMAND_ENTER_RADIO_BOOTLOADER		66
 
 /**@brief Function for error handling, which is called when an error has occurred. 
  *
@@ -269,7 +269,7 @@ int main(void)
 	timers_init();
 	gpiote_init();
 	config_uart();
-	write_string("Firmware 0.0.9\r\n", 16);
+	write_string("Firmware 0.1.0\r\n", 16);
 	//buttons_init();
 #if BOARD == CROWNSTONE
 	write_string("Init BLE stack\r\n", 16);
@@ -287,8 +287,11 @@ int main(void)
 	if (gpregret == COMMAND_ENTER_RADIO_BOOTLOADER) {
 		write_string("Manual request\r\n", 17);
 		manual_request = true;
+	} else if (gpregret == 0) {
+		write_string("Accidental reboot\r\n", 20);
 	} else {
-		write_string("No manual request\r\n", 19);
+		// just reset, do the same as with accidental reboot
+		write_string("Manual reset\r\n", 15);
 	}
 
 	bool valid_app = bootloader_app_is_valid(DFU_BANK_0_REGION_START);
