@@ -1,7 +1,6 @@
 #!/bin/bash
 
 compilation_mode=release
-compilation_mode=debug
 
 path="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
