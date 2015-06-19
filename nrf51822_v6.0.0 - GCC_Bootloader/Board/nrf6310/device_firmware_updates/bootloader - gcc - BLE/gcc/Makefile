@@ -1,5 +1,5 @@
 # Retrieve config settings
-include $(BLUENET_DIR)/CMakeBuild.config
+include $(BLUENET_CONFIG_DIR)/CMakeBuild.config
 
 #define PCA10001             0
 #define NRF6310              1
@@ -8,9 +8,13 @@ include $(BLUENET_DIR)/CMakeBuild.config
 #define RFDUINO              4
 #define CROWNSTONE           5
 #define NRF51422             6
+#define VIRTUALMEMO          7
+#define CROWNSTONE2          8
+#define CROWNSTONE_SENSOR    9
+#define PCA10000             10
 
 ifndef BOARD
-$(error BOARD is not set. Check BLUENET_DIR/CMakeBuild.config)
+$(error BOARD is not set. Check BLUENET_CONFIG_DIR/CMakeBuild.config)
 endif
 
 CFLAGS += -DBLE_STACK_SUPPORT_REQD -DBOOTLOADER_BANKED -DBLE_STACK_SUPPORT_REQD -DS$(SOFTDEVICE_SERIES) -DBOARD_NRF6310 -DBOARD=$(BOARD)

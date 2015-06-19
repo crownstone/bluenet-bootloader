@@ -17,7 +17,10 @@
 #define RFDUINO              4
 #define CROWNSTONE           5
 #define NRF51422             6
-
+#define VIRTUALMEMO          7
+#define CROWNSTONE2          8
+#define CROWNSTONE_SENSOR    9
+#define PCA10000             10
 
 // For the bootloader just hardcode for now
 //#define BOARD                NRF6310

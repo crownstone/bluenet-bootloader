@@ -205,7 +205,7 @@ static void ble_stack_init(void)
 	APP_ERROR_CHECK(err_code);
 #endif
 
-#if BOARD == CROWNSTONE
+#if (BOARD == CROWNSTONE || BOARD == CROWNSTONE2)
 	SOFTDEVICE_HANDLER_INIT(NRF_CLOCK_LFCLKSRC_RC_250_PPM_8000MS_CALIBRATION, false);
 #else
 	SOFTDEVICE_HANDLER_INIT(NRF_CLOCK_LFCLKSRC_XTAL_20_PPM, true);
@@ -271,11 +271,11 @@ int main(void)
 	config_uart();
 	write_string("Firmware 0.1.0\r\n", 16);
 	//buttons_init();
-#if BOARD == CROWNSTONE
+#if (BOARD == CROWNSTONE || BOARD == CROWNSTONE2)
 	write_string("Init BLE stack\r\n", 16);
 #endif
 	ble_stack_init();
-#if BOARD == CROWNSTONE
+#if (BOARD == CROWNSTONE || BOARD == CROWNSTONE2)
 	write_string("Init scheduler\r\n", 16);
 #endif
 	scheduler_init();
