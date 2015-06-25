@@ -17,9 +17,9 @@
  * @ingroup dfu_bootloader_api
  * @brief Bootloader project main file.
  *
- * -# Receive start data package. 
- * -# Based on start packet, prepare NVM area to store received data. 
- * -# Receive data packet. 
+ * -# Receive start data package.
+ * -# Based on start packet, prepare NVM area to store received data.
+ * -# Receive data packet.
  * -# Validate data packet.
  * -# Write Data packet to NVM.
  * -# If not finished - Wait for next packet.
@@ -61,7 +61,7 @@
 #ifdef SERIAL
 #include "serial.h"
 #endif
-#include "dobots_boards.h"
+#include "cs_Boards.h"
 
 #ifndef SERIAL
 static void stub0() {}
@@ -89,17 +89,17 @@ void softdevice_assertion_handler(uint32_t pc, uint16_t line_num, const uint8_t 
 
 #define	COMMAND_ENTER_RADIO_BOOTLOADER		66
 
-/**@brief Function for error handling, which is called when an error has occurred. 
+/**@brief Function for error handling, which is called when an error has occurred.
  *
- * @warning This handler is an example only and does not fit a final product. You need to analyze 
+ * @warning This handler is an example only and does not fit a final product. You need to analyze
  *          how your product is supposed to react in case of error.
  *
  * @param[in] error_code  Error code supplied to the handler.
  * @param[in] line_num    Line number where the handler is called.
- * @param[in] p_file_name Pointer to the file name. 
+ * @param[in] p_file_name Pointer to the file name.
  */
 void app_error_handler(uint32_t error_code, uint32_t line_num, const uint8_t * p_file_name)
-{    
+{
 	//nrf_gpio_pin_set(LED_7);
 	// This call can be used for debug purposes during application development.
 	// @note CAUTION: Activating this code will write the stack to flash on an error.
@@ -111,11 +111,11 @@ void app_error_handler(uint32_t error_code, uint32_t line_num, const uint8_t * p
 	// ble_debug_assert_handler(error_code, line_num, p_file_name);
 
 	// On assert, the system can only recover on reset.
-	volatile uint32_t error __attribute__((unused)) = error_code;                                                   
-	volatile uint16_t line __attribute__((unused)) = line_num;                                                      
-	volatile const uint8_t* file __attribute__((unused)) = p_file_name;                                             
-	__asm("BKPT");                                                                                                  
-	while(1) {}     
+	volatile uint32_t error __attribute__((unused)) = error_code;
+	volatile uint16_t line __attribute__((unused)) = line_num;
+	volatile const uint8_t* file __attribute__((unused)) = p_file_name;
+	__asm("BKPT");
+	while(1) {}
 
 	// NVIC_SystemReset();
 }
@@ -125,7 +125,7 @@ void app_error_handler(uint32_t error_code, uint32_t line_num, const uint8_t * p
  *
  * @details This function will be called in case of an assert in the SoftDevice.
  *
- * @warning This handler is an example only and does not fit a final product. You need to analyze 
+ * @warning This handler is an example only and does not fit a final product. You need to analyze
  *          how your product is supposed to react in case of Assert.
  * @warning On assert from the SoftDevice, the system can only recover on reset.
  *
@@ -160,9 +160,9 @@ static void timers_init(void)
 */
 /*
 	static void buttons_init(void)
-	{   
+	{
 	nrf_gpio_cfg_sense_input(BOOTLOADER_BUTTON_PIN,
-	BUTTON_PULL, 
+	BUTTON_PULL,
 	NRF_GPIO_PIN_SENSE_LOW);
 	}
 	*/
@@ -205,14 +205,14 @@ static void ble_stack_init(void)
 	APP_ERROR_CHECK(err_code);
 #endif
 
-#if BOARD == CROWNSTONE
+#if(HARDWARE_BOARD == CROWNSTONE || HARDWARE_BOARD == CROWNSTONE2)
 	SOFTDEVICE_HANDLER_INIT(NRF_CLOCK_LFCLKSRC_RC_250_PPM_8000MS_CALIBRATION, false);
 #else
 	SOFTDEVICE_HANDLER_INIT(NRF_CLOCK_LFCLKSRC_XTAL_20_PPM, true);
 #endif
 
 #ifndef S310_STACK
-	// Enable BLE stack 
+	// Enable BLE stack
 	ble_enable_params_t ble_enable_params;
 	memset(&ble_enable_params, 0, sizeof(ble_enable_params));
 	ble_enable_params.gatts_enable_params.service_changed = IS_SRVC_CHANGED_CHARACT_PRESENT;
@@ -225,8 +225,8 @@ static void ble_stack_init(void)
 }
 
 static void clk_init() {
-	//start up crystal HF clock. 
-	NRF_CLOCK->TASKS_HFCLKSTART = 1; 
+	//start up crystal HF clock.
+	NRF_CLOCK->TASKS_HFCLKSTART = 1;
 	while(!NRF_CLOCK->EVENTS_HFCLKSTARTED);
 
 	// generate clock, RC=0, XTAL=1, SYNTH=2
@@ -235,10 +235,10 @@ static void clk_init() {
 //	NRF_CLOCK->LFCLKSRC = (CLOCK_LFCLKSRC_SRC_RC << CLOCK_LFCLKSRC_SRC_Pos);
 //#endif
 	NRF_CLOCK->EVENTS_LFCLKSTARTED = 0;
-	NRF_CLOCK->TASKS_LFCLKSTART = 1; 
+	NRF_CLOCK->TASKS_LFCLKSTART = 1;
 	while(!NRF_CLOCK->EVENTS_LFCLKSTARTED);
 
-	NRF_POWER->TASKS_CONSTLAT = 1; 
+	NRF_POWER->TASKS_CONSTLAT = 1;
 }
 
 /**@brief Function for event scheduler initialization.
@@ -271,11 +271,11 @@ int main(void)
 	config_uart();
 	write_string("Firmware 0.1.0\r\n", 16);
 	//buttons_init();
-#if BOARD == CROWNSTONE
+#if(HARDWARE_BOARD == CROWNSTONE || HARDWARE_BOARD == CROWNSTONE2)
 	write_string("Init BLE stack\r\n", 16);
 #endif
 	ble_stack_init();
-#if BOARD == CROWNSTONE
+#if(HARDWARE_BOARD == CROWNSTONE || HARDWARE_BOARD == CROWNSTONE2)
 	write_string("Init scheduler\r\n", 16);
 #endif
 	scheduler_init();

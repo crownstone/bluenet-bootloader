@@ -1,20 +1,22 @@
 # Retrieve config settings
 include $(BLUENET_DIR)/CMakeBuild.config
 
-#define PCA10001             0
-#define NRF6310              1
-#define NRF51822_DONGLE      2
-#define NRF51822_EVKIT       3
-#define RFDUINO              4
-#define CROWNSTONE           5
-#define NRF51422             6
+# Check that file to know how to set HARDWARE_BOARD
 
-ifndef BOARD
-$(error BOARD is not set. Check BLUENET_DIR/CMakeBuild.config)
+ifndef HARDWARE_BOARD
+$(error HARDWARE_BOARD is not set. Check BLUENET_DIR/CMakeBuild.config)
 endif
 
-CFLAGS += -DBLE_STACK_SUPPORT_REQD -DBOOTLOADER_BANKED -DBLE_STACK_SUPPORT_REQD -DS$(SOFTDEVICE_SERIES) -DBOARD_NRF6310 -DBOARD=$(BOARD)
+CFLAGS += -DBLE_STACK_SUPPORT_REQD -DBOOTLOADER_BANKED -DBLE_STACK_SUPPORT_REQD -DS$(SOFTDEVICE_SERIES)
 
+# Required by Nordic specific files
+CFLAGS += -DBOARD_NRF6310
+
+# Required for writing to proper gpio pins
+CFLAGS += -DHARDWARE_BOARD=$(HARDWARE_BOARD)
+CFLAGS += -DHARDWARE_VERSION=$(HARDWARE_VERSION)
+
+# Required to address the softdevice properly
 ifeq ($(SOFTDEVICE_SERIES),130)
 	CFLAGS += -DS310_STACK
 endif
@@ -56,6 +58,8 @@ INCLUDEPATHS += -I"$(SDK_PATH)Include/s$(SOFTDEVICE_SERIES)/"
 INCLUDEPATHS += -I"../include/ble_transport"
 INCLUDEPATHS += -I"../include"
 INCLUDEPATHS += -I"../"
+
+INCLUDEPATHS += -I"$(BLUENET_DIR)/include/cfg"
 
 DEVICE_VARIANT := xxaa
 #DEVICE_VARIANT := xxab

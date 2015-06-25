@@ -11,7 +11,7 @@
 #include "nrf_gpio.h"
 #include "nrf51.h"
 //#include "nRF51822.h"
-#include "dobots_boards.h"
+#include "cs_Boards.h"
 
 #define NRF_UART_9600_BAUD  0x00275000UL
 #define NRF_UART_38400_BAUD 0x009D5000UL
@@ -21,11 +21,11 @@
  */
 void config_uart() {
 	// Enable UART
-	NRF_UART0->ENABLE = 0x04; 
+	NRF_UART0->ENABLE = 0x04;
 
 	// Configure UART pins
-	NRF_UART0->PSELRXD = PIN_RX;  
-	NRF_UART0->PSELTXD = PIN_TX; 
+	NRF_UART0->PSELRXD = PIN_GPIO_RX;
+	NRF_UART0->PSELTXD = PIN_GPIO_TX;
 
 	//NRF_UART0->CONFIG = NRF_UART0->CONFIG_HWFC_ENABLED; // do not enable hardware flow control.
 	NRF_UART0->BAUDRATE = NRF_UART_38400_BAUD;
