@@ -1,10 +1,13 @@
 # Retrieve config settings
-include $(BLUENET_DIR)/CMakeBuild.config
+ifndef BLUENET_CONFIG_DIR
+$(error BLUENET_CONFIG_DIR is not set. Make sure it is set: not just BLUENET_DIR)
+endif
 
+include $(BLUENET_CONFIG_DIR)/CMakeBuild.config
 # Check that file to know how to set HARDWARE_BOARD
 
 ifndef HARDWARE_BOARD
-$(error HARDWARE_BOARD is not set. Check BLUENET_DIR/CMakeBuild.config)
+$(error HARDWARE_BOARD is not set. Check BLUENET_CONFIG_DIR/CMakeBuild.config)
 endif
 
 CFLAGS += -DBLE_STACK_SUPPORT_REQD -DBOOTLOADER_BANKED -DBLE_STACK_SUPPORT_REQD -DS$(SOFTDEVICE_SERIES)
@@ -58,6 +61,10 @@ INCLUDEPATHS += -I"$(SDK_PATH)Include/s$(SOFTDEVICE_SERIES)/"
 INCLUDEPATHS += -I"../include/ble_transport"
 INCLUDEPATHS += -I"../include"
 INCLUDEPATHS += -I"../"
+
+ifndef BLUENET_DIR
+$(error BLUENET_DIR is not set. Make sure it is set!)
+endif
 
 INCLUDEPATHS += -I"$(BLUENET_DIR)/include/cfg"
 
