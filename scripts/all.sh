@@ -4,6 +4,7 @@ compilation_mode=release
 
 path="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
+. ${path}/check_targets.sh $1
 source ${path}/config.sh
 
 objcopy=${COMPILER_PATH}/bin/${COMPILER_TYPE}-objcopy
@@ -37,5 +38,5 @@ $objsize bootloader.elf
 # copy to target path
 echo "++ Copy files to $output_path"
 cp bootloader.bin $output_path
-cp bootloader.elf $output_path 
-cp bootloader.hex $output_path 
+cp bootloader.elf $output_path
+cp bootloader.hex $output_path
