@@ -25,7 +25,6 @@
 #include "ble_gap.h"
 #include "ble_gatt.h"
 #include "ble_hci.h"
-#include "boards.h"
 #include "ble_dfu.h"
 #include "nordic_common.h"
 #include "app_timer.h"
@@ -35,9 +34,11 @@
 #include <stddef.h>
 #include <string.h>
 
-#define ADVERTISING_LED_PIN_NO               LED_0                                                   /**< Is on when device is advertising. */
-#define CONNECTED_LED_PIN_NO                 LED_1                                                   /**< Is on when device has connected. */
-#define ASSERT_LED_PIN_NO                    LED_7                                                   /**< Is on when application has asserted. */
+#include "cs_Boards.h"
+
+#define ADVERTISING_LED_PIN_NO               PIN_GPIO_LED0                                           /**< Is on when device is advertising. */
+#define CONNECTED_LED_PIN_NO                 PIN_GPIO_LED1                                           /**< Is on when device has connected. */
+#define ASSERT_LED_PIN_NO                    PIN_GPIO_LED0                                           /**< Is on when application has asserted. */
 
 
 #define DEVICE_NAME                          "DfuTarg"                                               /**< Name of device. Will be included in the advertising data. */
