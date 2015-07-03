@@ -4,7 +4,7 @@ compilation_mode=release
 
 path="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
-. ${path}/check_targets.sh $1
+. ${path}/check_targets.sh
 source ${path}/config.sh
 
 objcopy=${COMPILER_PATH}/bin/${COMPILER_TYPE}-objcopy
