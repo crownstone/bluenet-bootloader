@@ -132,7 +132,7 @@ uint32_t dfu_init(void)
     m_init_packet_length  = 0;
     m_image_crc           = 0;    
            
-    err_code = pstorage_raw_register(&m_storage_module_param, &m_storage_handle_app);
+    err_code = pstorage_register(&m_storage_module_param, &m_storage_handle_app);
     if (err_code != NRF_SUCCESS)
     {
         m_dfu_state = DFU_STATE_INIT_ERROR;
@@ -146,7 +146,7 @@ uint32_t dfu_init(void)
     bootloader_settings_get(&bootloader_settings);
     if ((bootloader_settings.bank_1 != BANK_ERASED) || (*p_bank_start_address != EMPTY_FLASH_MASK))
     {
-        err_code = pstorage_raw_clear(&m_storage_handle_swap, DFU_IMAGE_MAX_SIZE_BANKED);
+        err_code = pstorage_clear(&m_storage_handle_swap, DFU_IMAGE_MAX_SIZE_BANKED);
         if (err_code != NRF_SUCCESS)
         {
             m_dfu_state = DFU_STATE_INIT_ERROR;
@@ -272,7 +272,7 @@ uint32_t dfu_data_pkt_handle(dfu_update_packet_t * p_packet)
 
             p_data = (uint32_t *)p_packet->p_data_packet;
 
-            err_code = pstorage_raw_store(&m_storage_handle_swap, (uint8_t*) p_data, data_length, m_app_data_received);
+            err_code = pstorage_store(&m_storage_handle_swap, (uint8_t*) p_data, data_length, m_app_data_received);
             if (err_code != NRF_SUCCESS)
             {
                 return err_code;
@@ -404,10 +404,10 @@ uint32_t dfu_image_activate()
             APP_ERROR_CHECK(err_code);
             
             // Erase BANK 0.
-            err_code = pstorage_raw_clear(&m_storage_handle_app, m_image_size);
+            err_code = pstorage_clear(&m_storage_handle_app, m_image_size);
             APP_ERROR_CHECK(err_code);
 
-            err_code = pstorage_raw_store(&m_storage_handle_app, (uint8_t*) m_storage_handle_swap.block_id, m_image_size, 0);
+            err_code = pstorage_store(&m_storage_handle_app, (uint8_t*) m_storage_handle_swap.block_id, m_image_size, 0);
 
             if (err_code == NRF_SUCCESS)
             {

@@ -25,7 +25,7 @@
 #include "pstorage.h"
 #include "app_scheduler.h"
 #include "nrf_gpio.h"
-#ifdef S130
+#if (SOFTDEVICE_SERIES == 130)
 #include "nrf_mbr.h"
 #endif
 
@@ -268,7 +268,7 @@ void bootloader_app_start(uint32_t app_addr)
 	uint32_t err_code;
 
 // there is currently a bug in S130 that doesn't allow us to disable the softdevice
-#ifndef S130
+#if (SOFTDEVICE_SERIES != 130)
     // If the applications CRC has been checked and passed, the magic number will be written and we
     // can start the application safely.
     err_code = sd_softdevice_disable();
@@ -277,14 +277,12 @@ void bootloader_app_start(uint32_t app_addr)
     interrupts_disable();
 
 #ifdef S310_STACK
-#ifdef S130
-    err_code = sd_softdevice_vector_table_base_set(CODE_REGION_1_START);
-#else
     err_code = sd_softdevice_forward_to_application();
-#endif
+#elseif (SOFTDEVICE_SERIES == 130)
+    err_code = sd_softdevice_vector_table_base_set(CODE_REGION_1_START);
 #else
     err_code = sd_softdevice_vector_table_base_set(CODE_REGION_1_START);
-#endif 
+#endif
 
     APP_ERROR_CHECK(err_code);
 

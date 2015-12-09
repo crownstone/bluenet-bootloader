@@ -38,9 +38,6 @@
 #ifndef S310_STACK
 #include "nrf_mbr.h"
 #endif // S310_STACK
-#ifdef S130
-#include "nrf_mbr.h"
-#endif
 #include "app_error.h"
 #include "nrf_gpio.h"
 #include "nrf51_bitfields.h"
@@ -83,11 +80,17 @@ void softdevice_assertion_handler(uint32_t pc, uint16_t line_num, const uint8_t 
 
 //#define BUTTON_DETECTION_DELAY          APP_TIMER_TICKS(50, APP_TIMER_PRESCALER)                /**< Delay from a GPIOTE event until a button is reported as pushed (in number of timer ticks). */
 
-#define SCHED_MAX_EVENT_DATA_SIZE       MAX(APP_TIMER_SCHED_EVT_SIZE, 0)                        /**< Maximum size of scheduler events. */
+//#define SCHED_MAX_EVENT_DATA_SIZE       MAX(APP_TIMER_SCHED_EVT_SIZE, 0)                        /**< Maximum size of scheduler events. */
+
+/* Maximum size of scheduler events. */
+#define SCHED_MAX_EVENT_DATA_SIZE       ((CEIL_DIV(MAX(MAX(BLE_STACK_EVT_MSG_BUF_SIZE,        \
+                                                           ANT_STACK_EVT_STRUCT_SIZE),        \
+                                                           SYS_EVT_MSG_BUF_SIZE),             \
+                                                           sizeof(uint32_t))) * sizeof(uint32_t))
 
 #define SCHED_QUEUE_SIZE                20 //10 doesn't matter                                                      /**< Maximum number of events in the scheduler queue. */
 
-#define	COMMAND_ENTER_RADIO_BOOTLOADER		66
+#define	COMMAND_ENTER_RADIO_BOOTLOADER  66
 
 /**@brief Function for error handling, which is called when an error has occurred.
  *
@@ -152,7 +155,7 @@ static void gpiote_init(void)
 static void timers_init(void)
 {
 	// Initialize timer module, making it use the scheduler.
-	APP_TIMER_INIT(APP_TIMER_PRESCALER, APP_TIMER_MAX_TIMERS, APP_TIMER_OP_QUEUE_SIZE, true);
+	APP_TIMER_INIT(APP_TIMER_PRESCALER, APP_TIMER_MAX_TIMERS, APP_TIMER_OP_QUEUE_SIZE, NULL);
 }
 
 
@@ -187,16 +190,8 @@ static void ble_stack_init(void)
 {
 	uint32_t err_code;
 
-#ifndef S310_STACK
-	sd_mbr_command_t com = {SD_MBR_COMMAND_INIT_SD, };
-	err_code = sd_mbr_command(&com);
-	APP_ERROR_CHECK(err_code);
-
-	err_code = sd_softdevice_vector_table_base_set(BOOTLOADER_REGION_START);
-	APP_ERROR_CHECK(err_code);
-#endif // S310_STACK
-
-#ifdef S130
+//#ifndef S310_STACK
+#if !(defined(S310_STACK) || SOFTDEVICE_SERIES == 130)
 	sd_mbr_command_t com = {SD_MBR_COMMAND_INIT_SD, };
 	err_code = sd_mbr_command(&com);
 	APP_ERROR_CHECK(err_code);
@@ -205,40 +200,89 @@ static void ble_stack_init(void)
 	APP_ERROR_CHECK(err_code);
 #endif
 
-#if(HARDWARE_BOARD == CROWNSTONE || HARDWARE_BOARD == CROWNSTONE2)
-	SOFTDEVICE_HANDLER_INIT(NRF_CLOCK_LFCLKSRC_RC_250_PPM_8000MS_CALIBRATION, false);
-#else
-	SOFTDEVICE_HANDLER_INIT(NRF_CLOCK_LFCLKSRC_XTAL_20_PPM, true);
-#endif
+//#if(HARDWARE_BOARD == CROWNSTONE || HARDWARE_BOARD == CROWNSTONE2)
+	//SOFTDEVICE_HANDLER_INIT(NRF_CLOCK_LFCLKSRC_RC_250_PPM_8000MS_CALIBRATION, false);
+//#else
+	//SOFTDEVICE_HANDLER_INIT(NRF_CLOCK_LFCLKSRC_XTAL_20_PPM, true);
+//#endif
+	SOFTDEVICE_HANDLER_INIT(NRF_CLOCK_LFCLKSRC_RC_250_PPM_TEMP_8000MS_CALIBRATION, false);
 
-#ifndef S310_STACK
+//#ifndef S310_STACK
+#if !(defined(S310_STACK) || SOFTDEVICE_SERIES == 130)
 	// Enable BLE stack
 	ble_enable_params_t ble_enable_params;
 	memset(&ble_enable_params, 0, sizeof(ble_enable_params));
 	ble_enable_params.gatts_enable_params.service_changed = IS_SRVC_CHANGED_CHARACT_PRESENT;
 	err_code = sd_ble_enable(&ble_enable_params);
 	APP_ERROR_CHECK(err_code);
-#endif // S310_STACK
+#endif
 
 	err_code = softdevice_sys_evt_handler_set(sys_evt_dispatch);
 	APP_ERROR_CHECK(err_code);
 }
 
 static void clk_init() {
-	//start up crystal HF clock.
-	NRF_CLOCK->TASKS_HFCLKSTART = 1;
-	while(!NRF_CLOCK->EVENTS_HFCLKSTARTED);
+	////start up crystal HF clock.
+	//NRF_CLOCK->TASKS_HFCLKSTART = 1;
+	//while(!NRF_CLOCK->EVENTS_HFCLKSTARTED);
 
-	// generate clock, RC=0, XTAL=1, SYNTH=2
-	NRF_CLOCK->LFCLKSRC = 2; // (CLOCK_LFCLKSRC_SRC_SYNTH << CLOCK_LFCLKSRC_SRC_Pos);
-//#else
-//	NRF_CLOCK->LFCLKSRC = (CLOCK_LFCLKSRC_SRC_RC << CLOCK_LFCLKSRC_SRC_Pos);
-//#endif
+	//// generate clock, RC=0, XTAL=1, SYNTH=2
+	//NRF_CLOCK->LFCLKSRC = 2; // (CLOCK_LFCLKSRC_SRC_SYNTH << CLOCK_LFCLKSRC_SRC_Pos);
+////#else
+////	NRF_CLOCK->LFCLKSRC = (CLOCK_LFCLKSRC_SRC_RC << CLOCK_LFCLKSRC_SRC_Pos);
+////#endif
+	//NRF_CLOCK->EVENTS_LFCLKSTARTED = 0;
+	//NRF_CLOCK->TASKS_LFCLKSTART = 1;
+	//while(!NRF_CLOCK->EVENTS_LFCLKSTARTED);
+
+	//NRF_POWER->TASKS_CONSTLAT = 1;
+	
+	
+	// Copied from cs_sysNrf51
+		// start up crystal LF clock.
 	NRF_CLOCK->EVENTS_LFCLKSTARTED = 0;
-	NRF_CLOCK->TASKS_LFCLKSTART = 1;
-	while(!NRF_CLOCK->EVENTS_LFCLKSTARTED);
+#if LOW_POWER_MODE==0
+	/**
+	 * The RFduino synthesizes the low frequency clock from the high frequency clock. There is no external crystal
+	 * that can be used. It doesn't seem from the datasheets that there is a pin open for a crystal...
+	 * Synthesizing the clock is of course not very energy efficient.
+	 *
+	 * Clock runs on 32768 Hz and is generated from the 16 MHz system clock
+	 */
+	// start up crystal HF clock.
+	NRF_CLOCK->TASKS_HFCLKSTART = 1;
+	while(!NRF_CLOCK->EVENTS_HFCLKSTARTED) /* wait */;
 
+	NRF_CLOCK->LFCLKSRC = CLOCK_LFCLKSRC_SRC_Synth;
+#else
+	// Explicitly don't start the HF clock
+	NRF_CLOCK->TASKS_HFCLKSTART = 0;
+
+	// TODO: make dependable on board
+
+	// Best option, but requires a 32kHz crystal on the pcb
+//	NRF_CLOCK->LFCLKSRC = CLOCK_LFCLKSRC_SRC_Xtal << CLOCK_LFCLKSRC_SRC_Pos;
+
+	// Internal oscillator
+    NRF_CLOCK->LFCLKSRC = CLOCK_LFCLKSRC_SRC_RC << CLOCK_LFCLKSRC_SRC_Pos;
+#endif
+
+	NRF_CLOCK->TASKS_LFCLKSTART = 1;
+	while(!NRF_CLOCK->EVENTS_LFCLKSTARTED) /* wait */;
+//	NRF_CLOCK->EVENTS_LFCLKSTARTED = 0;
+
+	/*
+	 * There are two power modes in the nRF51, system ON, and system OFF. The former has two sub power modes. The
+	 * first is called "Constant Latency", the second is called "Low Power". The latter is saving most of the
+	 * power, the former keeps the CPU wakeup latency and automated task response at a minimum, but some resources
+	 * will be kept active when the device is in sleep mode, such as the 16MHz clock.
+	 */
+#if LOW_POWER_MODE==0
+	// enable constant latency mode.
 	NRF_POWER->TASKS_CONSTLAT = 1;
+#else
+	NRF_POWER->TASKS_LOWPWR = 1;
+#endif
 }
 
 /**@brief Function for event scheduler initialization.
@@ -257,10 +301,10 @@ int main(void)
 	//sd_mbr_command_t com = {SD_MBR_COMMAND_INIT_SD, };
 	//err_code = sd_mbr_command(&com);
 
-#ifdef S130
+#if (SOFTDEVICE_SERIES == 130)
 	clk_init();
 #endif
-	//bool     bootloader_is_pushed = false;
+	//bool bootloader_is_pushed = false;
 
 	APP_ERROR_CHECK_BOOL(*((uint32_t *)NRF_UICR_BOOT_START_ADDRESS) == BOOTLOADER_REGION_START);
 	APP_ERROR_CHECK_BOOL(NRF_FICR->CODEPAGESIZE == CODE_PAGE_SIZE);

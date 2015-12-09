@@ -597,15 +597,16 @@ static void on_ble_evt(ble_evt_t * p_ble_evt)
             break;
 
         case BLE_GAP_EVT_SEC_PARAMS_REQUEST:
-#ifdef S130
+#if (SOFTDEVICE_SERIES == 130)
             err_code = sd_ble_gap_sec_params_reply(m_conn_handle,
                                                    BLE_GAP_SEC_STATUS_SUCCESS,
                                                    &m_sec_params,
-						   NULL);
+                                                   NULL);
 #else
             err_code = sd_ble_gap_sec_params_reply(m_conn_handle,
                                                    BLE_GAP_SEC_STATUS_SUCCESS,
-                                                   &m_sec_params);
+                                                   &m_sec_params,
+                                                   NULL);
 #endif
             APP_ERROR_CHECK(err_code);
             break;
@@ -620,7 +621,8 @@ static void on_ble_evt(ble_evt_t * p_ble_evt)
             break;
 
         case BLE_GATTS_EVT_SYS_ATTR_MISSING:
-            err_code = sd_ble_gatts_sys_attr_set(m_conn_handle, NULL, 0);
+            err_code = sd_ble_gatts_sys_attr_set(m_conn_handle, NULL, 0, 0);
+            
             APP_ERROR_CHECK(err_code);
             break;
 
@@ -710,8 +712,9 @@ static void advertising_init(void)
 
     advdata.name_type                     = BLE_ADVDATA_FULL_NAME;
     advdata.include_appearance            = false;
-    advdata.flags.size                    = sizeof(flags);
-    advdata.flags.p_data                  = &flags;
+    //advdata.flags.size                    = sizeof(flags);
+    //advdata.flags.p_data                  = &flags;
+    advdata.flags = flags;
     advdata.uuids_more_available.uuid_cnt = 1;
     advdata.uuids_more_available.p_uuids  = &service_uuid;
 
@@ -765,7 +768,7 @@ static void services_init(void)
  */
 static void sec_params_init(void)
 {
-#ifndef S130
+#if SOFTDEVICE_SERIES==110 && SOFTDEVICE_MAJOR!=8
     m_sec_params.timeout      = SEC_PARAM_TIMEOUT;
 #endif
     m_sec_params.bond         = SEC_PARAM_BOND;
