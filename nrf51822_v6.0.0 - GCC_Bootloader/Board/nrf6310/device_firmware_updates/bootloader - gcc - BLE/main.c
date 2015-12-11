@@ -35,9 +35,9 @@
 #include <stddef.h>
 #include "nordic_common.h"
 #include "nrf.h"
-#ifndef S310_STACK
+//#ifndef S310_STACK
 #include "nrf_mbr.h"
-#endif // S310_STACK
+//#endif // S310_STACK
 #include "app_error.h"
 #include "nrf_gpio.h"
 #include "nrf51_bitfields.h"
@@ -45,12 +45,14 @@
 #include "nrf51.h"
 #include "ble_hci.h"
 #include "app_scheduler.h"
-#include "app_timer.h"
-#include "app_gpiote.h"
+#include "app_timer_appsh.h"
+//#include "app_timer.h"
+//#include "app_gpiote.h"
 #include "nrf_error.h"
 // #include "boards.h"
-#include "ble_debug_assert_handler.h"
-#include "softdevice_handler.h"
+//#include "ble_debug_assert_handler.h"
+//#include "softdevice_handler.h"
+#include "softdevice_handler_appsh.h"
 #include "pstorage_platform.h"
 
 #define SERIAL
@@ -83,10 +85,13 @@ void softdevice_assertion_handler(uint32_t pc, uint16_t line_num, const uint8_t 
 //#define SCHED_MAX_EVENT_DATA_SIZE       MAX(APP_TIMER_SCHED_EVT_SIZE, 0)                        /**< Maximum size of scheduler events. */
 
 /* Maximum size of scheduler events. */
+/*
 #define SCHED_MAX_EVENT_DATA_SIZE       ((CEIL_DIV(MAX(MAX(BLE_STACK_EVT_MSG_BUF_SIZE,        \
                                                            ANT_STACK_EVT_STRUCT_SIZE),        \
                                                            SYS_EVT_MSG_BUF_SIZE),             \
                                                            sizeof(uint32_t))) * sizeof(uint32_t))
+*/
+#define SCHED_MAX_EVENT_DATA_SIZE       MAX(APP_TIMER_SCHED_EVT_SIZE, 0)
 
 #define SCHED_QUEUE_SIZE                20 //10 doesn't matter                                                      /**< Maximum number of events in the scheduler queue. */
 
@@ -111,7 +116,7 @@ void app_error_handler(uint32_t error_code, uint32_t line_num, const uint8_t * p
 	//                The flash write will happen EVEN if the radio is active, thus interrupting
 	//                any communication.
 	//                Use with care. Un-comment the line below to use.
-	// ble_debug_assert_handler(error_code, line_num, p_file_name);
+	//ble_debug_assert_handler(error_code, line_num, p_file_name);
 
 	// On assert, the system can only recover on reset.
 	volatile uint32_t error __attribute__((unused)) = error_code;
@@ -144,7 +149,7 @@ void assert_nrf_callback(uint16_t line_num, const uint8_t * p_file_name)
 */
 static void gpiote_init(void)
 {
-	APP_GPIOTE_INIT(APP_GPIOTE_MAX_USERS);
+//	APP_GPIOTE_INIT(APP_GPIOTE_MAX_USERS);
 }
 
 
@@ -154,8 +159,10 @@ static void gpiote_init(void)
  */
 static void timers_init(void)
 {
+//	// Initialize timer module, making it use the scheduler.
+//	APP_TIMER_INIT(APP_TIMER_PRESCALER, APP_TIMER_MAX_TIMERS, APP_TIMER_OP_QUEUE_SIZE, NULL);
 	// Initialize timer module, making it use the scheduler.
-	APP_TIMER_INIT(APP_TIMER_PRESCALER, APP_TIMER_MAX_TIMERS, APP_TIMER_OP_QUEUE_SIZE, NULL);
+	APP_TIMER_APPSH_INIT(APP_TIMER_PRESCALER, APP_TIMER_MAX_TIMERS, APP_TIMER_OP_QUEUE_SIZE, true);
 }
 
 
@@ -168,7 +175,7 @@ static void timers_init(void)
 	BUTTON_PULL,
 	NRF_GPIO_PIN_SENSE_LOW);
 	}
-	*/
+*/
 
 /**@brief Function for dispatching a BLE stack event to all modules with a BLE stack event handler.
  *
@@ -186,6 +193,7 @@ static void sys_evt_dispatch(uint32_t event)
  *
  * @details Initializes the SoftDevice and the BLE event interrupt.
  */
+/*
 static void ble_stack_init(void)
 {
 	uint32_t err_code;
@@ -220,6 +228,49 @@ static void ble_stack_init(void)
 	err_code = softdevice_sys_evt_handler_set(sys_evt_dispatch);
 	APP_ERROR_CHECK(err_code);
 }
+*/
+
+/**@brief Function for initializing the BLE stack.
+ *
+ * @details Initializes the SoftDevice and the BLE event interrupt.
+ *
+ * @param[in] init_softdevice  true if SoftDevice should be initialized. The SoftDevice must only 
+ *                             be initialized if a chip reset has occured. Soft reset from 
+ *                             application must not reinitialize the SoftDevice.
+ */
+static void ble_stack_init(bool init_softdevice)
+{
+    uint32_t err_code;
+    sd_mbr_command_t com = {SD_MBR_COMMAND_INIT_SD, };
+
+    if (init_softdevice)
+    {
+        err_code = sd_mbr_command(&com);
+        APP_ERROR_CHECK(err_code);
+    }
+    
+    err_code = sd_softdevice_vector_table_base_set(BOOTLOADER_REGION_START);
+    APP_ERROR_CHECK(err_code);
+   
+    //SOFTDEVICE_HANDLER_APPSH_INIT(NRF_CLOCK_LFCLKSRC_XTAL_20_PPM, true);
+    SOFTDEVICE_HANDLER_APPSH_INIT(NRF_CLOCK_LFCLKSRC_RC_250_PPM_TEMP_8000MS_CALIBRATION, true);
+
+    // Enable BLE stack 
+    ble_enable_params_t ble_enable_params;
+    memset(&ble_enable_params, 0, sizeof(ble_enable_params));
+    
+    // Below code line is needed for s130. For s110 is inrrelevant - but executable
+    // can run with both s130 and s110.
+    ble_enable_params.gatts_enable_params.attr_tab_size   = BLE_GATTS_ATTR_TAB_SIZE_DEFAULT;
+
+    ble_enable_params.gatts_enable_params.service_changed = IS_SRVC_CHANGED_CHARACT_PRESENT;
+    err_code = sd_ble_enable(&ble_enable_params);
+    APP_ERROR_CHECK(err_code);
+    
+    err_code = softdevice_sys_evt_handler_set(sys_evt_dispatch);
+    APP_ERROR_CHECK(err_code);
+}
+
 
 static void clk_init() {
 	////start up crystal HF clock.
@@ -292,72 +343,118 @@ static void scheduler_init(void)
 	APP_SCHED_INIT(SCHED_MAX_EVENT_DATA_SIZE, SCHED_QUEUE_SIZE);
 }
 
+void get_dec_str(char* str, size_t len, uint32_t val)
+{
+	uint8_t i;
+	for(i=1; i<=len; i++)
+	{
+		if (val == 0) {
+			str[len-i] = '0';
+		} else {
+			str[len-i] = (uint8_t) ((val % 10UL) + '0');
+			val/=10;
+		}
+	}
+	str[i-1] = '\0';
+}
+
 
 /**@brief Function for application main entry.
 */
 int main(void)
 {
 	uint32_t err_code;
-	//sd_mbr_command_t com = {SD_MBR_COMMAND_INIT_SD, };
-	//err_code = sd_mbr_command(&com);
+	bool app_reset = (NRF_POWER->GPREGRET == BOOTLOADER_DFU_START);
+	if (app_reset) {
+		NRF_POWER->GPREGRET = 0;
+	}
+	
+//	sd_mbr_command_t com = {SD_MBR_COMMAND_INIT_SD, };
+//	err_code = sd_mbr_command(&com);
 
-#if (SOFTDEVICE_SERIES == 130)
-	clk_init();
-#endif
+//#if (SOFTDEVICE_SERIES == 130)
+//	clk_init();
+//#endif
 	//bool bootloader_is_pushed = false;
 
+	// This check ensures that the defined fields in the bootloader corresponds with actual setting in the nRF51 chip.
 	APP_ERROR_CHECK_BOOL(*((uint32_t *)NRF_UICR_BOOT_START_ADDRESS) == BOOTLOADER_REGION_START);
 	APP_ERROR_CHECK_BOOL(NRF_FICR->CODEPAGESIZE == CODE_PAGE_SIZE);
 
 	// Initialize.
 	timers_init();
-	gpiote_init();
+//	gpiote_init();
 	config_uart();
+	bootloader_init();
 	write_string("Firmware 0.1.0\r\n", 16);
-	//buttons_init();
-#if(HARDWARE_BOARD == CROWNSTONE || HARDWARE_BOARD == CROWNSTONE2)
-	write_string("Init BLE stack\r\n", 16);
-#endif
-	ble_stack_init();
-#if(HARDWARE_BOARD == CROWNSTONE || HARDWARE_BOARD == CROWNSTONE2)
-	write_string("Init scheduler\r\n", 16);
-#endif
-	scheduler_init();
+	
+	if (bootloader_dfu_sd_in_progress())
+	{
+		err_code = bootloader_dfu_sd_update_continue();
+		APP_ERROR_CHECK(err_code);
 
-	bool manual_request = false;
+		write_string("Init BLE stack\r\n", 16);
+		ble_stack_init(!app_reset);
+		write_string("Init scheduler\r\n", 16);
+		scheduler_init();
+
+		err_code = bootloader_dfu_sd_update_finalize();
+		APP_ERROR_CHECK(err_code);
+	}
+	else
+	{
+		// If stack is present then continue initialization of bootloader.
+		write_string("Init BLE stack\r\n", 16);
+		ble_stack_init(!app_reset);
+		write_string("Init scheduler\r\n", 16);
+		scheduler_init();
+	}
+	
+	
+	bool dfu_start = false;
 	uint32_t gpregret;
 	err_code = sd_power_gpregret_get(&gpregret);
 	APP_ERROR_CHECK(err_code);
+	
+	char gpregretText[5] = {0};
+	get_dec_str(gpregretText, 4, gpregret);
+	write_string("gpregret=", 10);
+	write_string(gpregretText, 5);
+	write_string("\r\n", 3);
+	
 	if (gpregret == COMMAND_ENTER_RADIO_BOOTLOADER) {
-		write_string("Manual request\r\n", 17);
-		manual_request = true;
+		write_string("Start DFU\r\n", 12);
+		dfu_start = true;
 	} else if (gpregret == 0) {
 		write_string("Accidental reboot\r\n", 20);
 	} else {
 		// just reset, do the same as with accidental reboot
-		write_string("Manual reset\r\n", 15);
+		write_string("App reset\r\n", 12);
 	}
 
-	bool valid_app = bootloader_app_is_valid(DFU_BANK_0_REGION_START);
-	if(!valid_app) {
-		write_string("No valid app\r\n", 14);
-	}
 	// clear the register, so we don't end up all the time in the bootloader
 	err_code = sd_power_gpregret_clr(0xFF);
 	APP_ERROR_CHECK(err_code);
 
-	if ((!valid_app) || manual_request) {
-		write_string("Wait for new app!\r\n", 19);
-
+	if (dfu_start || (!bootloader_app_is_valid(DFU_BANK_0_REGION_START))) {
+		write_string("Start DFU\r\n", 12);
 		// Initiate an update of the firmware.
 		err_code = bootloader_dfu_start();
+		//char errText[5] = {0};
+////		sprintf(errText, "%4u", (unsigned int)err_code);
+		//get_dec_str(errText, 4, err_code);
+		//write_string("err_code=", 10);
+		//write_string(errText, 5);
+		//write_string("\r\n", 3);
 		APP_ERROR_CHECK(err_code);
-	} else {
-		write_string("Load app\r\n", 10); // indicates app will be loaded
+	}
 
+	if (bootloader_app_is_valid(DFU_BANK_0_REGION_START) && !bootloader_dfu_sd_in_progress())
+	{
+		write_string("Load app\r\n", 10);
+		
 		// Select a bank region to use as application region.
 		// @note: Only applications running from DFU_BANK_0_REGION_START is supported.
-		//nrf_gpio_pin_clear(PIN_LED0); // indicates the bootloader stopped running
 		bootloader_app_start(DFU_BANK_0_REGION_START);
 	}
 

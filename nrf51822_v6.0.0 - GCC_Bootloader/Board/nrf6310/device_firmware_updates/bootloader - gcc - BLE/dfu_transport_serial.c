@@ -11,18 +11,16 @@
  */
 
 #include "dfu_transport.h"
+#include <stddef.h>
 #include "dfu.h"
-#include "dfu_types.h"
-#include "nrf51.h"
+#include <dfu_types.h>
 #include "app_error.h"
 #include "app_util.h"
-#include "nrf_sdm.h"
-#include "hal_transport.h"
+#include "hci_transport.h"
 #include "app_timer.h"
-#include "app_gpiote.h"
-#include <stddef.h>
+#include "app_scheduler.h"
 
-#define MAX_BUFFERS 4u                                                               /**< Maximum number of buffers that can be received queued without being consumed. */
+#define MAX_BUFFERS          4u                                                      /**< Maximum number of buffers that can be received queued without being consumed. */
 
 /**
  * defgroup Data Packet Queue Access Operation Macros
@@ -47,15 +45,15 @@
 
 /** Copies a data packet pointer of an element of the data queue. */
 #define DATA_QUEUE_ELEMENT_COPY_PDATA(i, dp)                                                       \
-        m_data_queue.data_packet[(i)].p_data_packet = (uint32_t *)(dp)
+        m_data_queue.data_packet[(i)].params.data_packet.p_data_packet = (uint32_t *)(dp)
 
 /** Sets the packet length of an element in the data queue. */
 #define DATA_QUEUE_ELEMENT_SET_PLEN(i, l)                                                          \
-        m_data_queue.data_packet[(i)].packet_length = (l)
+        m_data_queue.data_packet[(i)].params.data_packet.packet_length = (l)
 
 /** Gets a data packet pointer of an element in the data queue. */
 #define DATA_QUEUE_ELEMENT_GET_PDATA(i)                                                           \
-        (m_data_queue.data_packet[(i)].p_data_packet)
+        (m_data_queue.data_packet[(i)].params.data_packet.p_data_packet)
 
 /** Gets the packet type of an element in the data queue. */
 #define DATA_QUEUE_ELEMENT_GET_PTYPE(i)                                                           \
@@ -68,7 +66,7 @@ typedef struct
 {
     dfu_update_packet_t   data_packet[MAX_BUFFERS];                                  /**< Bootloader data packets used when processing data from the UART. */
     volatile uint8_t      count;                                                     /**< Counter to maintain number of elements in the queue. */
-}dfu_data_queue_t;
+} dfu_data_queue_t;
 
 static dfu_data_queue_t      m_data_queue;                                           /**< Received-data packet queue. */
 
@@ -182,15 +180,13 @@ static void data_queue_flush(void)
 /**@brief       Function for handling the callback events from the dfu module.
  *              Callbacks are expected when \ref dfu_data_pkt_handle has been executed.
  *
+ * @param[in]   packet  Packet type for which this callback is related. START_PACKET, DATA_PACKET.
  * @param[in]   result  Operation result code. NRF_SUCCESS when a queued operation was successful.
  * @param[in]   p_data  Pointer to the data to which the operation is related.
  */
-static void dfu_cb_handler(uint32_t result, uint8_t * p_data)
+static void dfu_cb_handler(uint32_t packet, uint32_t result, uint8_t * p_data)
 {
     APP_ERROR_CHECK(result);
-    
-//    uint32_t err_code = hci_transport_rx_pkt_consume((p_data - 4));
-//    APP_ERROR_CHECK(err_code);
 }
 
 
@@ -215,10 +211,17 @@ static void process_dfu_packet(void * p_event_data, uint16_t event_size)
                             (void)dfu_data_pkt_handle(packet);
                             break;
 
-                        case START_DATA_PACKET:
-                            (void)dfu_image_size_set(
-                                      uint32_decode((uint8_t *)DATA_QUEUE_ELEMENT_GET_PDATA(index))
-                                      );
+                        case START_PACKET:
+                            packet->params.start_packet = 
+                                (dfu_start_packet_t*)packet->params.data_packet.p_data_packet;
+                            retval = dfu_start_pkt_handle(packet);
+                            APP_ERROR_CHECK(retval);
+                            break;
+
+                        case INIT_PACKET:
+                            (void)dfu_init_pkt_handle(packet);
+                            retval = dfu_init_pkt_complete();
+                            APP_ERROR_CHECK(retval);
                             break;
 
                         case STOP_DATA_PACKET:
@@ -228,14 +231,6 @@ static void process_dfu_packet(void * p_event_data, uint16_t event_size)
                             // Break the loop by returning.
                             return;
 
-                        case INIT_PACKET:
-                            // Validate init packet.
-                            // We expect to receive the init packet in two rounds of 512 bytes.
-                            // If that fails, we abort, and boot the application.
-                            // @note: Current release doesn't handle an init packet.
-
-                            break;
-
                         default:
                             // No implementation needed.
                             break;
@@ -243,7 +238,7 @@ static void process_dfu_packet(void * p_event_data, uint16_t event_size)
 
                     // Free the processed element.
                     retval = data_queue_element_free(index);
-                    APP_ERROR_CHECK(retval);                    
+                    APP_ERROR_CHECK(retval);
                 }
             }
         }
