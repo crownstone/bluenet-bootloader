@@ -4,8 +4,10 @@ GROUP(-lgcc -lc -lnosys)
 
 MEMORY
 {
-  FLASH (rx) : ORIGIN = 0x00034000, LENGTH = 44K
-  RAM (rwx) : ORIGIN = 0x20002000, LENGTH = 8K             
+  /* TODO: take these values from config file */
+  /* FLASH (rx) : ORIGIN = 0x00038000, LENGTH = 32K */
+  FLASH (rx) : ORIGIN = 0x00034000, LENGTH = 48K
+  RAM (rwx) : ORIGIN = 0x20002000, LENGTH = 8K
   BOOTLOADER_SETTINGS (rw) : ORIGIN = 0x0003FC00, LENGTH = 1K
   
 }

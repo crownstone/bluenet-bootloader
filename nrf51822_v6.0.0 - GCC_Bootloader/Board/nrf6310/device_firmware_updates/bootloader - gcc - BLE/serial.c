@@ -49,3 +49,17 @@ void write_string(const char *str, int len) {
 	}
 }
 
+void get_dec_str(char* str, uint32_t len, uint32_t val) {
+	uint8_t i;
+	for(i=1; i<=len; i++)
+	{
+		if (val == 0) {
+			str[len-i] = '0';
+		} else {
+			str[len-i] = (uint8_t) ((val % 10UL) + '0');
+			val/=10;
+		}
+	}
+	str[i-1] = '\0';
+}
+

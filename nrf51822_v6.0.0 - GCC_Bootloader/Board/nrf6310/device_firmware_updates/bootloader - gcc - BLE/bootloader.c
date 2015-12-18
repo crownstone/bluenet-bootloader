@@ -86,10 +86,16 @@ static void wait_for_events(void)
         // Event received. Process it from the scheduler.
         app_sched_execute();
 
+//char decText[8] = {0};
+//get_dec_str(decText, 7, m_update_status);
+//write_string("upd stat = ", 12);
+//write_string(decText, 8);
+//write_string("\r\n", 3);
         if ((m_update_status == BOOTLOADER_COMPLETE) ||
             (m_update_status == BOOTLOADER_TIMEOUT)  ||
             (m_update_status == BOOTLOADER_RESET))
         {
+write_string("end wait for events\r\n", 22);
             // When update has completed or a timeout/reset occured we will return.
             return;
         }
@@ -104,12 +110,19 @@ bool bootloader_app_is_valid(uint32_t app_addr)
     // There exists an application in CODE region 1.
     if (*((uint32_t *)app_addr) == EMPTY_FLASH_MASK)
     {
+write_string("nothing at code region 0\r\n", 27);
         return false;
     }
 
     bool success = false;
 
     bootloader_util_settings_get(&p_bootloader_settings);
+
+char crcText[8] = {0};
+get_dec_str(crcText, 7, p_bootloader_settings->bank_0);
+write_string("bank0 = ", 8);
+write_string(crcText, 8);
+write_string("\r\n", 3);
 
     // The application in CODE region 1 is flagged as valid during update.
     if (p_bootloader_settings->bank_0 == BANK_VALID_APP)
@@ -123,8 +136,18 @@ bool bootloader_app_is_valid(uint32_t app_addr)
                                       p_bootloader_settings->bank_0_size,
                                       NULL);
         }
+//char crcText[8] = {0};
+get_dec_str(crcText, 7, image_crc);
+write_string("img crc=", 8);
+write_string(crcText, 8);
+write_string("\r\n", 3);
 
+get_dec_str(crcText, 7, p_bootloader_settings->bank_0_crc);
+write_string("rec crc=", 8);
+write_string(crcText, 8);
+write_string("\r\n", 3);
         success = (image_crc == p_bootloader_settings->bank_0_crc);
+//success = true;
     }
 
     return success;
@@ -133,6 +156,7 @@ bool bootloader_app_is_valid(uint32_t app_addr)
 
 static void bootloader_settings_save(bootloader_settings_t * p_settings)
 {
+write_string("bl settings save\r\n", 19);
     uint32_t err_code = pstorage_clear(&m_bootsettings_handle, sizeof(bootloader_settings_t));
     APP_ERROR_CHECK(err_code);
 
@@ -146,10 +170,18 @@ static void bootloader_settings_save(bootloader_settings_t * p_settings)
 
 void bootloader_dfu_update_process(dfu_update_status_t update_status)
 {
+write_string("bl dfu upd proc\r\n", 18);
+
     static bootloader_settings_t  settings;
     const bootloader_settings_t * p_bootloader_settings;
 
     bootloader_util_settings_get(&p_bootloader_settings);
+
+char decText[8] = {0};
+get_dec_str(decText, 7, update_status.status_code);
+write_string("upd code = ", 12);
+write_string(decText, 8);
+write_string("\r\n", 3);
 
     if (update_status.status_code == DFU_UPDATE_APP_COMPLETE)
     {

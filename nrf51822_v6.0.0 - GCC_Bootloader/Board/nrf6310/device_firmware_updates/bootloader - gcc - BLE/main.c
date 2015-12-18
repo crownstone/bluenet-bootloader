@@ -343,22 +343,6 @@ static void scheduler_init(void)
 	APP_SCHED_INIT(SCHED_MAX_EVENT_DATA_SIZE, SCHED_QUEUE_SIZE);
 }
 
-void get_dec_str(char* str, size_t len, uint32_t val)
-{
-	uint8_t i;
-	for(i=1; i<=len; i++)
-	{
-		if (val == 0) {
-			str[len-i] = '0';
-		} else {
-			str[len-i] = (uint8_t) ((val % 10UL) + '0');
-			val/=10;
-		}
-	}
-	str[i-1] = '\0';
-}
-
-
 /**@brief Function for application main entry.
 */
 int main(void)
@@ -440,12 +424,11 @@ int main(void)
 		write_string("Start DFU\r\n", 12);
 		// Initiate an update of the firmware.
 		err_code = bootloader_dfu_start();
-		//char errText[5] = {0};
-////		sprintf(errText, "%4u", (unsigned int)err_code);
-		//get_dec_str(errText, 4, err_code);
-		//write_string("err_code=", 10);
-		//write_string(errText, 5);
-		//write_string("\r\n", 3);
+//char errText[5] = {0};
+//get_dec_str(errText, 4, err_code);
+//write_string("err_code=", 10);
+//write_string(errText, 5);
+//write_string("\r\n", 3);
 		APP_ERROR_CHECK(err_code);
 	}
 

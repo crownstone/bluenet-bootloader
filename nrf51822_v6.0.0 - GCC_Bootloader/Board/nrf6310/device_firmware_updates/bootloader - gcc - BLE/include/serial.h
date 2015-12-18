@@ -12,6 +12,8 @@
 extern "C" {
 #endif
 
+#include <stdint.h>
+
 #undef DEBUG
 
 /*
@@ -91,6 +93,8 @@ void config_uart();
 void write_token(const char token);
 
 void write_string(const char *str, int len);
+
+void get_dec_str(char* str, uint32_t len, uint32_t val);
 
 #ifdef __cplusplus
 }

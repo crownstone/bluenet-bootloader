@@ -47,6 +47,8 @@
 #include "nrf_error.h"
 #include "crc16.h"
 
+#include "serial.h"
+
 #define DFU_INIT_PACKET_EXT_LENGTH_MIN      2                       //< Minimum length of the extended init packet. The extended init packet may contain a CRC, a HASH, or other data. This value must be changed according to the requirements of the system. The template uses a minimum value of two in order to hold a CRC. */
 #define DFU_INIT_PACKET_EXT_LENGTH_MAX      10                      //< Maximum length of the extended init packet. The extended init packet may contain a CRC, a HASH, or other data. This value must be changed according to the requirements of the system. The template uses a maximum value of 10 in order to hold a CRC and any padded data on transport layer without overflow. */
 
@@ -140,9 +142,25 @@ uint32_t dfu_init_postvalidate(uint8_t * p_image, uint32_t image_len)
 
     // calculate CRC from active block.
     image_crc = crc16_compute(p_image, image_len, NULL);
+    
+char crcText[8] = {0};
+get_dec_str(crcText, 7, image_crc);
+write_string("img crc=", 8);
+write_string(crcText, 8);
+write_string("\r\n", 3);
 
     // Decode the received CRC from extended data.    
     received_crc = uint16_decode((uint8_t *)&m_extended_packet[0]);
+
+get_dec_str(crcText, 7, received_crc);
+write_string("rec crc=", 8);
+write_string(crcText, 8);
+write_string("\r\n", 3);
+
+get_dec_str(crcText, 7, image_len);
+write_string("img len=", 8);
+write_string(crcText, 8);
+write_string("\r\n", 3);
 
     // Compare the received and calculated CRC.
     if (image_crc != received_crc)

@@ -39,6 +39,8 @@
 
 #include "cs_Boards.h"
 
+#include "serial.h"
+
 #define DFU_REV_MAJOR                        0x00                                                    /** DFU Major revision number to be exposed. */
 #define DFU_REV_MINOR                        0x06                                                    /** DFU Minor revision number to be exposed. */
 #define DFU_REVISION                         ((DFU_REV_MAJOR << 8) | DFU_REV_MINOR)                  /** DFU Revision number to be exposed. Combined of major and minor versions. */
@@ -203,6 +205,7 @@ static ble_dfu_resp_val_t nrf_err_code_translate(uint32_t                  err_c
             return BLE_DFU_RESP_VAL_DATA_SIZE;
 
         case NRF_ERROR_INVALID_DATA:
+write_string("dfu op fail\r\n", 14);
             if (current_dfu_proc == BLE_DFU_VALIDATE_PROCEDURE)
             {
                 // When this error is received in Validation phase, then it maps to a CRC Error.
@@ -237,6 +240,7 @@ static void dfu_cb_handler(uint32_t packet, uint32_t result, uint8_t * p_data)
                 // Disconnect from peer.
                 if (IS_CONNECTED())
                 {
+write_string("cb handler disconnect\r\n", 25);
                     err_code = sd_ble_gap_disconnect(m_conn_handle,
                                                      BLE_HCI_REMOTE_USER_TERMINATED_CONNECTION);
                     APP_ERROR_CHECK(err_code);
@@ -576,6 +580,7 @@ static void on_dfu_evt(ble_dfu_t * p_dfu, ble_dfu_evt_t * p_evt)
     switch (p_evt->ble_dfu_evt_type)
     {
         case BLE_DFU_VALIDATE:
+write_string("validate   \r\n", 14);
             err_code = dfu_image_validate();
 
             // Translate the err_code returned by the above function to DFU Response Value.
@@ -586,12 +591,14 @@ static void on_dfu_evt(ble_dfu_t * p_dfu, ble_dfu_evt_t * p_evt)
             break;
 
         case BLE_DFU_ACTIVATE_N_RESET:
+write_string("activat+res\r\n", 14);
             err_code = dfu_transport_close();
             APP_ERROR_CHECK(err_code);
 
             // With the S110 Flash API it is safe to initiate the activate before connection is
             // fully closed.
             err_code = dfu_image_activate();
+write_string("img activated\r\n", 16);
             if (err_code != NRF_SUCCESS)
             {
                 dfu_reset();
@@ -606,11 +613,13 @@ static void on_dfu_evt(ble_dfu_t * p_dfu, ble_dfu_evt_t * p_evt)
             break;
 
         case BLE_DFU_START:
+write_string("start dfu  \r\n", 14);
             m_pkt_type    = PKT_TYPE_START;
             m_update_mode = (uint8_t)p_evt->evt.ble_dfu_pkt_write.p_data[0];
             break;
 
         case BLE_DFU_RECEIVE_INIT_DATA:
+write_string("rec init data\r\n", 16);
             m_pkt_type = PKT_TYPE_INIT;
             if ((uint8_t)p_evt->evt.ble_dfu_pkt_write.p_data[0] == DFU_INIT_COMPLETE)
             {
@@ -625,6 +634,7 @@ static void on_dfu_evt(ble_dfu_t * p_dfu, ble_dfu_evt_t * p_evt)
             break;
 
         case BLE_DFU_RECEIVE_APP_DATA:
+write_string("rec app data\r\n", 15);
             m_pkt_type = PKT_TYPE_FIRMWARE_DATA;
             break;
 
@@ -783,23 +793,41 @@ static void on_ble_evt(ble_evt_t * p_ble_evt)
             nrf_gpio_pin_set(ADVERTISING_LED_PIN_NO);
 
             m_conn_handle    = p_ble_evt->evt.gap_evt.conn_handle;
+char decText[8] = {0};
+get_dec_str(decText, 7, m_conn_handle);
+write_string("conn_handle = ", 15);
+write_string(decText, 8);
+write_string("\r\n", 3);
             m_is_advertising = false;
             break;
 
         case BLE_GAP_EVT_DISCONNECTED:
             {
+write_string("ble evt disconnected\r\n", 23);
+/*
                 uint8_t  sys_attr[128];
                 uint16_t sys_attr_len = 128;
             
                 m_direct_adv_cnt = APP_DIRECTED_ADV_TIMEOUT;
                 nrf_gpio_pin_set(CONNECTED_LED_PIN_NO);
-        
+
+char decText[8] = {0};
+get_dec_str(decText, 7, m_conn_handle);
+write_string("conn_handle = ", 15);
+write_string(decText, 8);
+write_string("\r\n", 3);
+
                 err_code = sd_ble_gatts_sys_attr_get(m_conn_handle, 
                                                      sys_attr, 
                                                      &sys_attr_len, 
                                                      BLE_GATTS_SYS_ATTR_FLAG_SYS_SRVCS);
+//char decText[8] = {0};
+get_dec_str(decText, 7, err_code);
+write_string("err_code = ", 12);
+write_string(decText, 8);
+write_string("\r\n", 3);
                 APP_ERROR_CHECK(err_code);
-
+*/
             }
             if (!m_tear_down_in_progress)
             {
@@ -838,6 +866,7 @@ static void on_ble_evt(ble_evt_t * p_ble_evt)
         case BLE_GATTS_EVT_TIMEOUT:
             if (p_ble_evt->evt.gatts_evt.params.timeout.src == BLE_GATT_TIMEOUT_SRC_PROTOCOL)
             {
+write_string("timeout disconnect\r\n", 21);
                 err_code = sd_ble_gap_disconnect(m_conn_handle,
                                                  BLE_HCI_REMOTE_USER_TERMINATED_CONNECTION);
                 APP_ERROR_CHECK(err_code);
@@ -1095,6 +1124,7 @@ uint32_t dfu_transport_close()
 
     if (IS_CONNECTED())
     {
+write_string("transport close disconnect\r\n", 30);
         // Disconnect from peer.
         err_code = sd_ble_gap_disconnect(m_conn_handle, BLE_HCI_REMOTE_USER_TERMINATED_CONNECTION);
         APP_ERROR_CHECK(err_code);
