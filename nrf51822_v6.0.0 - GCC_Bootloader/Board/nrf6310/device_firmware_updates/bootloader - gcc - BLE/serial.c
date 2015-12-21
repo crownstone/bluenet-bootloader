@@ -19,7 +19,7 @@
 /**
  * Configure the UART. Currently we set it on 38400 baud.
  */
-void config_uart() {
+void _config_uart() {
 	// Enable UART
 	NRF_UART0->ENABLE = 0x04;
 
@@ -35,13 +35,13 @@ void config_uart() {
 	NRF_UART0->EVENTS_TXDRDY = 0;
 }
 
-void write_token(const char token) {
+void _write_token(const char token) {
 	NRF_UART0->TXD = (uint8_t)token;
 	while(NRF_UART0->EVENTS_TXDRDY != 1) {}
 	NRF_UART0->EVENTS_TXDRDY = 0;
 }
 
-void write_string(const char *str, int len) {
+void _write_string(const char *str, int len) {
 	for(int i = 0; i < len; ++i) {
 		NRF_UART0->TXD = (uint8_t)str[i];
 		while(NRF_UART0->EVENTS_TXDRDY != 1) {}
@@ -49,7 +49,7 @@ void write_string(const char *str, int len) {
 	}
 }
 
-void get_dec_str(char* str, uint32_t len, uint32_t val) {
+void _get_dec_str(char* str, uint32_t len, uint32_t val) {
 	uint8_t i;
 	for(i=1; i<=len; i++)
 	{
@@ -62,4 +62,8 @@ void get_dec_str(char* str, uint32_t len, uint32_t val) {
 	}
 	str[i-1] = '\0';
 }
+
+void _stub0() {}
+void _stub1(char * var, int var1) {}
+void _stub2(char* str, uint32_t len, uint32_t val) {}
 

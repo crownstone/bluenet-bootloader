@@ -15,69 +15,18 @@ extern "C" {
 #include <stdint.h>
 
 #undef DEBUG
-
-/*
- * Commonly LOG functionality is provided with as first paramater the level of severity of the message. Subsequently
- * the message follows, eventually succeeded by content if the string contains format specifiers. This means that this
- * requires a variadic macro as well, see http://www.wikiwand.com/en/Variadic_macro. The two ## are e.g. a gcc
- * specific extension that removes the , after __LINE__, so log(level, msg) can also be used without arguments.
- */
 #define DEBUG                0
 #define INFO                 1
 #define WARN                 2
 #define ERROR                3
 #define FATAL                4
-
-//#define DEBUG_ON
-
-#define VERBOSITY            INFO
-
-#ifdef DEBUG_ON
-	#include "string.h"
-	#define _FILE (strrchr(__FILE__, '/') ? strrchr(__FILE__, '/') + 1 : __FILE__)
-
-	#define log(level, fmt, ...) \
-			   write("[%-30.30s : %-5d] " fmt "\r\n", _FILE, __LINE__, ##__VA_ARGS__)
-
-	#define _log(level, fmt, ...) \
-			   write(fmt, ##__VA_ARGS__)
-#else
-	#define log(level, fmt, ...) 
-
-	#define _log(level, fmt, ...)
-#endif
-
-#define LOGd(fmt, ...) log(DEBUG, fmt, ##__VA_ARGS__)
-#define LOGi(fmt, ...) log(INFO, fmt, ##__VA_ARGS__)
-#define LOGw(fmt, ...) log(WARN, fmt, ##__VA_ARGS__)
-#define LOGe(fmt, ...) log(ERROR, fmt, ##__VA_ARGS__)
-#define LOGf(fmt, ...) log(FATAL, fmt, ##__VA_ARGS__)
-
-#if VERBOSITY>DEBUG
-#undef LOGd
-#define LOGd(fmt, ...)
-#endif
-
-#if VERBOSITY>INFO
-#undef LOGi
-#define LOGi(fmt, ...)
-#endif
-
-#if VERBOSITY>WARN
-#undef LOGw
-#define LOGw(fmt, ...)
-#endif
-
-#if VERBOSITY>ERROR
-#undef LOGe
-#define LOGe(fmt, ...)
-#endif
+#define NONE                 5
 
 /**
  * General configuration of the serial connection. This sets the pin to be used for UART, the baudrate, the parity 
  * bits, etc.
  */
-void config_uart();
+void _config_uart();
 
 /**
  * Write a string to the serial connection. Make sure you end with `\n` if you want to have new lines in the output. 
@@ -90,11 +39,23 @@ void config_uart();
  */
 //int write(const char *str, ...);
 
-void write_token(const char token);
+void _write_token(const char token);
+void _write_string(const char *str, int len);
+void _get_dec_str(char* str, uint32_t len, uint32_t val);
 
-void write_string(const char *str, int len);
+void _stub0();
+void _stub1(char * var, int var1);
+void _stub2(char* str, uint32_t len, uint32_t val);
 
-void get_dec_str(char* str, uint32_t len, uint32_t val);
+#if SERIAL_VERBOSITY<NONE
+#define config_uart  _config_uart
+#define write_string _write_string
+#define get_dec_str  _get_dec_str
+#else
+#define config_uart  _stub0
+#define write_string _stub1
+#define get_dec_str  _stub2
+#endif
 
 #ifdef __cplusplus
 }

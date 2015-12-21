@@ -20,6 +20,12 @@ mkdir -p "$output_path"
 echo "++ Go to \"${path}/../nrf51822_v6.0.0 - GCC_Bootloader/Board/nrf6310/device_firmware_updates/bootloader - gcc - BLE/gcc\""
 cd "${path}/../nrf51822_v6.0.0 - GCC_Bootloader/Board/nrf6310/device_firmware_updates/bootloader - gcc - BLE/gcc"
 
+cp gcc_nrf51_bootloader_xxaa.ld.in gcc_nrf51_bootloader_xxaa.ld
+sed -i "s/@RAM_R1_BASE@/${RAM_R1_BASE}/" gcc_nrf51_bootloader_xxaa.ld
+sed -i "s/@RAM_APPLICATION_AMOUNT@/${RAM_APPLICATION_AMOUNT}/" gcc_nrf51_bootloader_xxaa.ld
+sed -i "s/@BOOTLOADER_START_ADDRESS@/${BOOTLOADER_START_ADDRESS}/" gcc_nrf51_bootloader_xxaa.ld
+sed -i "s/@BOOTLOADER_LENGTH@/${BOOTLOADER_LENGTH}/" gcc_nrf51_bootloader_xxaa.ld
+
 make $compilation_mode
 if [ $? -ne 0 ]; then
 	exit 1

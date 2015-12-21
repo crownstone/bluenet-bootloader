@@ -35,9 +35,7 @@
 #include <stddef.h>
 #include "nordic_common.h"
 #include "nrf.h"
-//#ifndef S310_STACK
 #include "nrf_mbr.h"
-//#endif // S310_STACK
 #include "app_error.h"
 #include "nrf_gpio.h"
 #include "nrf51_bitfields.h"
@@ -49,25 +47,15 @@
 //#include "app_timer.h"
 //#include "app_gpiote.h"
 #include "nrf_error.h"
-// #include "boards.h"
+//#include "boards.h"
 //#include "ble_debug_assert_handler.h"
 //#include "softdevice_handler.h"
 #include "softdevice_handler_appsh.h"
 #include "pstorage_platform.h"
 
-#define SERIAL
-
-#ifdef SERIAL
 #include "serial.h"
-#endif
 #include "cs_Boards.h"
 
-#ifndef SERIAL
-static void stub0() {}
-static void stub1(char * var, int var1) {}
-#define write_string stub1
-#define config_uart stub0
-#endif
 
 // forward declaration (is not present in softdevice_handler.h for now (remove if it gets added)
 void softdevice_assertion_handler(uint32_t pc, uint16_t line_num, const uint8_t * file_name);
