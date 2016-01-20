@@ -3,6 +3,13 @@ ifndef BLUENET_CONFIG_DIR
 $(error BLUENET_CONFIG_DIR is not set. Make sure it is set: not just BLUENET_DIR)
 endif
 
+ifndef BLUENET_DIR
+$(error BLUENET_DIR is not set. Make sure it is set.)
+endif
+
+# TODO: is this optional this way?
+include $(BLUENET_DIR)/CMakeBuild.config.default
+include $(BLUENET_DIR)/CMakeBuild.config.local
 include $(BLUENET_CONFIG_DIR)/CMakeBuild.config
 # Check that file to know how to set HARDWARE_BOARD
 
