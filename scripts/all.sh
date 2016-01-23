@@ -37,8 +37,10 @@ cd _build
 # convert and/or rename to general names (.out is actually in .elf format)
 echo "++ Convert binaries to formats convenient for inspection and upload"
 $objcopy -j .text -j .data -O binary ${prefix}_bootloader_${device_variant}.out bootloader.bin
+$objcopy -j .text -j .data -O ihex ${prefix}_bootloader_${device_variant}.out bootloader_dfu.hex
 cp ${prefix}_bootloader_${device_variant}.out bootloader.elf
 cp ${prefix}_bootloader_${device_variant}.hex bootloader.hex
+
 
 $objsize bootloader.elf
 
@@ -47,3 +49,4 @@ echo "++ Copy files to $output_path"
 cp bootloader.bin $output_path
 cp bootloader.elf $output_path
 cp bootloader.hex $output_path
+cp bootloader_dfu.hex $output_path
