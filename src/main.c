@@ -17,7 +17,7 @@
  * @ingroup dfu_bootloader_api
  * @brief Bootloader project main file.
  *
- * -# Receive start data package.
+ * -# Receive start data packet.
  * -# Based on start packet, prepare NVM area to store received data.
  * -# Receive data packet.
  * -# Validate data packet.
@@ -30,12 +30,13 @@
 #include "dfu.h"
 #include "dfu_transport.h"
 #include "bootloader.h"
+#include "bootloader_util.h"
 #include <stdint.h>
 #include <string.h>
 #include <stddef.h>
 #include "nordic_common.h"
 #include "nrf.h"
-#include "nrf_mbr.h"
+#include "nrf_soc.h"
 #include "app_error.h"
 #include "nrf_gpio.h"
 #include "nrf51_bitfields.h"
@@ -44,23 +45,19 @@
 #include "ble_hci.h"
 #include "app_scheduler.h"
 #include "app_timer_appsh.h"
-//#include "app_timer.h"
-//#include "app_gpiote.h"
 #include "nrf_error.h"
-//#include "boards.h"
-//#include "ble_debug_assert_handler.h"
-//#include "softdevice_handler.h"
 #include "softdevice_handler_appsh.h"
 #include "pstorage_platform.h"
+#include "nrf_mbr.h"
 
 #include "serial.h"
-#include "cs_Boards.h"
+// #include "cs_Boards.h"
 
 
 // forward declaration (is not present in softdevice_handler.h for now (remove if it gets added)
 void softdevice_assertion_handler(uint32_t pc, uint16_t line_num, const uint8_t * file_name);
 
-#define IS_SRVC_CHANGED_CHARACT_PRESENT 0                                                       /**< Include or not the service_changed characteristic. if not enabled, the server's database cannot be changed for the lifetime of the device*/
+#define IS_SRVC_CHANGED_CHARACT_PRESENT 1                                                       /**< Include or not the service_changed characteristic. if not enabled, the server's database cannot be changed for the lifetime of the device*/
 
 #define APP_GPIOTE_MAX_USERS            1                                                       /**< Number of GPIOTE users in total. Used by button module and dfu_transport_serial module (flow control). */
 
@@ -70,11 +67,11 @@ void softdevice_assertion_handler(uint32_t pc, uint16_t line_num, const uint8_t 
 
 //#define BUTTON_DETECTION_DELAY          APP_TIMER_TICKS(50, APP_TIMER_PRESCALER)                /**< Delay from a GPIOTE event until a button is reported as pushed (in number of timer ticks). */
 
-//#define SCHED_MAX_EVENT_DATA_SIZE       MAX(APP_TIMER_SCHED_EVT_SIZE, 0)                        /**< Maximum size of scheduler events. */
+#define SCHED_MAX_EVENT_DATA_SIZE       MAX(APP_TIMER_SCHED_EVT_SIZE, 0)                        /**< Maximum size of scheduler events. */
 
 /* Maximum size of scheduler events. */
 /*
-#define SCHED_MAX_EVENT_DATA_SIZE       ((CEIL_DIV(MAX(MAX(BLE_STACK_EVT_MSG_BUF_SIZE,        \
+//#define SCHED_MAX_EVENT_DATA_SIZE       ((CEIL_DIV(MAX(MAX(BLE_STACK_EVT_MSG_BUF_SIZE,        \
                                                            ANT_STACK_EVT_STRUCT_SIZE),        \
                                                            SYS_EVT_MSG_BUF_SIZE),             \
                                                            sizeof(uint32_t))) * sizeof(uint32_t))
@@ -133,36 +130,36 @@ void assert_nrf_callback(uint16_t line_num, const uint8_t * p_file_name)
 	app_error_handler(0xDEADBEEF, line_num, p_file_name);
 }
 
-/**@brief Function for initializing the GPIOTE handler module.
-*/
-static void gpiote_init(void)
+
+/**@brief Function for initialization of LEDs.
+ */
+/*
+static void leds_init(void)
 {
-//	APP_GPIOTE_INIT(APP_GPIOTE_MAX_USERS);
+    //nrf_gpio_cfg_output(UPDATE_IN_PROGRESS_LED);
+    //nrf_gpio_pin_set(UPDATE_IN_PROGRESS_LED);
 }
+*/
 
-
-/**@brief Function for the Timer initialization.
- *
- * @details Initializes the timer module.
+/**@brief Function for initializing the timer handler module (app_timer).
  */
 static void timers_init(void)
 {
-//	// Initialize timer module, making it use the scheduler.
-//	APP_TIMER_INIT(APP_TIMER_PRESCALER, APP_TIMER_MAX_TIMERS, APP_TIMER_OP_QUEUE_SIZE, NULL);
-	// Initialize timer module, making it use the scheduler.
-	APP_TIMER_APPSH_INIT(APP_TIMER_PRESCALER, APP_TIMER_MAX_TIMERS, APP_TIMER_OP_QUEUE_SIZE, true);
+    // Initialize timer module, making it use the scheduler.
+    APP_TIMER_APPSH_INIT(APP_TIMER_PRESCALER, APP_TIMER_MAX_TIMERS, APP_TIMER_OP_QUEUE_SIZE, true);
 }
 
 
 /**@brief Function for initializing the button module.
-*/
+ */
 /*
-	static void buttons_init(void)
-	{
-	nrf_gpio_cfg_sense_input(BOOTLOADER_BUTTON_PIN,
-	BUTTON_PULL,
-	NRF_GPIO_PIN_SENSE_LOW);
-	}
+static void buttons_init(void)
+{
+    nrf_gpio_cfg_sense_input(BOOTLOADER_BUTTON,
+                             BUTTON_PULL,
+                             NRF_GPIO_PIN_SENSE_LOW);
+
+}
 */
 
 /**@brief Function for dispatching a BLE stack event to all modules with a BLE stack event handler.
@@ -177,53 +174,13 @@ static void sys_evt_dispatch(uint32_t event)
 	pstorage_sys_event_handler(event);
 }
 
-/**@brief Function for initializing the BLE stack.
- *
- * @details Initializes the SoftDevice and the BLE event interrupt.
- */
-/*
-static void ble_stack_init(void)
-{
-	uint32_t err_code;
-
-//#ifndef S310_STACK
-#if !(defined(S310_STACK) || SOFTDEVICE_SERIES == 130)
-	sd_mbr_command_t com = {SD_MBR_COMMAND_INIT_SD, };
-	err_code = sd_mbr_command(&com);
-	APP_ERROR_CHECK(err_code);
-
-	err_code = sd_softdevice_vector_table_base_set(BOOTLOADER_REGION_START);
-	APP_ERROR_CHECK(err_code);
-#endif
-
-//#if(HARDWARE_BOARD == CROWNSTONE || HARDWARE_BOARD == CROWNSTONE2)
-	//SOFTDEVICE_HANDLER_INIT(NRF_CLOCK_LFCLKSRC_RC_250_PPM_8000MS_CALIBRATION, false);
-//#else
-	//SOFTDEVICE_HANDLER_INIT(NRF_CLOCK_LFCLKSRC_XTAL_20_PPM, true);
-//#endif
-	SOFTDEVICE_HANDLER_INIT(NRF_CLOCK_LFCLKSRC_RC_250_PPM_TEMP_8000MS_CALIBRATION, false);
-
-//#ifndef S310_STACK
-#if !(defined(S310_STACK) || SOFTDEVICE_SERIES == 130)
-	// Enable BLE stack
-	ble_enable_params_t ble_enable_params;
-	memset(&ble_enable_params, 0, sizeof(ble_enable_params));
-	ble_enable_params.gatts_enable_params.service_changed = IS_SRVC_CHANGED_CHARACT_PRESENT;
-	err_code = sd_ble_enable(&ble_enable_params);
-	APP_ERROR_CHECK(err_code);
-#endif
-
-	err_code = softdevice_sys_evt_handler_set(sys_evt_dispatch);
-	APP_ERROR_CHECK(err_code);
-}
-*/
 
 /**@brief Function for initializing the BLE stack.
  *
  * @details Initializes the SoftDevice and the BLE event interrupt.
  *
- * @param[in] init_softdevice  true if SoftDevice should be initialized. The SoftDevice must only 
- *                             be initialized if a chip reset has occured. Soft reset from 
+ * @param[in] init_softdevice  true if SoftDevice should be initialized. The SoftDevice must only
+ *                             be initialized if a chip reset has occured. Soft reset from
  *                             application must not reinitialize the SoftDevice.
  */
 static void ble_stack_init(bool init_softdevice)
@@ -236,17 +193,17 @@ static void ble_stack_init(bool init_softdevice)
         err_code = sd_mbr_command(&com);
         APP_ERROR_CHECK(err_code);
     }
-    
+
     err_code = sd_softdevice_vector_table_base_set(BOOTLOADER_REGION_START);
     APP_ERROR_CHECK(err_code);
-   
+
     //SOFTDEVICE_HANDLER_APPSH_INIT(NRF_CLOCK_LFCLKSRC_XTAL_20_PPM, true);
     SOFTDEVICE_HANDLER_APPSH_INIT(NRF_CLOCK_LFCLKSRC_RC_250_PPM_TEMP_8000MS_CALIBRATION, true);
 
-    // Enable BLE stack 
+    // Enable BLE stack
     ble_enable_params_t ble_enable_params;
     memset(&ble_enable_params, 0, sizeof(ble_enable_params));
-    
+
     // Below code line is needed for s130. For s110 is inrrelevant - but executable
     // can run with both s130 and s110.
     ble_enable_params.gatts_enable_params.attr_tab_size   = BLE_GATTS_ATTR_TAB_SIZE_DEFAULT;
@@ -254,75 +211,11 @@ static void ble_stack_init(bool init_softdevice)
     ble_enable_params.gatts_enable_params.service_changed = IS_SRVC_CHANGED_CHARACT_PRESENT;
     err_code = sd_ble_enable(&ble_enable_params);
     APP_ERROR_CHECK(err_code);
-    
+
     err_code = softdevice_sys_evt_handler_set(sys_evt_dispatch);
     APP_ERROR_CHECK(err_code);
 }
 
-
-static void clk_init() {
-	////start up crystal HF clock.
-	//NRF_CLOCK->TASKS_HFCLKSTART = 1;
-	//while(!NRF_CLOCK->EVENTS_HFCLKSTARTED);
-
-	//// generate clock, RC=0, XTAL=1, SYNTH=2
-	//NRF_CLOCK->LFCLKSRC = 2; // (CLOCK_LFCLKSRC_SRC_SYNTH << CLOCK_LFCLKSRC_SRC_Pos);
-////#else
-////	NRF_CLOCK->LFCLKSRC = (CLOCK_LFCLKSRC_SRC_RC << CLOCK_LFCLKSRC_SRC_Pos);
-////#endif
-	//NRF_CLOCK->EVENTS_LFCLKSTARTED = 0;
-	//NRF_CLOCK->TASKS_LFCLKSTART = 1;
-	//while(!NRF_CLOCK->EVENTS_LFCLKSTARTED);
-
-	//NRF_POWER->TASKS_CONSTLAT = 1;
-	
-	
-	// Copied from cs_sysNrf51
-		// start up crystal LF clock.
-	NRF_CLOCK->EVENTS_LFCLKSTARTED = 0;
-#if LOW_POWER_MODE==0
-	/**
-	 * The RFduino synthesizes the low frequency clock from the high frequency clock. There is no external crystal
-	 * that can be used. It doesn't seem from the datasheets that there is a pin open for a crystal...
-	 * Synthesizing the clock is of course not very energy efficient.
-	 *
-	 * Clock runs on 32768 Hz and is generated from the 16 MHz system clock
-	 */
-	// start up crystal HF clock.
-	NRF_CLOCK->TASKS_HFCLKSTART = 1;
-	while(!NRF_CLOCK->EVENTS_HFCLKSTARTED) /* wait */;
-
-	NRF_CLOCK->LFCLKSRC = CLOCK_LFCLKSRC_SRC_Synth;
-#else
-	// Explicitly don't start the HF clock
-	NRF_CLOCK->TASKS_HFCLKSTART = 0;
-
-	// TODO: make dependable on board
-
-	// Best option, but requires a 32kHz crystal on the pcb
-//	NRF_CLOCK->LFCLKSRC = CLOCK_LFCLKSRC_SRC_Xtal << CLOCK_LFCLKSRC_SRC_Pos;
-
-	// Internal oscillator
-    NRF_CLOCK->LFCLKSRC = CLOCK_LFCLKSRC_SRC_RC << CLOCK_LFCLKSRC_SRC_Pos;
-#endif
-
-	NRF_CLOCK->TASKS_LFCLKSTART = 1;
-	while(!NRF_CLOCK->EVENTS_LFCLKSTARTED) /* wait */;
-//	NRF_CLOCK->EVENTS_LFCLKSTARTED = 0;
-
-	/*
-	 * There are two power modes in the nRF51, system ON, and system OFF. The former has two sub power modes. The
-	 * first is called "Constant Latency", the second is called "Low Power". The latter is saving most of the
-	 * power, the former keeps the CPU wakeup latency and automated task response at a minimum, but some resources
-	 * will be kept active when the device is in sleep mode, such as the 16MHz clock.
-	 */
-#if LOW_POWER_MODE==0
-	// enable constant latency mode.
-	NRF_POWER->TASKS_CONSTLAT = 1;
-#else
-	NRF_POWER->TASKS_LOWPWR = 1;
-#endif
-}
 
 /**@brief Function for event scheduler initialization.
 */
@@ -336,32 +229,57 @@ static void scheduler_init(void)
 int main(void)
 {
 	uint32_t err_code;
-	bool app_reset = (NRF_POWER->GPREGRET == BOOTLOADER_DFU_START);
-	if (app_reset) {
-		NRF_POWER->GPREGRET = 0;
-	}
-	
-//	sd_mbr_command_t com = {SD_MBR_COMMAND_INIT_SD, };
-//	err_code = sd_mbr_command(&com);
+    bool     dfu_start = false;
+	uint32_t gpregret = NRF_POWER->GPREGRET;
+    bool     app_reset = (gpregret == BOOTLOADER_DFU_START);
 
-//#if (SOFTDEVICE_SERIES == 130)
-//	clk_init();
-//#endif
-	//bool bootloader_is_pushed = false;
+    if (app_reset)
+    {
+        NRF_POWER->GPREGRET = 0;
+    }
 
-	// This check ensures that the defined fields in the bootloader corresponds with actual setting in the nRF51 chip.
-	APP_ERROR_CHECK_BOOL(*((uint32_t *)NRF_UICR_BOOT_START_ADDRESS) == BOOTLOADER_REGION_START);
-	APP_ERROR_CHECK_BOOL(NRF_FICR->CODEPAGESIZE == CODE_PAGE_SIZE);
+	// err_code = sd_power_gpregret_get(&gpregret);
+	// APP_ERROR_CHECK(err_code);
+
+	// // clear the register, so we don't end up all the time in the bootloader
+	// err_code = sd_power_gpregret_clr(0xFF);
+	// APP_ERROR_CHECK(err_code);
+
+//    leds_init();
+
+    // This check ensures that the defined fields in the bootloader corresponds with actual
+    // setting in the nRF51 chip.
+    APP_ERROR_CHECK_BOOL(*((uint32_t *)NRF_UICR_BOOT_START_ADDRESS) == BOOTLOADER_REGION_START);
+    APP_ERROR_CHECK_BOOL(NRF_FICR->CODEPAGESIZE == CODE_PAGE_SIZE);
 
 	// Initialize.
 	timers_init();
-//	gpiote_init();
 	config_uart();
 	bootloader_init();
-	write_string("Firmware 0.1.0\r\n", 16);
-	
+	write_string("Firmware 0.1.1\r\n", 16);
+
+	char gpregretText[5] = {0};
+	get_dec_str(gpregretText, 4, gpregret);
+	write_string("gpregret=", 10);
+	write_string(gpregretText, 5);
+	write_string("\r\n", 3);
+
+	// bool app_reset =(gpregret == BOOTLOADER_DFU_START);
+
+	if (gpregret == COMMAND_ENTER_RADIO_BOOTLOADER) {
+		write_string("Enter bootloader\r\n", 18);
+		dfu_start = true;
+	} else if (gpregret == 0) {
+		write_string("Accidental reboot\r\n", 20);
+	} else {
+		// just reset, do the same as with accidental reboot
+		write_string("App reset\r\n", 12);
+	}
+
 	if (bootloader_dfu_sd_in_progress())
 	{
+		write_string("Resume dfu\r\n", 12);
+
 		err_code = bootloader_dfu_sd_update_continue();
 		APP_ERROR_CHECK(err_code);
 
@@ -381,32 +299,6 @@ int main(void)
 		write_string("Init scheduler\r\n", 16);
 		scheduler_init();
 	}
-	
-	
-	bool dfu_start = false;
-	uint32_t gpregret;
-	err_code = sd_power_gpregret_get(&gpregret);
-	APP_ERROR_CHECK(err_code);
-	
-	char gpregretText[5] = {0};
-	get_dec_str(gpregretText, 4, gpregret);
-	write_string("gpregret=", 10);
-	write_string(gpregretText, 5);
-	write_string("\r\n", 3);
-	
-	if (gpregret == COMMAND_ENTER_RADIO_BOOTLOADER) {
-		write_string("Start DFU\r\n", 12);
-		dfu_start = true;
-	} else if (gpregret == 0) {
-		write_string("Accidental reboot\r\n", 20);
-	} else {
-		// just reset, do the same as with accidental reboot
-		write_string("App reset\r\n", 12);
-	}
-
-	// clear the register, so we don't end up all the time in the bootloader
-	err_code = sd_power_gpregret_clr(0xFF);
-	APP_ERROR_CHECK(err_code);
 
 	if (dfu_start || (!bootloader_app_is_valid(DFU_BANK_0_REGION_START))) {
 		write_string("Start DFU\r\n", 12);
@@ -423,7 +315,7 @@ int main(void)
 	if (bootloader_app_is_valid(DFU_BANK_0_REGION_START) && !bootloader_dfu_sd_in_progress())
 	{
 		write_string("Load app\r\n", 10);
-		
+
 		// Select a bank region to use as application region.
 		// @note: Only applications running from DFU_BANK_0_REGION_START is supported.
 		bootloader_app_start(DFU_BANK_0_REGION_START);

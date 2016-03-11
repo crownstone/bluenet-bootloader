@@ -36,7 +36,7 @@
  * @retval NRF_ERROR_NULL         If p_peer_data is a NULL pointer.
  * @retval NRF_ERROR_INVALID_DATA If peer data is not available or invalid.
  */
-uint32_t dfu_ble_peer_data_get(dfu_ble_peer_data_t * p_peer_data) { return NRF_ERROR_INVALID_DATA; }
+uint32_t dfu_ble_peer_data_get(dfu_ble_peer_data_t * p_peer_data);
 
 #endif // DFU_BLE_SVC_INTERNAL_H__
 

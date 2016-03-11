@@ -113,7 +113,7 @@ INCLUDEPATHS += -I"$(SDK_PATH)components/softdevice/common/softdevice_handler"
 
 INCLUDEPATHS += -I"$(SOFTDEVICE_DIR)/$(SOFTDEVICE_DIR_API)/include"
 
-INCLUDEPATHS += -I"../include/ble_transport"
+INCLUDEPATHS += -I"../ble_transport"
 INCLUDEPATHS += -I"../include"
 INCLUDEPATHS += -I"../"
 

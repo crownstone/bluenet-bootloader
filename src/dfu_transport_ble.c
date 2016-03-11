@@ -37,7 +37,7 @@
 #include "dfu_ble_svc_internal.h"
 #include "nrf_delay.h"
 
-#include "cs_Boards.h"
+// #include "cs_Boards.h"
 
 #include "serial.h"
 
@@ -68,8 +68,8 @@
 #define APP_ADV_INTERVAL                     MSEC_TO_UNITS(25, UNIT_0_625_MS)                        /**< The advertising interval (25 ms.). */
 #define APP_ADV_TIMEOUT_IN_SECONDS           BLE_GAP_ADV_TIMEOUT_GENERAL_UNLIMITED                   /**< The advertising timeout in units of seconds. This is set to @ref BLE_GAP_ADV_TIMEOUT_GENERAL_UNLIMITED so that the advertisement is done as long as there there is a call to @ref dfu_transport_close function.*/
 #define APP_DIRECTED_ADV_TIMEOUT             50                                                       /**< number of direct advertisement (each lasting 1.28seconds). */
-#define PEER_ADDRESS_TYPE_INVALID            0xFF                                                    /**< Value indicating that no valid peer address exists. This will be the case when a private resolvable address is used in which case there is no address available but instead an IRK is present. */   
-#define PEER_ADDRESS_TYPE_INVALID            0xFF                                                    /**< Value indicating that no valid peer address exists. This will be the case when a private resolvable address is used in which case there is no address available but instead an IRK is present. */   
+#define PEER_ADDRESS_TYPE_INVALID            0xFF                                                    /**< Value indicating that no valid peer address exists. This will be the case when a private resolvable address is used in which case there is no address available but instead an IRK is present. */
+#define PEER_ADDRESS_TYPE_INVALID            0xFF                                                    /**< Value indicating that no valid peer address exists. This will be the case when a private resolvable address is used in which case there is no address available but instead an IRK is present. */
 
 #define SEC_PARAM_TIMEOUT                    30                                                      /**< Timeout for Pairing Request or Security Request (in seconds). */
 #define SEC_PARAM_BOND                       0                                                       /**< Perform bonding. */
@@ -379,7 +379,7 @@ static void init_data_process(ble_dfu_t * p_dfu, ble_dfu_evt_t * p_evt)
         {
             p_evt->evt.ble_dfu_pkt_write.p_data[pkt_length++] = 0;
         }
-        
+
         p_evt->evt.ble_dfu_pkt_write.len = pkt_length;
     }
 
@@ -807,7 +807,7 @@ write_string("ble evt disconnected\r\n", 23);
 /*
                 uint8_t  sys_attr[128];
                 uint16_t sys_attr_len = 128;
-            
+
                 m_direct_adv_cnt = APP_DIRECTED_ADV_TIMEOUT;
 //                nrf_gpio_pin_set(CONNECTED_LED_PIN_NO);
 
@@ -817,9 +817,9 @@ write_string("conn_handle = ", 15);
 write_string(decText, 8);
 write_string("\r\n", 3);
 
-                err_code = sd_ble_gatts_sys_attr_get(m_conn_handle, 
-                                                     sys_attr, 
-                                                     &sys_attr_len, 
+                err_code = sd_ble_gatts_sys_attr_get(m_conn_handle,
+                                                     sys_attr,
+                                                     &sys_attr_len,
                                                      BLE_GATTS_SYS_ATTR_FLAG_SYS_SRVCS);
 //char decText[8] = {0};
 get_dec_str(decText, 7, err_code);
@@ -928,7 +928,7 @@ write_string("timeout disconnect\r\n", 21);
                 ble_gap_enc_info_t * p_enc_info = NULL;
 
                 // If there is a match in diversifier then set the correct keys.
-                if (p_ble_evt->evt.gap_evt.params.sec_info_request.master_id.ediv == 
+                if (p_ble_evt->evt.gap_evt.params.sec_info_request.master_id.ediv ==
                     m_ble_peer_data.enc_key.master_id.ediv)
                 {
                     p_enc_info = &m_ble_peer_data.enc_key.enc_info;
@@ -1063,6 +1063,9 @@ static void sec_params_init(void)
     m_sec_params.max_key_size = SEC_PARAM_MAX_KEY_SIZE;
 }
 
+uint32_t dfu_ble_peer_data_get(dfu_ble_peer_data_t * p_peer_data) {
+    return NRF_ERROR_INVALID_DATA;
+}
 
 uint32_t dfu_transport_update_start(void)
 {
