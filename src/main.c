@@ -27,7 +27,6 @@
  * -# Activate Image, boot application.
  *
  */
-#include "dfu.h"
 #include "dfu_transport.h"
 #include "bootloader.h"
 #include "bootloader_util.h"
@@ -39,9 +38,7 @@
 #include "nrf_soc.h"
 #include "app_error.h"
 #include "nrf_gpio.h"
-#include "nrf51_bitfields.h"
 #include "ble.h"
-#include "nrf51.h"
 #include "ble_hci.h"
 #include "app_scheduler.h"
 #include "app_timer_appsh.h"
@@ -54,10 +51,7 @@
 // #include "cs_Boards.h"
 
 
-// forward declaration (is not present in softdevice_handler.h for now (remove if it gets added)
-void softdevice_assertion_handler(uint32_t pc, uint16_t line_num, const uint8_t * file_name);
-
-#define IS_SRVC_CHANGED_CHARACT_PRESENT 1                                                       /**< Include or not the service_changed characteristic. if not enabled, the server's database cannot be changed for the lifetime of the device*/
+#define IS_SRVC_CHANGED_CHARACT_PRESENT 1                                                       /**< Include the service_changed characteristic. For DFU this should normally be the case. */
 
 #define APP_GPIOTE_MAX_USERS            1                                                       /**< Number of GPIOTE users in total. Used by button module and dfu_transport_serial module (flow control). */
 
@@ -185,11 +179,14 @@ static void sys_evt_dispatch(uint32_t event)
  */
 static void ble_stack_init(bool init_softdevice)
 {
+	write_string("Init BLE stack\r\n", 16);
+
     uint32_t err_code;
     sd_mbr_command_t com = {SD_MBR_COMMAND_INIT_SD, };
 
     if (init_softdevice)
     {
+		write_string("init_softdevice\r\n", 17);
         err_code = sd_mbr_command(&com);
         APP_ERROR_CHECK(err_code);
     }
@@ -256,7 +253,7 @@ int main(void)
 	timers_init();
 	config_uart();
 	bootloader_init();
-	write_string("Firmware 0.1.1\r\n", 16);
+	write_string("\r\nFirmware 1.1.1\r\n", 18);
 
 	char gpregretText[5] = {0};
 	get_dec_str(gpregretText, 4, gpregret);
@@ -283,10 +280,11 @@ int main(void)
 		err_code = bootloader_dfu_sd_update_continue();
 		APP_ERROR_CHECK(err_code);
 
-		write_string("Init BLE stack\r\n", 16);
 		ble_stack_init(!app_reset);
 		write_string("Init scheduler\r\n", 16);
 		scheduler_init();
+
+		write_string("ok\r\n", 4);
 
 		err_code = bootloader_dfu_sd_update_finalize();
 		APP_ERROR_CHECK(err_code);
@@ -294,10 +292,11 @@ int main(void)
 	else
 	{
 		// If stack is present then continue initialization of bootloader.
-		write_string("Init BLE stack\r\n", 16);
+		// write_string("Init BLE stack\r\n", 16);
 		ble_stack_init(!app_reset);
 		write_string("Init scheduler\r\n", 16);
 		scheduler_init();
+		write_string("done\r\n", 6);
 	}
 
 	if (dfu_start || (!bootloader_app_is_valid(DFU_BANK_0_REGION_START))) {

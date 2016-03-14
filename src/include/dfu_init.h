@@ -17,9 +17,9 @@
  *
  * @brief Device Firmware Update module type and function declaration for init packet handling.
  *
- * @details This header contains basic functionality for performing safety checks on software 
+ * @details This header contains basic functionality for performing safety checks on software
  *          updates for nRF51 based devices. It provides a skeleton for pre-checking an init packet
- *          to ensure the following image is compatible with this device. A safety check should 
+ *          to ensure the following image is compatible with this device. A safety check should
  *          always be performed to prevent accidental flashing of unsupported applications or a
  *          wrong combination of application and SoftDevice.
  *          The device information contains information such as:
@@ -27,14 +27,14 @@
  *            the customer. It can be located in UICR or FICR.
  *          - Device revision (2 bytes), for example major revision 1, minor revision 0. The device
  *            revision is a number defined by the customer. It can be located in UICR or FICR.
- *          - List of SoftDevices supported by this application, for example 
- *              0x0049 = S110v6_0_0 
+ *          - List of SoftDevices supported by this application, for example
+ *              0x0049 = S110v6_0_0
  *              0xFFFE = S110 development (any SoftDevice accepted),
  *          - CRC or hash of firmware image
  *
  * @note This module does not support security features such as image signing, but the corresponding
  *       implementation allows for such extensions.
- *       If the init packet is signed by a trusted source, it must be decrypted before it can be 
+ *       If the init packet is signed by a trusted source, it must be decrypted before it can be
  *       processed.
  */
 
@@ -42,9 +42,8 @@
 #define DFU_INIT_H__
 
 #include <stdint.h>
-#include "nrf51.h"
 
-/**@brief Structure contained in an init packet. Contains information on device type, revision, and 
+/**@brief Structure contained in an init packet. Contains information on device type, revision, and
  *        supported SoftDevices.
  */
 typedef struct
@@ -86,44 +85,44 @@ typedef struct
 /**@brief DFU prevalidate call for pre-checking the received init packet.
  *
  * @details  Pre-validation will safety check the firmware image to be transfered in second stage.
- *           The function currently checks the device type, device revision, application firmware 
- *           version, and supported SoftDevices. More checks should be added according to 
+ *           The function currently checks the device type, device revision, application firmware
+ *           version, and supported SoftDevices. More checks should be added according to
  *           customer-specific requirements.
- * 
+ *
  * @param[in] p_init_data    Pointer to the init packet. If the init packet is encrypted or signed,
  *                           it must first be decrypted before being checked.
  * @param[in] init_data_len  Length of the init data.
  *
- * @retval NRF_SUCCESS              If the pre-validation succeeded, that means the image is 
- *                                  supported by the device and it is considered to come from a 
+ * @retval NRF_SUCCESS              If the pre-validation succeeded, that means the image is
+ *                                  supported by the device and it is considered to come from a
  *                                  trusted source (signing).
- * @retval NRF_ERROR_INVALID_DATA   If the pre-validation failed, that means the image is not 
- *                                  supported by the device or comes from an un-trusted source 
+ * @retval NRF_ERROR_INVALID_DATA   If the pre-validation failed, that means the image is not
+ *                                  supported by the device or comes from an un-trusted source
  *                                  (signing).
- * @retval NRF_ERROR_INVALID_LENGTH If the size of the init packet is not within the limits of 
+ * @retval NRF_ERROR_INVALID_LENGTH If the size of the init packet is not within the limits of
  *                                  the init packet handler.
  */
 uint32_t dfu_init_prevalidate(uint8_t * p_init_data, uint32_t init_data_len);
 
 /**@brief DFU postvalidate call for post-checking the received image using the init packet.
  *
- * @details  Post-validation can verify the integrity check the firmware image received before 
+ * @details  Post-validation can verify the integrity check the firmware image received before
  *           activating the image.
- *           Checks performed can be: 
+ *           Checks performed can be:
  *           - A simple CRC as shown in the corresponding implementation of this API in the file
  *             dfu_init_template.c
  *           - A hash for better verification of the image.
  *           - A signature to ensure the image originates from a trusted source.
  *           Checks are intended to be expanded for customer-specific requirements.
- * 
- * @param[in] p_image    Pointer to the received image. The init data provided in the call 
+ *
+ * @param[in] p_image    Pointer to the received image. The init data provided in the call
  *                       \ref dfu_init_prevalidate will be used for validating the image.
  * @param[in] image_len  Length of the image data.
  *
  * @retval NRF_SUCCESS             If the post-validation succeeded, that meant the integrity of the
- *                                 image has been verified and the image originates from a trusted 
+ *                                 image has been verified and the image originates from a trusted
  *                                 source (signing).
- * @retval NRF_ERROR_INVALID_DATA  If the post-validation failed, that meant the post check of the 
+ * @retval NRF_ERROR_INVALID_DATA  If the post-validation failed, that meant the post check of the
  *                                 image failed such as the CRC is not matching the image transfered
  *                                 or the verification of the image fails (signing).
  */

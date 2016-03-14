@@ -10,27 +10,20 @@
  *
  */
 
-#include <stdint.h>
 #include <stddef.h>
-#include <string.h>
 #include "dfu.h"
 #include <dfu_types.h>
 #include "dfu_bank_internal.h"
 #include "nrf.h"
-#include "nrf51.h"
-#include "nrf51_bitfields.h"
-#include "app_util.h"
 #include "nrf_sdm.h"
 #include "app_error.h"
-#include "nrf_error.h"
 #include "app_timer.h"
-#include "app_error.h"
-#include "nordic_common.h"
 #include "bootloader.h"
 #include "bootloader_types.h"
 #include "pstorage.h"
 #include "nrf_mbr.h"
 #include "dfu_init.h"
+#include "sdk_common.h"
 
 static dfu_state_t                  m_dfu_state;                /**< Current DFU state. */
 static uint32_t                     m_image_size;               /**< Size of the image that will be transmitted. */
@@ -691,7 +684,7 @@ uint32_t dfu_sd_image_swap(void)
         uint32_t img_block_start = boot_settings.sd_image_start + 2 * block_size;
         uint32_t sd_block_start  = sd_start + 2 * block_size;
         
-        if (SOFTDEVICE_INFORMATION->softdevice_size < boot_settings.sd_image_size)
+        if (SD_SIZE_GET(MBR_SIZE) < boot_settings.sd_image_size)
         {
             // This will clear a page thus ensuring the old image is invalidated before swapping.
             err_code = dfu_copy_sd((uint32_t *)(sd_start + block_size), 
@@ -799,7 +792,7 @@ uint32_t dfu_sd_image_validate(void)
         uint32_t img_block_start = bootloader_settings.sd_image_start + 2 * block_size;
         uint32_t sd_block_start  = sd_start + 2 * block_size;
 
-        if (SOFTDEVICE_INFORMATION->softdevice_size < bootloader_settings.sd_image_size)
+        if (SD_SIZE_GET(MBR_SIZE) < bootloader_settings.sd_image_size)
         {
             return NRF_ERROR_NULL;
         }

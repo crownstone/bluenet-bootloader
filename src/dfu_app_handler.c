@@ -143,14 +143,14 @@ static void bootloader_start(uint16_t conn_handle)
     err_code = sd_softdevice_disable();
     APP_ERROR_CHECK(err_code);
 
-    err_code = sd_softdevice_vector_table_base_set(NRF_UICR->BOOTLOADERADDR);
+    err_code = sd_softdevice_vector_table_base_set(NRF_UICR->NRFFW[0]);
     APP_ERROR_CHECK(err_code);
 
     dfu_app_peer_data_set(conn_handle);
 
     NVIC_ClearPendingIRQ(SWI2_IRQn);
     interrupts_disable();
-    bootloader_util_app_start(NRF_UICR->BOOTLOADERADDR);
+    bootloader_util_app_start(NRF_UICR->NRFFW[0]);
 }
 
 

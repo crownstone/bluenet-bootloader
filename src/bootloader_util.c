@@ -116,7 +116,7 @@ static inline void bootloader_util_reset(uint32_t start_addr)
 
         "mrs   r5, IPSR\n"                    // Load IPSR to R5 to check for handler or thread mode 
         "cmp   r5, #0x00\n"                   // Compare, if 0 then we are in thread mode and can continue to reset handler of bootloader.
-        "bne   isr_abort\n"                   // If not zero we need to exit current ISR and jump to reset handler of bootloader.
+        "bne.n isr_abort\n"                   // If not zero we need to exit current ISR and jump to reset handler of bootloader.
 
         "mov   lr, r4\n"                      // Clear the link register and set to ones to ensure no return.
         "bx    r0\n"                          // Branch to reset handler of bootloader.

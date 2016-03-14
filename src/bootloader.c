@@ -11,20 +11,20 @@
  */
 
 #include "bootloader.h"
-#include <string.h>
 #include "bootloader_types.h"
 #include "bootloader_util.h"
 #include "bootloader_settings.h"
 #include "dfu.h"
 #include "dfu_transport.h"
-#include "nrf51.h"
 #include "app_error.h"
 #include "nrf_sdm.h"
+#include "nrf_mbr.h"
 #include "nordic_common.h"
 #include "crc16.h"
 #include "pstorage.h"
 #include "app_scheduler.h"
 #include "nrf_delay.h"
+#include "sdk_common.h"
 
 #include "serial.h"
 
@@ -196,8 +196,8 @@ write_string("\r\n", 3);
     else if (update_status.status_code == DFU_UPDATE_SD_COMPLETE)
     {
         settings.bank_0_crc     = update_status.app_crc;
-        settings.bank_0_size    = update_status.sd_size + 
-                                  update_status.bl_size + 
+        settings.bank_0_size    = update_status.sd_size +
+                                  update_status.bl_size +
                                   update_status.app_size;
         settings.bank_0         = BANK_VALID_SD;
         settings.bank_1         = BANK_INVALID_APP;
@@ -280,7 +280,7 @@ uint32_t bootloader_init(void)
     pstorage_module_param_t storage_params = {.cb = pstorage_callback_handler};
 
     err_code = pstorage_init();
-    if (err_code != NRF_SUCCESS)    
+    if (err_code != NRF_SUCCESS)
     {
         return err_code;
     }
@@ -298,8 +298,8 @@ uint32_t bootloader_dfu_start(void)
 
     // Clear swap if banked update is used.
 write_string("dfu_init   \r\n", 14);
-    err_code = dfu_init(); 
-    if (err_code != NRF_SUCCESS)    
+    err_code = dfu_init();
+    if (err_code != NRF_SUCCESS)
     {
         return err_code;
     }
@@ -355,9 +355,15 @@ bool bootloader_dfu_sd_in_progress(void)
 
     bootloader_util_settings_get(&p_bootloader_settings);
 
-    if (p_bootloader_settings->bank_0 == BANK_VALID_SD ||
+    if (p_bootloader_settings->bank_0 == BANK_VALID_SD) {
+
+write_string("BANK_VALID_SD\r\n", 15);
+        return true;
+    }
+    if (
         p_bootloader_settings->bank_1 == BANK_VALID_BOOT)
     {
+write_string("BANK_VALID_BOOT\r\n", 17);
         return true;
     }
 
@@ -379,6 +385,7 @@ uint32_t bootloader_dfu_sd_update_continue(void)
     // a debugger to be attached.
     nrf_delay_ms(100);
 
+        write_string("swapping\r\n", 10);
     err_code = dfu_sd_image_swap();
     APP_ERROR_CHECK(err_code);
 
@@ -394,6 +401,8 @@ uint32_t bootloader_dfu_sd_update_continue(void)
 
 uint32_t bootloader_dfu_sd_update_finalize(void)
 {
+write_string("sd update finalize\r\n", 20);
+
     dfu_update_status_t update_status = {DFU_UPDATE_SD_SWAPPED, };
 
     bootloader_dfu_update_process(update_status);

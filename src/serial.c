@@ -9,7 +9,6 @@
 
 #include "nrf.h"
 #include "nrf_gpio.h"
-#include "nrf51.h"
 //#include "nRF51822.h"
 #include "cs_Boards.h"
 

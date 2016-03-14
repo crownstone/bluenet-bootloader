@@ -14,9 +14,8 @@
 #include "dfu.h"
 #include <dfu_types.h>
 #include <stddef.h>
-#include <string.h>
 //#include "boards.h"
-#include "nrf51.h"
+#include "nrf.h"
 #include "nrf_sdm.h"
 #include "nrf_gpio.h"
 #include "app_util.h"
@@ -29,20 +28,20 @@
 #include "ble_gatt.h"
 #include "ble_hci.h"
 #include "ble_dfu.h"
-#include "nordic_common.h"
 #include "app_timer.h"
 #include "ble_conn_params.h"
 #include "hci_mem_pool.h"
 #include "bootloader.h"
 #include "dfu_ble_svc_internal.h"
 #include "nrf_delay.h"
+#include "sdk_common.h"
 
 // #include "cs_Boards.h"
 
 #include "serial.h"
 
 #define DFU_REV_MAJOR                        0x00                                                    /** DFU Major revision number to be exposed. */
-#define DFU_REV_MINOR                        0x06                                                    /** DFU Minor revision number to be exposed. */
+#define DFU_REV_MINOR                        0x08                                                    /** DFU Minor revision number to be exposed. */
 #define DFU_REVISION                         ((DFU_REV_MAJOR << 8) | DFU_REV_MINOR)                  /** DFU Revision number to be exposed. Combined of major and minor versions. */
 //#define ADVERTISING_LED_PIN_NO               PIN_GPIO_LED0                                           /**< Is on when device is advertising. */
 //#define CONNECTED_LED_PIN_NO                 PIN_GPIO_LED1                                           /**< Is on when device has connected. */
@@ -74,6 +73,8 @@
 #define SEC_PARAM_TIMEOUT                    30                                                      /**< Timeout for Pairing Request or Security Request (in seconds). */
 #define SEC_PARAM_BOND                       0                                                       /**< Perform bonding. */
 #define SEC_PARAM_MITM                       0                                                       /**< Man In The Middle protection not required. */
+#define SEC_PARAM_LESC                       0                                                       /**< LE Secure Connections not enabled. */
+#define SEC_PARAM_KEYPRESS                   0                                                       /**< Keypress notifications not enabled. */
 #define SEC_PARAM_IO_CAPABILITIES            BLE_GAP_IO_CAPS_NONE                                    /**< No I/O capabilities. */
 #define SEC_PARAM_OOB                        0                                                       /**< Out Of Band data not available. */
 #define SEC_PARAM_MIN_KEY_SIZE               7                                                       /**< Minimum encryption key size. */
@@ -804,7 +805,6 @@ write_string("\r\n", 3);
         case BLE_GAP_EVT_DISCONNECTED:
             {
 write_string("ble evt disconnected\r\n", 23);
-/*
                 uint8_t  sys_attr[128];
                 uint16_t sys_attr_len = 128;
 
@@ -823,11 +823,11 @@ write_string("\r\n", 3);
                                                      BLE_GATTS_SYS_ATTR_FLAG_SYS_SRVCS);
 //char decText[8] = {0};
 get_dec_str(decText, 7, err_code);
-write_string("err_code = ", 12);
+write_string("3 err_code = ", 12);
 write_string(decText, 8);
 write_string("\r\n", 3);
                 APP_ERROR_CHECK(err_code);
-*/
+
             }
             if (!m_tear_down_in_progress)
             {
