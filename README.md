@@ -39,7 +39,7 @@ If you use [bluenet](https://github.com/mrquincle/bluenet) to write your binarie
 sequence:
 
 	./softdevice.sh all
-	./firmware.sh all bootloader 
+	./firmware.sh bootloader 
 
 The latter writes also bit fields to make the binary use the bootloader with the `writebyte.sh` utility. The fastest way to reset those flags is to flash a new softdevice. Do not use `writebyte.sh` or `./firmware.sh all bootloader` without erasing that area first.
 
@@ -54,40 +54,6 @@ If you use the firmware in that repository, you can also find code on how to ent
 Make sure you do not have any breakpoints set in an attached debugger. It works fine, but you might be thinking at 
 times: "What is it doing?" Attaching it is fine, but just remove any default breakpoints in for example `gdbinit` or
 similar scripts.
-
-#### Nordic bug
-
-Then there is one real bug:
-
-You will have to change the code in `$NORDIC_SDK/Source/ble/ble_services/ble_dfu.c`. This is described on the [Nordic Forums](https://devzone.nordicsemi.com/question/22199/s130-how-to-check-if-norification-is-enabled/).
-
-    static uint32_t on_ctrl_pt_write(ble_dfu_t * p_dfu, ble_gatts_evt_write_t * p_ble_write_evt)
-    {
-        ble_gatts_rw_authorize_reply_params_t write_authorize_reply;                                                        
-                                                                                                                          
-        write_authorize_reply.type = BLE_GATTS_AUTHORIZE_TYPE_WRITE;                                                        
-                                                                                                                        
-        bool configured = true;                                                                                             
-    #ifdef S130_BUG_SQUASHED
-        configured = is_cccd_configured(p_dfu);                                                                             
-    #endif
-                                                                                                                        
-        if (!configured) 
-		...
-
-If it bug is squashed you can put the `is_cccd_configured` back in there again of course.
-
-#### Obscure bug
-
-There is also a problem with `sd_softdevice_disable` when called from the bootloader. Hence, I refrain from actually
-disabling the softdevice and do so in the application code. This happens in `bootloader.c` and the function
-`bootloader_app_start()`. You see how I even set these magic bytes, but whatever I do, there is some magic
-disappearance of my running code under the debugger. I don't know what exactly happens there.
-
-    #ifndef S130
-       err_code = sd_softdevice_disable();
-       APP_ERROR_CHECK(err_code);
-    #endif
 
 ## Copyrights
 
