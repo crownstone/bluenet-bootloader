@@ -267,7 +267,7 @@ write_string("act app\r\n", 10);
 
 char decText[8] = {0};
 get_dec_str(decText, 7, err_code);
-write_string("1 err_code = ", 12);
+write_string("pstorage_clear = ", 17);
 write_string(decText, 8);
 write_string("\r\n", 3);
 
@@ -293,7 +293,7 @@ write_string("\r\n", 3);
 
 //char decText[8] = {0};
 get_dec_str(decText, 7, err_code);
-write_string("2 err_code = ", 12);
+write_string("pstorage_store = ", 17);
 write_string(decText, 8);
 write_string("\r\n", 3);
 

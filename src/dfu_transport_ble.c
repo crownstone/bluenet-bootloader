@@ -823,7 +823,7 @@ write_string("\r\n", 3);
                                                      BLE_GATTS_SYS_ATTR_FLAG_SYS_SRVCS);
 //char decText[8] = {0};
 get_dec_str(decText, 7, err_code);
-write_string("3 err_code = ", 12);
+write_string("sys_attr_get = ", 15);
 write_string(decText, 8);
 write_string("\r\n", 3);
                 APP_ERROR_CHECK(err_code);

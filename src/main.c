@@ -253,7 +253,7 @@ int main(void)
 	timers_init();
 	config_uart();
 	bootloader_init();
-	write_string("\r\nFirmware 1.1.1\r\n", 18);
+	write_string("\r\nFirmware 0.2.0\r\n", 18);
 
 	char gpregretText[5] = {0};
 	get_dec_str(gpregretText, 4, gpregret);
