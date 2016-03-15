@@ -224,22 +224,8 @@ int main(void)
 {
 	uint32_t err_code;
     bool     dfu_start = false;
-	uint32_t gpregret = NRF_POWER->GPREGRET;
-    bool     app_reset = (gpregret == BOOTLOADER_DFU_START);
-
-    if (app_reset)
-    {
-        NRF_POWER->GPREGRET = 0;
-    }
-
-	// err_code = sd_power_gpregret_get(&gpregret);
-	// APP_ERROR_CHECK(err_code);
-
-	// // clear the register, so we don't end up all the time in the bootloader
-	// err_code = sd_power_gpregret_clr(0xFF);
-	// APP_ERROR_CHECK(err_code);
-
-//    leds_init();
+    bool     app_reset = false;
+	uint32_t gpregret;
 
     // This check ensures that the defined fields in the bootloader corresponds with actual
     // setting in the nRF51 chip.
@@ -252,25 +238,42 @@ int main(void)
 	bootloader_init();
 	write_string("\r\nFirmware 0.2.0\r\n", 18);
 
+	// get reset value from register
+	gpregret = NRF_POWER->GPREGRET;
+
 #ifdef VERBOSE
 	char gpregretText[5] = {0};
 	get_dec_str(gpregretText, 4, gpregret);
-
-	// bool app_reset =(gpregret == BOOTLOADER_DFU_START);
-
-	if (gpregret == COMMAND_ENTER_RADIO_BOOTLOADER) {
-		write_string("Enter bootloader\r\n", 18);
-		dfu_start = true;
-	} else if (gpregret == 0) {
-		write_string("Accidental reboot\r\n", 20);
-	} else {
-		// just reset, do the same as with accidental reboot
-		write_string("App reset\r\n", 12);
 	WRITE_VERBOSE("gpregret=", 10);
 	WRITE_VERBOSE(gpregretText, 5);
 	WRITE_VERBOSE("\r\n", 3);
 #endif
+
+	switch(gpregret) {
+		case COMMAND_ENTER_RADIO_BOOTLOADER: {
+			write_string("Enter bootloader\r\n", 18);
+			dfu_start = true;
+	        break;
+		}
+		case BOOTLOADER_DFU_START: {
+			// do we ever get here?
+			write_string("Restarted bootloader\r\n", 22);
+			app_reset = true;
+			break;
+		}
+		case 0: {
+			write_string("Normal reboot\r\n", 15);
+			break;
+		}
+		default: {
+			// just reset, do the same as with accidental reboot
+			write_string("App reset\r\n", 11);
+			break;
+		}
 	}
+
+	// clear register to avoid going back to bootloader again on next reset
+    NRF_POWER->GPREGRET = 0;
 
 	if (bootloader_dfu_sd_in_progress())
 	{
