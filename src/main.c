@@ -179,14 +179,11 @@ static void sys_evt_dispatch(uint32_t event)
  */
 static void ble_stack_init(bool init_softdevice)
 {
-	write_string("Init BLE stack\r\n", 16);
-
     uint32_t err_code;
     sd_mbr_command_t com = {SD_MBR_COMMAND_INIT_SD, };
 
     if (init_softdevice)
     {
-		write_string("init_softdevice\r\n", 17);
         err_code = sd_mbr_command(&com);
         APP_ERROR_CHECK(err_code);
     }
@@ -253,13 +250,11 @@ int main(void)
 	timers_init();
 	config_uart();
 	bootloader_init();
-	write_string("\r\nFirmware 1.1.1\r\n", 18);
+	write_string("\r\nFirmware 0.2.0\r\n", 18);
 
+#ifdef VERBOSE
 	char gpregretText[5] = {0};
 	get_dec_str(gpregretText, 4, gpregret);
-	write_string("gpregret=", 10);
-	write_string(gpregretText, 5);
-	write_string("\r\n", 3);
 
 	// bool app_reset =(gpregret == BOOTLOADER_DFU_START);
 
@@ -271,6 +266,10 @@ int main(void)
 	} else {
 		// just reset, do the same as with accidental reboot
 		write_string("App reset\r\n", 12);
+	WRITE_VERBOSE("gpregret=", 10);
+	WRITE_VERBOSE(gpregretText, 5);
+	WRITE_VERBOSE("\r\n", 3);
+#endif
 	}
 
 	if (bootloader_dfu_sd_in_progress())
@@ -280,11 +279,10 @@ int main(void)
 		err_code = bootloader_dfu_sd_update_continue();
 		APP_ERROR_CHECK(err_code);
 
+		WRITE_VERBOSE("Init BLE stack\r\n", 16);
 		ble_stack_init(!app_reset);
-		write_string("Init scheduler\r\n", 16);
+		WRITE_VERBOSE("Init scheduler\r\n", 16);
 		scheduler_init();
-
-		write_string("ok\r\n", 4);
 
 		err_code = bootloader_dfu_sd_update_finalize();
 		APP_ERROR_CHECK(err_code);
@@ -292,22 +290,23 @@ int main(void)
 	else
 	{
 		// If stack is present then continue initialization of bootloader.
-		// write_string("Init BLE stack\r\n", 16);
+		WRITE_VERBOSE("Init BLE stack\r\n", 16);
 		ble_stack_init(!app_reset);
-		write_string("Init scheduler\r\n", 16);
+		WRITE_VERBOSE("Init scheduler\r\n", 16);
 		scheduler_init();
-		write_string("done\r\n", 6);
 	}
 
 	if (dfu_start || (!bootloader_app_is_valid(DFU_BANK_0_REGION_START))) {
 		write_string("Start DFU\r\n", 12);
 		// Initiate an update of the firmware.
 		err_code = bootloader_dfu_start();
+#ifdef VERBOSE
 //char errText[5] = {0};
 //get_dec_str(errText, 4, err_code);
-//write_string("err_code=", 10);
-//write_string(errText, 5);
-//write_string("\r\n", 3);
+//WRITE_VERBOSE("err_code=", 10);
+//WRITE_VERBOSE(errText, 5);
+//WRITE_VERBOSE("\r\n", 3);
+#endif
 		APP_ERROR_CHECK(err_code);
 	}
 

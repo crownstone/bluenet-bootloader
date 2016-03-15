@@ -61,8 +61,3 @@ void _get_dec_str(char* str, uint32_t len, uint32_t val) {
 	}
 	str[i-1] = '\0';
 }
-
-void _stub0() {}
-void _stub1(char * var, int var1) {}
-void _stub2(char* str, uint32_t len, uint32_t val) {}
-

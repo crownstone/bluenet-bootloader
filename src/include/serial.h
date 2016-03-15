@@ -14,6 +14,8 @@ extern "C" {
 
 #include <stdint.h>
 
+#define VERBOSE
+
 #undef DEBUG
 #define DEBUG                0
 #define INFO                 1
@@ -23,13 +25,13 @@ extern "C" {
 #define NONE                 5
 
 /**
- * General configuration of the serial connection. This sets the pin to be used for UART, the baudrate, the parity 
+ * General configuration of the serial connection. This sets the pin to be used for UART, the baudrate, the parity
  * bits, etc.
  */
 void _config_uart();
 
 /**
- * Write a string to the serial connection. Make sure you end with `\n` if you want to have new lines in the output. 
+ * Write a string to the serial connection. Make sure you end with `\n` if you want to have new lines in the output.
  * Also flushing the buffer might be done around new lines.
  */
 //void write(const char *str);
@@ -43,18 +45,22 @@ void _write_token(const char token);
 void _write_string(const char *str, int len);
 void _get_dec_str(char* str, uint32_t len, uint32_t val);
 
-void _stub0();
-void _stub1(char * var, int var1);
-void _stub2(char* str, uint32_t len, uint32_t val);
+#define WRITE_VERBOSE(str, len)
 
 #if SERIAL_VERBOSITY<NONE
 #define config_uart  _config_uart
 #define write_string _write_string
 #define get_dec_str  _get_dec_str
+
+#ifdef VERBOSE
+#undef WRITE_VERBOSE
+#define WRITE_VERBOSE(str, len) _write_string(str, len);
+#endif
+
 #else
-#define config_uart  _stub0
-#define write_string _stub1
-#define get_dec_str  _stub2
+#define config_uart(token)
+#define write_string(str, len)
+#define get_dec_str(str, len, val)
 #endif
 
 #ifdef __cplusplus

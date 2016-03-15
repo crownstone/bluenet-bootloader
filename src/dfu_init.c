@@ -143,24 +143,28 @@ uint32_t dfu_init_postvalidate(uint8_t * p_image, uint32_t image_len)
     // calculate CRC from active block.
     image_crc = crc16_compute(p_image, image_len, NULL);
 
-char crcText[8] = {0};
-get_dec_str(crcText, 7, image_crc);
-write_string("img crc=", 8);
-write_string(crcText, 8);
-write_string("\r\n", 3);
+#ifdef VERBOSE
+    char crcText[8] = {0};
+    get_dec_str(crcText, 7, image_crc);
+    WRITE_VERBOSE("img crc=", 8);
+    WRITE_VERBOSE(crcText, 8);
+    WRITE_VERBOSE("\r\n", 3);
+#endif
 
     // Decode the received CRC from extended data.
     received_crc = uint16_decode((uint8_t *)&m_extended_packet[0]);
 
-get_dec_str(crcText, 7, received_crc);
-write_string("rec crc=", 8);
-write_string(crcText, 8);
-write_string("\r\n", 3);
+#ifdef VERBOSE
+    get_dec_str(crcText, 7, received_crc);
+    WRITE_VERBOSE("rec crc=", 8);
+    WRITE_VERBOSE(crcText, 8);
+    WRITE_VERBOSE("\r\n", 3);
 
-get_dec_str(crcText, 7, image_len);
-write_string("img len=", 8);
-write_string(crcText, 8);
-write_string("\r\n", 3);
+    get_dec_str(crcText, 7, image_len);
+    WRITE_VERBOSE("img len=", 8);
+    WRITE_VERBOSE(crcText, 8);
+    WRITE_VERBOSE("\r\n", 3);
+#endif
 
     // Compare the received and calculated CRC.
     if (image_crc != received_crc)

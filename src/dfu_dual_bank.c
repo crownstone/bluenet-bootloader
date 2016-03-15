@@ -57,19 +57,22 @@ static void pstorage_callback_handler(pstorage_handle_t * p_handle,
                                       uint8_t           * p_data,
                                       uint32_t            data_len)
 {
-/*
-write_string("pstore cb hand\r\n", 17);
-char decText[8] = {0};
-get_dec_str(decText, 7, op_code);
-write_string("opcode = ", 10);
-write_string(decText, 8);
-write_string("\r\n", 3);
 
-get_dec_str(decText, 7, result);
-write_string("result = ", 10);
-write_string(decText, 8);
-write_string("\r\n", 3);
-*/
+#ifdef VERBOSE
+    /*
+    WRITE_VERBOSE("pstore cb hand\r\n", 17);
+    char decText[8] = {0};
+    get_dec_str(decText, 7, op_code);
+    WRITE_VERBOSE("opcode = ", 10);
+    WRITE_VERBOSE(decText, 8);
+    WRITE_VERBOSE("\r\n", 3);
+
+    get_dec_str(decText, 7, result);
+    WRITE_VERBOSE("result = ", 10);
+    WRITE_VERBOSE(decText, 8);
+    WRITE_VERBOSE("\r\n", 3);
+    */
+#endif
     switch (op_code)
     {
         case PSTORAGE_STORE_OP_CODE:
@@ -80,7 +83,7 @@ write_string("\r\n", 3);
             break;
 
         case PSTORAGE_CLEAR_OP_CODE:
-write_string("pstorage cb handle clear", 25);
+            WRITE_VERBOSE("pstorage cb handle clear", 25);
             if (m_dfu_state == DFU_STATE_PREPARING)
             {
                 m_functions.cleared();
@@ -168,7 +171,7 @@ static void dfu_prepare_func_app_erase(uint32_t image_size)
 static void dfu_prepare_func_swap_erase(uint32_t image_size)
 {
     uint32_t err_code;
-write_string("swap erase\r\n", 13);
+    WRITE_VERBOSE("swap erase\r\n", 13);
     mp_storage_handle_active = &m_storage_handle_swap;
 
     m_dfu_state = DFU_STATE_PREPARING;
@@ -181,7 +184,7 @@ write_string("swap erase\r\n", 13);
  */
 static void dfu_cleared_func_swap(void)
 {
-write_string("swap erase done\r\n", 18);
+    WRITE_VERBOSE("swap erase done\r\n", 18);
     // Do nothing.
 }
 
@@ -258,44 +261,48 @@ static uint32_t dfu_activate_sd(void)
  */
 static uint32_t dfu_activate_app(void)
 {
-write_string("act app\r\n", 10);
+    WRITE_VERBOSE("act app\r\n", 10);
     uint32_t err_code;
 
     // Erase BANK 0.
     err_code = pstorage_clear(&m_storage_handle_app, m_start_packet.app_image_size);
     APP_ERROR_CHECK(err_code);
 
-char decText[8] = {0};
-get_dec_str(decText, 7, err_code);
-write_string("1 err_code = ", 12);
-write_string(decText, 8);
-write_string("\r\n", 3);
+#ifdef VERBOSE
+    char decText[8] = {0};
+    get_dec_str(decText, 7, err_code);
+    WRITE_VERBOSE("pstorage_clear = ", 17);
+    WRITE_VERBOSE(decText, 8);
+    WRITE_VERBOSE("\r\n", 3);
 
-get_dec_str(decText, 7, m_storage_handle_app.block_id);
-write_string("dest = ", 8);
-write_string(decText, 8);
-write_string("\r\n", 3);
+    get_dec_str(decText, 7, m_storage_handle_app.block_id);
+    WRITE_VERBOSE("dest = ", 8);
+    WRITE_VERBOSE(decText, 8);
+    WRITE_VERBOSE("\r\n", 3);
 
-get_dec_str(decText, 7, m_storage_handle_swap.block_id);
-write_string("src = ", 7);
-write_string(decText, 8);
-write_string("\r\n", 3);
+    get_dec_str(decText, 7, m_storage_handle_swap.block_id);
+    WRITE_VERBOSE("src = ", 7);
+    WRITE_VERBOSE(decText, 8);
+    WRITE_VERBOSE("\r\n", 3);
 
-get_dec_str(decText, 7, m_start_packet.app_image_size);
-write_string("size = ", 8);
-write_string(decText, 8);
-write_string("\r\n", 3);
+    get_dec_str(decText, 7, m_start_packet.app_image_size);
+    WRITE_VERBOSE("size = ", 8);
+    WRITE_VERBOSE(decText, 8);
+    WRITE_VERBOSE("\r\n", 3);
+#endif
 
     err_code = pstorage_store(&m_storage_handle_app,
                                   (uint8_t *)m_storage_handle_swap.block_id,
                                   m_start_packet.app_image_size,
                                   0);
 
-//char decText[8] = {0};
-get_dec_str(decText, 7, err_code);
-write_string("2 err_code = ", 12);
-write_string(decText, 8);
-write_string("\r\n", 3);
+#ifdef VERBOSE
+    //char decText[8] = {0};
+    get_dec_str(decText, 7, err_code);
+    WRITE_VERBOSE("pstorage_store = ", 17);
+    WRITE_VERBOSE(decText, 8);
+    WRITE_VERBOSE("\r\n", 3);
+#endif
 
     if (err_code == NRF_SUCCESS)
     {
@@ -345,7 +352,7 @@ uint32_t dfu_init(void)
     m_init_packet_length = 0;
     m_image_crc          = 0;
 
-write_string("pstorage_re\r\n", 14);
+WRITE_VERBOSE("pstorage_re\r\n", 14);
     err_code = pstorage_register(&storage_module_param, &m_storage_handle_app); // returns 4
 
 
@@ -360,14 +367,14 @@ write_string("pstorage_re\r\n", 14);
     m_storage_handle_swap.block_id = DFU_BANK_1_REGION_START;
 
     // Create the timer to monitor the activity by the peer doing the firmware update.
-write_string("app_timer_c\r\n", 14);
+WRITE_VERBOSE("app_timer_c\r\n", 14);
     err_code = app_timer_create(&m_dfu_timer_id,
                                 APP_TIMER_MODE_SINGLE_SHOT,
                                 dfu_timeout_handler);
     APP_ERROR_CHECK(err_code);
 
     // Start the DFU timer.
-write_string("app_timer_s\r\n", 14);
+WRITE_VERBOSE("app_timer_s\r\n", 14);
     err_code = app_timer_start(m_dfu_timer_id, DFU_TIMEOUT_INTERVAL, NULL);
     APP_ERROR_CHECK(err_code);
 
@@ -386,7 +393,7 @@ void dfu_register_callback(dfu_callback_t callback_handler)
 
 uint32_t dfu_start_pkt_handle(dfu_update_packet_t * p_packet)
 {
-write_string("start_pkt_handle\r\n", 19);
+WRITE_VERBOSE("start_pkt_handle\r\n", 19);
     uint32_t err_code;
 
     m_start_packet = *(p_packet->params.start_packet);
@@ -527,14 +534,14 @@ uint32_t dfu_data_pkt_handle(dfu_update_packet_t * p_packet)
 //char decText[8] = {0};
 
 //get_dec_str(decText, 7, mp_storage_handle_active->block_id);
-//write_string(decText, 7);
-//write_string("\r\n", 3);
+//WRITE_VERBOSE(decText, 7);
+//WRITE_VERBOSE("\r\n", 3);
 
 //for (int i=0; i<data_length; i++) {
 //get_dec_str(decText, 3, ((uint8_t*)p_data)[i]);
-//write_string(decText, 4);
+//WRITE_VERBOSE(decText, 4);
 //}
-//write_string("\r\n", 3);
+//WRITE_VERBOSE("\r\n", 3);
             if (err_code != NRF_SUCCESS)
             {
                 return err_code;
@@ -574,19 +581,23 @@ uint32_t dfu_init_pkt_complete(void)
         return NRF_ERROR_INVALID_STATE;
     }
 
-write_string("init_pkt_complete\r\n", 19);
-char decText[8] = {0};
-get_dec_str(decText, 7, m_dfu_state);
-write_string("state = ", 8);
-write_string(decText, 8);
-write_string("\r\n", 3);
+WRITE_VERBOSE("init_pkt_complete\r\n", 19);
+#ifdef VERBOSE
+    char decText[8] = {0};
+    get_dec_str(decText, 7, m_dfu_state);
+    WRITE_VERBOSE("state = ", 8);
+    WRITE_VERBOSE(decText, 8);
+    WRITE_VERBOSE("\r\n", 3);
+#endif
     if (m_dfu_state == DFU_STATE_RX_INIT_PKT)
     {
         err_code = dfu_init_prevalidate(m_init_packet, m_init_packet_length);
-get_dec_str(decText, 7, err_code);
-write_string("prevalidate=", 12);
-write_string(decText, 8);
-write_string("\r\n", 3);
+#ifdef VERBOSE
+        get_dec_str(decText, 7, err_code);
+        WRITE_VERBOSE("prevalidate=", 12);
+        WRITE_VERBOSE(decText, 8);
+        WRITE_VERBOSE("\r\n", 3);
+#endif
         if (err_code == NRF_SUCCESS)
         {
             m_dfu_state = DFU_STATE_RX_DATA_PKT;
@@ -605,12 +616,14 @@ uint32_t dfu_init_pkt_handle(dfu_update_packet_t * p_packet)
     uint32_t err_code = NRF_SUCCESS;
     uint32_t length;
 
-write_string("init_pkt_handle\r\n", 18);
+#ifdef VERBOSE
+WRITE_VERBOSE("init_pkt_handle\r\n", 18);
 char decText[8] = {0};
 get_dec_str(decText, 7, m_dfu_state);
-write_string("state = ", 9);
-write_string(decText, 8);
-write_string("\r\n", 3);
+WRITE_VERBOSE("state = ", 9);
+WRITE_VERBOSE(decText, 8);
+WRITE_VERBOSE("\r\n", 3);
+#endif
 
     switch (m_dfu_state)
     {
@@ -659,21 +672,23 @@ uint32_t dfu_image_validate()
 {
     uint32_t err_code;
 
-char decText[8] = {0};
-get_dec_str(decText, 7, m_dfu_state);
-write_string("state = ", 8);
-write_string(decText, 8);
-write_string("\r\n", 3);
+#ifdef VERBOSE
+    char decText[8] = {0};
+    get_dec_str(decText, 7, m_dfu_state);
+    WRITE_VERBOSE("state = ", 8);
+    WRITE_VERBOSE(decText, 8);
+    WRITE_VERBOSE("\r\n", 3);
 
-get_dec_str(decText, 7, m_data_received);
-write_string("dat rec=", 8);
-write_string(decText, 8);
-write_string("\r\n", 3);
+    get_dec_str(decText, 7, m_data_received);
+    WRITE_VERBOSE("dat rec=", 8);
+    WRITE_VERBOSE(decText, 8);
+    WRITE_VERBOSE("\r\n", 3);
 
-get_dec_str(decText, 7, m_image_size);
-write_string("img len=", 8);
-write_string(decText, 8);
-write_string("\r\n", 3);
+    get_dec_str(decText, 7, m_image_size);
+    WRITE_VERBOSE("img len=", 8);
+    WRITE_VERBOSE(decText, 8);
+    WRITE_VERBOSE("\r\n", 3);
+#endif
 
     switch (m_dfu_state)
     {
@@ -690,11 +705,11 @@ write_string("\r\n", 3);
                 m_dfu_state = DFU_STATE_VALIDATE;
 
                 // Valid peer activity detected. Hence restart the DFU timer.
-write_string("dfu_timer_re\r\n", 14);
+WRITE_VERBOSE("dfu_timer_re\r\n", 14);
                 err_code = dfu_timer_restart();
                 if (err_code == NRF_SUCCESS)
                 {
-write_string("postvalidate\r\n", 14);
+WRITE_VERBOSE("postvalidate\r\n", 14);
                     err_code = dfu_init_postvalidate((uint8_t *)mp_storage_handle_active->block_id,
                                                      m_image_size);
                     if (err_code != NRF_SUCCESS)
@@ -718,12 +733,14 @@ write_string("postvalidate\r\n", 14);
 
 uint32_t dfu_image_activate()
 {
-write_string("img activate\r\n", 15);
-char decText[8] = {0};
-get_dec_str(decText, 7, m_dfu_state);
-write_string("state = ", 8);
-write_string(decText, 8);
-write_string("\r\n", 3);
+#ifdef VERBOSE
+    WRITE_VERBOSE("img activate\r\n", 15);
+    char decText[8] = {0};
+    get_dec_str(decText, 7, m_dfu_state);
+    WRITE_VERBOSE("state = ", 8);
+    WRITE_VERBOSE(decText, 8);
+    WRITE_VERBOSE("\r\n", 3);
+#endif
 
     uint32_t err_code;
 
@@ -749,7 +766,7 @@ write_string("\r\n", 3);
 
 void dfu_reset(void)
 {
-write_string("dfu_reset\r\n", 12);
+WRITE_VERBOSE("dfu_reset\r\n", 12);
     dfu_update_status_t update_status;
 
     update_status.status_code = DFU_RESET;
