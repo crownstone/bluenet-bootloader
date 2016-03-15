@@ -17,8 +17,8 @@ device_variant=xxaa
 output_path=${BLUENET_CONFIG_DIR}/build
 mkdir -p "$output_path"
 
-echo "++ Go to \"${path}/../src/gcc\""
-cd "${path}/../src/gcc"
+echo "++ Go to \"${path}/../gcc\""
+cd "${path}/../gcc"
 
 cp gcc_nrf51_bootloader_xxaa.ld.in gcc_nrf51_bootloader_xxaa.ld
 sed -i "s/@RAM_R1_BASE@/${RAM_R1_BASE}/" gcc_nrf51_bootloader_xxaa.ld

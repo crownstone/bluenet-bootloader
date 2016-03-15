@@ -54,6 +54,8 @@ SDK_PATH=$(NRF51822_DIR)/
 
 OUTPUT_FILENAME=dobots
 
+C_SOURCE_PATHS += ../src/
+
 C_SOURCE_FILES += main.c
 #C_SOURCE_FILES += dfu_dual_bank.c
 C_SOURCE_FILES += dfu_single_bank.c
@@ -113,9 +115,8 @@ INCLUDEPATHS += -I"$(SDK_PATH)components/softdevice/common/softdevice_handler"
 
 INCLUDEPATHS += -I"$(SOFTDEVICE_DIR)/$(SOFTDEVICE_DIR_API)/include"
 
-INCLUDEPATHS += -I"../ble_transport"
 INCLUDEPATHS += -I"../include"
-INCLUDEPATHS += -I"../"
+INCLUDEPATHS += -I"../src"
 
 ifndef BLUENET_DIR
 $(error BLUENET_DIR is not set. Make sure it is set!)

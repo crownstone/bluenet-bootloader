@@ -15,7 +15,7 @@ device_variant=xxaa
 output_path=${BLUENET_CONFIG_DIR}/build
 mkdir -p "$output_path"
 
-echo "++ Go to \"${path}/../src/gcc\""
-cd "${path}/../src/gcc"
+echo "++ Go to \"${path}/../gcc\""
+cd "${path}/../gcc"
 
 make clean
