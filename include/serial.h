@@ -58,6 +58,7 @@ void _get_dec_str(char* str, uint32_t len, uint32_t val);
 #endif
 
 #else
+#undef VERBOSE
 #define config_uart(token)
 #define write_string(str, len)
 #define get_dec_str(str, len, val)
