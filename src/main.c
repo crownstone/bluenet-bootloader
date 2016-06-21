@@ -74,7 +74,14 @@
 
 #define SCHED_QUEUE_SIZE                20 //10 doesn't matter                                                      /**< Maximum number of events in the scheduler queue. */
 
+// command to enter dfu mode
 #define	COMMAND_ENTER_RADIO_BOOTLOADER  66
+// command for normal reset
+#define	COMMAND_SOFT_RESET              0
+// gpregret value after dfu upload (or timeout)
+#define	GPREGRET_NEW_FIRMWARE_LOADED    65
+// gpregret default value (to detect accidental resets)
+#define	GPREGRET_DEFAULT                1
 
 /**@brief Function for error handling, which is called when an error has occurred.
  *
@@ -249,6 +256,11 @@ int main(void)
 	WRITE_VERBOSE("\r\n", 3);
 #endif
 
+	// set register to default value (1_. if firmware is resetting accidentally, we
+	// can start increasing this value.
+	// note: if device is hard reset (power off, brownout reset pin) the register is cleared
+	NRF_POWER->GPREGRET = GPREGRET_DEFAULT;
+
 	switch(gpregret) {
 		case COMMAND_ENTER_RADIO_BOOTLOADER: {
 			write_string("Enter bootloader\r\n", 18);
@@ -261,19 +273,23 @@ int main(void)
 			app_reset = true;
 			break;
 		}
-		case 0: {
+		case COMMAND_SOFT_RESET: {
 			write_string("Normal reboot\r\n", 15);
 			break;
 		}
 		default: {
-			// just reset, do the same as with accidental reboot
-			write_string("App reset\r\n", 11);
+			// accidental reboot, start counting
+			gpregret += 1;
+			NRF_POWER->GPREGRET = gpregret;
+
+			char gpregretText[5] = {0};
+			get_dec_str(gpregretText, 4, gpregret);
+			write_string("App reset, count=", 17);
+			write_string(gpregretText, 5);
+			WRITE_VERBOSE("\r\n", 3);
 			break;
 		}
 	}
-
-	// clear register to avoid going back to bootloader again on next reset
-    NRF_POWER->GPREGRET = 0;
 
 	if (bootloader_dfu_sd_in_progress())
 	{
@@ -303,14 +319,19 @@ int main(void)
 		write_string("Start DFU\r\n", 12);
 		// Initiate an update of the firmware.
 		err_code = bootloader_dfu_start();
-#ifdef VERBOSE
-//char errText[5] = {0};
-//get_dec_str(errText, 4, err_code);
-//WRITE_VERBOSE("err_code=", 10);
-//WRITE_VERBOSE(errText, 5);
-//WRITE_VERBOSE("\r\n", 3);
-#endif
+//#ifdef VERBOSE
+//	char errText[5] = {0};
+//	get_dec_str(errText, 4, err_code);
+//	WRITE_VERBOSE("err_code=", 10);
+//	WRITE_VERBOSE(errText, 5);
+//	WRITE_VERBOSE("\r\n", 3);
+//#endif
 		APP_ERROR_CHECK(err_code);
+
+		// set register to new value, if firmware is buggy, do a couple of resets, then
+		// go back to dfu mode
+		// note: this also happens if dfu times out
+		NRF_POWER->GPREGRET = GPREGRET_NEW_FIRMWARE_LOADED;
 	}
 
 	if (bootloader_app_is_valid(DFU_BANK_0_REGION_START) && !bootloader_dfu_sd_in_progress())
