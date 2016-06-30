@@ -50,7 +50,6 @@
 #include "serial.h"
 // #include "cs_Boards.h"
 
-
 #define IS_SRVC_CHANGED_CHARACT_PRESENT 1                                                       /**< Include the service_changed characteristic. For DFU this should normally be the case. */
 
 #define APP_GPIOTE_MAX_USERS            1                                                       /**< Number of GPIOTE users in total. Used by button module and dfu_transport_serial module (flow control). */
@@ -75,13 +74,15 @@
 #define SCHED_QUEUE_SIZE                20 //10 doesn't matter                                                      /**< Maximum number of events in the scheduler queue. */
 
 // command to enter dfu mode
-#define	COMMAND_ENTER_RADIO_BOOTLOADER  66
+#define GPREGRET_DFU_RESET              66
 // command for normal reset
-#define	COMMAND_SOFT_RESET              0
+#define GPREGRET_SOFT_RESET             0
 // gpregret value after dfu upload (or timeout)
-#define	GPREGRET_NEW_FIRMWARE_LOADED    65
+#define GPREGRET_NEW_FIRMWARE_LOADED    64
 // gpregret default value (to detect accidental resets)
-#define	GPREGRET_DEFAULT                1
+#define GPREGRET_DEFAULT                1
+// msk for brownout reset
+#define GPREGRET_BROWNOUT_RESET         96
 
 /**@brief Function for error handling, which is called when an error has occurred.
  *
@@ -243,7 +244,7 @@ int main(void)
 	timers_init();
 	config_uart();
 	bootloader_init();
-	write_string("\r\nFirmware 0.2.0\r\n", 18);
+	write_string("\r\nFirmware 0.3.2\r\n", 18);
 
 	// get reset value from register
 	gpregret = NRF_POWER->GPREGRET;
@@ -254,6 +255,12 @@ int main(void)
 	WRITE_VERBOSE("gpregret=", 10);
 	WRITE_VERBOSE(gpregretText, 5);
 	WRITE_VERBOSE("\r\n", 3);
+
+	char resetreasText[5] = {0};
+	get_dec_str(resetreasText, 4, NRF_POWER->RESETREAS);
+	WRITE_VERBOSE("resetreas=", 11);
+	WRITE_VERBOSE(resetreasText, 5);
+	WRITE_VERBOSE("\r\n", 3);
 #endif
 
 	// set register to default value (1_. if firmware is resetting accidentally, we
@@ -262,7 +269,9 @@ int main(void)
 	NRF_POWER->GPREGRET = GPREGRET_DEFAULT;
 
 	switch(gpregret) {
-		case COMMAND_ENTER_RADIO_BOOTLOADER: {
+		case GPREGRET_BROWNOUT_RESET + 10:
+			write_string("Too many brownouts detected!!\r\n", 31);
+		case GPREGRET_DFU_RESET: {
 			write_string("Enter bootloader\r\n", 18);
 			dfu_start = true;
 	        break;
@@ -273,7 +282,7 @@ int main(void)
 			app_reset = true;
 			break;
 		}
-		case COMMAND_SOFT_RESET: {
+		case GPREGRET_SOFT_RESET: {
 			write_string("Normal reboot\r\n", 15);
 			break;
 		}
@@ -282,11 +291,13 @@ int main(void)
 			gpregret += 1;
 			NRF_POWER->GPREGRET = gpregret;
 
+#ifdef VERBOSE
 			char gpregretText[5] = {0};
 			get_dec_str(gpregretText, 4, gpregret);
 			write_string("App reset, count=", 17);
 			write_string(gpregretText, 5);
 			WRITE_VERBOSE("\r\n", 3);
+#endif
 			break;
 		}
 	}
