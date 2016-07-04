@@ -9,9 +9,9 @@ endif
 
 # TODO: is this optional this way?
 include $(BLUENET_DIR)/CMakeBuild.config.default
-# ifneq ("$(wildcard $(BLUENET_DIR)/CMakeBuild.config.local)","")
-# include $(BLUENET_DIR)/CMakeBuild.config.local
-# endif
+ifneq ("$(wildcard $(BLUENET_DIR)/CMakeBuild.config.local)","")
+include $(BLUENET_DIR)/CMakeBuild.config.local
+endif
 include $(BLUENET_CONFIG_DIR)/CMakeBuild.config
 # Check that file to know how to set HARDWARE_BOARD
 
