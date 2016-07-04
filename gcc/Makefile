@@ -9,7 +9,9 @@ endif
 
 # TODO: is this optional this way?
 include $(BLUENET_DIR)/CMakeBuild.config.default
-include $(BLUENET_DIR)/CMakeBuild.config.local
+# ifneq ("$(wildcard $(BLUENET_DIR)/CMakeBuild.config.local)","")
+# include $(BLUENET_DIR)/CMakeBuild.config.local
+# endif
 include $(BLUENET_CONFIG_DIR)/CMakeBuild.config
 # Check that file to know how to set HARDWARE_BOARD
 
@@ -113,7 +115,11 @@ INCLUDEPATHS += -I"$(SDK_PATH)components/drivers_nrf/pstorage"
 INCLUDEPATHS += -I"$(SDK_PATH)components/drivers_nrf/ble_flash"
 INCLUDEPATHS += -I"$(SDK_PATH)components/softdevice/common/softdevice_handler"
 
-INCLUDEPATHS += -I"$(SOFTDEVICE_DIR)/$(SOFTDEVICE_DIR_API)/include"
+ifneq ($(and $(SOFTDEVICE_DIR),$(SOFTDEVICE_DIR_API)),)
+INCLUDEPATHS += -I"$(SOFTDEVICE_DIR)/$(SOFTDEVICE_DIR_API)"
+else
+INCLUDEPATHS += -I"${NRF51822_DIR}/components/softdevice/s${SOFTDEVICE_SERIES}/headers"
+endif
 
 INCLUDEPATHS += -I"../include"
 INCLUDEPATHS += -I"../src"
