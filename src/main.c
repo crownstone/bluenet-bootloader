@@ -48,7 +48,7 @@
 #include "nrf_mbr.h"
 
 #include "serial.h"
-// #include "cs_Boards.h"
+#include "cs_Boards.h"
 
 #define IS_SRVC_CHANGED_CHARACT_PRESENT 1                                                       /**< Include the service_changed characteristic. For DFU this should normally be the case. */
 
@@ -226,21 +226,42 @@ static void scheduler_init(void)
 	APP_SCHED_INIT(SCHED_MAX_EVENT_DATA_SIZE, SCHED_QUEUE_SIZE);
 }
 
+
+static void gpio_init(void)
+{
+	//! PWM pin
+	nrf_gpio_cfg_output(PIN_GPIO_SWITCH);
+#ifdef SWITCH_INVERSED
+	nrf_gpio_pin_set(PIN_GPIO_SWITCH);
+#else
+	nrf_gpio_pin_clear(PIN_GPIO_SWITCH);
+#endif
+
+	//! Relay pins
+#if HAS_RELAY
+	nrf_gpio_cfg_output(PIN_GPIO_RELAY_OFF);
+	nrf_gpio_pin_clear(PIN_GPIO_RELAY_OFF);
+	nrf_gpio_cfg_output(PIN_GPIO_RELAY_ON);
+	nrf_gpio_pin_clear(PIN_GPIO_RELAY_ON);
+#endif
+}
+
 /**@brief Function for application main entry.
 */
 int main(void)
 {
 	uint32_t err_code;
-    bool     dfu_start = false;
-    bool     app_reset = false;
+	bool     dfu_start = false;
+	bool     app_reset = false;
 	uint32_t gpregret;
 
-    // This check ensures that the defined fields in the bootloader corresponds with actual
-    // setting in the nRF51 chip.
-    APP_ERROR_CHECK_BOOL(*((uint32_t *)NRF_UICR_BOOT_START_ADDRESS) == BOOTLOADER_REGION_START);
-    APP_ERROR_CHECK_BOOL(NRF_FICR->CODEPAGESIZE == CODE_PAGE_SIZE);
+	// This check ensures that the defined fields in the bootloader corresponds with actual
+	// setting in the nRF51 chip.
+	APP_ERROR_CHECK_BOOL(*((uint32_t *)NRF_UICR_BOOT_START_ADDRESS) == BOOTLOADER_REGION_START);
+	APP_ERROR_CHECK_BOOL(NRF_FICR->CODEPAGESIZE == CODE_PAGE_SIZE);
 
 	// Initialize.
+	gpio_init();
 	timers_init();
 	config_uart();
 	bootloader_init();
