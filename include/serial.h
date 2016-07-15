@@ -22,7 +22,7 @@ extern "C" {
 //#define WARN                 2
 //#define ERROR                3
 //#define FATAL                4
-//#define NONE                 5
+#define NONE                 5
 
 /**
  * General configuration of the serial connection. This sets the pin to be used for UART, the baudrate, the parity

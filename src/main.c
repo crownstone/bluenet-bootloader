@@ -27,6 +27,7 @@
  * -# Activate Image, boot application.
  *
  */
+#include "nrf_drv_config.h"
 #include "dfu_transport.h"
 #include "bootloader.h"
 #include "bootloader_util.h"
@@ -201,11 +202,21 @@ static void ble_stack_init(bool init_softdevice)
 {
     uint32_t err_code;
     sd_mbr_command_t com = {SD_MBR_COMMAND_INIT_SD, };
-	nrf_clock_lf_cfg_t clock_lf_cfg = {.source        = NRF_CLOCK_LF_SRC_RC,   \
-                                       .rc_ctiv       = 0,                     \
-                                       .rc_temp_ctiv  = 0,                     \
+
+	// Use recommended setting:
+	// This will ensure calibration at least once every 8 seconds and for temperature changes of 0.5 degrees Celsius every 4 seconds.
+    nrf_clock_lf_cfg_t clock_lf_cfg = {.source        = NRF_CLOCK_LF_SRC_RC,   \
+                                       .rc_ctiv       = 16,                    \
+                                       .rc_temp_ctiv  = 2,                     \
                                        .xtal_accuracy = 0};
 
+
+/*
+nrf_clock_lf_cfg_t clock_lf_cfg = {.source        = NRF_CLOCK_LF_SRC_XTAL,            \
+                                 .rc_ctiv       = 0,                                \
+                                 .rc_temp_ctiv  = 0,                                \
+                                 .xtal_accuracy = NRF_CLOCK_LF_XTAL_ACCURACY_20_PPM};
+*/
 //	nrf_clock_lf_cfg_t clock_lf_cfg = NRF_CLOCK_LFCLKSRC_RC_250_PPM_TEMP_8000MS_CALIBRATION;
 
     if (init_softdevice)
@@ -284,8 +295,8 @@ int main(void)
 	gpio_init();
 	timers_init();
 	config_uart();
-	(void)bootloader_init();
 	write_string("\r\nFirmware\r\n", 12);
+	(void)bootloader_init();
 
 	// get reset value from register
 	gpregret = NRF_POWER->GPREGRET;

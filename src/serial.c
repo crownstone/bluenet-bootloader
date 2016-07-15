@@ -19,19 +19,38 @@
  * Configure the UART. Currently we set it on 38400 baud.
  */
 void _config_uart() {
-	// Enable UART
-	NRF_UART0->ENABLE = 0x04;
+	// Disable UART
+	NRF_UART0->ENABLE = UART_ENABLE_ENABLE_Disabled;
+	
+	nrf_gpio_cfg_output(PIN_GPIO_TX);
+	nrf_gpio_cfg_input(PIN_GPIO_RX, NRF_GPIO_PIN_NOPULL);
 
 	// Configure UART pins
 	NRF_UART0->PSELRXD = PIN_GPIO_RX;
+	NRF_UART0->BAUDRATE = NRF_UART_38400_BAUD;
+	
 	NRF_UART0->PSELTXD = PIN_GPIO_TX;
 
+	NRF_UART0->PSELRTS  = 0xFFFFFFFF;
+	NRF_UART0->PSELCTS  = 0xFFFFFFFF;
+	
+	// Disable parity and interrupt
+	NRF_UART0->CONFIG   = (UART_CONFIG_PARITY_Excluded  << UART_CONFIG_PARITY_Pos );
+	NRF_UART0->CONFIG  |= (UART_CONFIG_HWFC_Disabled    << UART_CONFIG_HWFC_Pos   );
+
 	//NRF_UART0->CONFIG = NRF_UART0->CONFIG_HWFC_ENABLED; // do not enable hardware flow control.
-	NRF_UART0->BAUDRATE = NRF_UART_38400_BAUD;
-	NRF_UART0->TASKS_STARTTX = 1;
-	NRF_UART0->TASKS_STARTRX = 1;
-	NRF_UART0->EVENTS_RXDRDY = 0;
-	NRF_UART0->EVENTS_TXDRDY = 0;
+	
+	
+	// Re-enable the UART
+	NRF_UART0->ENABLE           = UART_ENABLE_ENABLE_Enabled;
+	NRF_UART0->INTENSET         = 0;
+	NRF_UART0->TASKS_STARTTX    = 1;
+	NRF_UART0->TASKS_STARTRX    = 1;
+	
+	//NRF_UART0->TASKS_STARTTX = 1;
+	//NRF_UART0->TASKS_STARTRX = 1;
+	//NRF_UART0->EVENTS_RXDRDY = 0;
+	//NRF_UART0->EVENTS_TXDRDY = 0;
 }
 
 void _write_token(const char token) {
