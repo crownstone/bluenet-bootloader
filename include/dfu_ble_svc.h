@@ -27,7 +27,8 @@
  * @note The application must make sure that all SuperVisor Calls (SVC) are forwarded to the
  *       bootloader to ensure correct behavior. Forwarding of SVCs to the bootloader is
  *       done using the SoftDevice SVC @ref sd_softdevice_vector_table_base_set with the value
- *       present in @c NRF_UICR->BOOTLOADERADDR.
+ *       //present in @c NRF_UICR->BOOTLOADERADDR.
+ *       present in @c NRF_UICR->NRFFW[0].
  */
 
 #ifndef DFU_BLE_SVC_H__
@@ -36,6 +37,7 @@
 #include "nrf_svc.h"
 #include <stdint.h>
 #include "ble_gap.h"
+#include "nrf.h"
 #include "nrf_soc.h"
 #include "nrf_error_sdm.h"
 

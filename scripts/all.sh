@@ -20,13 +20,19 @@ mkdir -p "$output_path"
 echo "++ Go to \"${path}/../gcc\""
 cd "${path}/../gcc"
 
-cp gcc_nrf51_bootloader_xxaa.ld.in gcc_nrf51_bootloader_xxaa.ld
-sed -i "s/@RAM_R1_BASE@/${RAM_R1_BASE}/" gcc_nrf51_bootloader_xxaa.ld
-sed -i "s/@RAM_APPLICATION_AMOUNT@/${RAM_APPLICATION_AMOUNT}/" gcc_nrf51_bootloader_xxaa.ld
-sed -i "s/@BOOTLOADER_START_ADDRESS@/${BOOTLOADER_START_ADDRESS}/" gcc_nrf51_bootloader_xxaa.ld
-sed -i "s/@BOOTLOADER_LENGTH@/${BOOTLOADER_LENGTH}/" gcc_nrf51_bootloader_xxaa.ld
+#cp gcc_nrf51_bootloader_xxaa.ld.in gcc_nrf51_bootloader_xxaa.ld
+#sed -i "s/@RAM_R1_BASE@/${RAM_R1_BASE}/" gcc_nrf51_bootloader_xxaa.ld
+#sed -i "s/@RAM_APPLICATION_AMOUNT@/${RAM_APPLICATION_AMOUNT}/" gcc_nrf51_bootloader_xxaa.ld
+#sed -i "s/@BOOTLOADER_START_ADDRESS@/${BOOTLOADER_START_ADDRESS}/" gcc_nrf51_bootloader_xxaa.ld
+#sed -i "s/@BOOTLOADER_LENGTH@/${BOOTLOADER_LENGTH}/" gcc_nrf51_bootloader_xxaa.ld
+cp dfu_gcc_nrf52.ld.in dfu_gcc_nrf52.ld
+sed -i "s/@RAM_R1_BASE@/${RAM_R1_BASE}/" dfu_gcc_nrf52.ld
+sed -i "s/@RAM_APPLICATION_AMOUNT@/${RAM_APPLICATION_AMOUNT}/" dfu_gcc_nrf52.ld
+sed -i "s/@BOOTLOADER_START_ADDRESS@/${BOOTLOADER_START_ADDRESS}/" dfu_gcc_nrf52.ld
+sed -i "s/@BOOTLOADER_LENGTH@/${BOOTLOADER_LENGTH}/" dfu_gcc_nrf52.ld
 
-make $compilation_mode
+#make $compilation_mode
+make nrf52832_xxaa_s132
 if [ $? -ne 0 ]; then
 	exit 1
 fi
@@ -36,11 +42,14 @@ cd _build
 
 # convert and/or rename to general names (.out is actually in .elf format)
 echo "++ Convert binaries to formats convenient for inspection and upload"
-$objcopy -j .text -j .data -O binary ${prefix}_bootloader_${device_variant}.out bootloader.bin
-$objcopy -j .text -j .data -O ihex ${prefix}_bootloader_${device_variant}.out bootloader_dfu.hex
-cp ${prefix}_bootloader_${device_variant}.out bootloader.elf
-cp ${prefix}_bootloader_${device_variant}.hex bootloader.hex
-
+#$objcopy -j .text -j .data -O binary ${prefix}_bootloader_${device_variant}.out bootloader.bin
+#$objcopy -j .text -j .data -O ihex ${prefix}_bootloader_${device_variant}.out bootloader_dfu.hex
+#cp ${prefix}_bootloader_${device_variant}.out bootloader.elf
+#cp ${prefix}_bootloader_${device_variant}.hex bootloader.hex
+$objcopy -j .text -j .data -O binary nrf52832_xxaa_s132.out bootloader.bin
+$objcopy -j .text -j .data -O ihex nrf52832_xxaa_s132.out bootloader_dfu.hex
+cp nrf52832_xxaa_s132.out bootloader.elf
+cp nrf52832_xxaa_s132.hex bootloader.hex
 
 $objsize bootloader.elf
 

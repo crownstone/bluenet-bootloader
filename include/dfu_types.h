@@ -26,6 +26,7 @@
 #include <stdint.h>
 #include "nrf_sdm.h"
 #include "nrf_mbr.h"
+#include "nrf.h"
 #include "app_util.h"
 
 #define NRF_UICR_BOOT_START_ADDRESS         (NRF_UICR_BASE + 0x14)      /**< Register where the bootloader start address is stored in the UICR register. */

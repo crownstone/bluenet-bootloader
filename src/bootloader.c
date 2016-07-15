@@ -16,6 +16,7 @@
 #include "bootloader_settings.h"
 #include "dfu.h"
 #include "dfu_transport.h"
+#include "nrf.h"
 #include "app_error.h"
 #include "nrf_sdm.h"
 #include "nrf_mbr.h"

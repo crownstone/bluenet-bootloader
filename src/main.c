@@ -39,23 +39,26 @@
 #include "app_error.h"
 #include "nrf_gpio.h"
 #include "ble.h"
+#include "nrf.h"
 #include "ble_hci.h"
 #include "app_scheduler.h"
 #include "app_timer_appsh.h"
 #include "nrf_error.h"
+//#include "bsp.h"
 #include "softdevice_handler_appsh.h"
 #include "pstorage_platform.h"
 #include "nrf_mbr.h"
+//#include "nrf_log.h"
 
 #include "serial.h"
 #include "cs_Boards.h"
 
 #define IS_SRVC_CHANGED_CHARACT_PRESENT 1                                                       /**< Include the service_changed characteristic. For DFU this should normally be the case. */
 
-#define APP_GPIOTE_MAX_USERS            1                                                       /**< Number of GPIOTE users in total. Used by button module and dfu_transport_serial module (flow control). */
+//#define APP_GPIOTE_MAX_USERS            1                                                       /**< Number of GPIOTE users in total. Used by button module and dfu_transport_serial module (flow control). */
 
 #define APP_TIMER_PRESCALER             0                                                       /**< Value of the RTC1 PRESCALER register. */
-#define APP_TIMER_MAX_TIMERS            3 //2 doesn't matter                                                       /**< Maximum number of simultaneously created timers. */
+//#define APP_TIMER_MAX_TIMERS            3 //2 doesn't matter                                                       /**< Maximum number of simultaneously created timers. */
 #define APP_TIMER_OP_QUEUE_SIZE         4                                                       /**< Size of timer operation queues. */
 
 //#define BUTTON_DETECTION_DELAY          APP_TIMER_TICKS(50, APP_TIMER_PRESCALER)                /**< Delay from a GPIOTE event until a button is reported as pushed (in number of timer ticks). */
@@ -69,7 +72,6 @@
                                                            SYS_EVT_MSG_BUF_SIZE),             \
                                                            sizeof(uint32_t))) * sizeof(uint32_t))
 */
-#define SCHED_MAX_EVENT_DATA_SIZE       MAX(APP_TIMER_SCHED_EVT_SIZE, 0)
 
 #define SCHED_QUEUE_SIZE                20 //10 doesn't matter                                                      /**< Maximum number of events in the scheduler queue. */
 
@@ -115,6 +117,16 @@ void app_error_handler(uint32_t error_code, uint32_t line_num, const uint8_t * p
 	// NVIC_SystemReset();
 }
 
+/*lint -save -e14 */
+void app_error_handler_bare(ret_code_t error_code)
+{
+	volatile uint32_t error __attribute__((unused)) = error_code;
+	volatile uint16_t line __attribute__((unused)) = 0;
+	volatile const uint8_t* file __attribute__((unused)) = NULL;
+	__asm("BKPT");
+	while(1) {}
+}
+
 
 /**@brief Callback function for asserts in the SoftDevice.
  *
@@ -148,7 +160,7 @@ static void leds_init(void)
 static void timers_init(void)
 {
     // Initialize timer module, making it use the scheduler.
-    APP_TIMER_APPSH_INIT(APP_TIMER_PRESCALER, APP_TIMER_MAX_TIMERS, APP_TIMER_OP_QUEUE_SIZE, true);
+    APP_TIMER_APPSH_INIT(APP_TIMER_PRESCALER, APP_TIMER_OP_QUEUE_SIZE, true);
 }
 
 
@@ -189,6 +201,12 @@ static void ble_stack_init(bool init_softdevice)
 {
     uint32_t err_code;
     sd_mbr_command_t com = {SD_MBR_COMMAND_INIT_SD, };
+	nrf_clock_lf_cfg_t clock_lf_cfg = {.source        = NRF_CLOCK_LF_SRC_RC,   \
+                                       .rc_ctiv       = 0,                     \
+                                       .rc_temp_ctiv  = 0,                     \
+                                       .xtal_accuracy = 0};
+
+//	nrf_clock_lf_cfg_t clock_lf_cfg = NRF_CLOCK_LFCLKSRC_RC_250_PPM_TEMP_8000MS_CALIBRATION;
 
     if (init_softdevice)
     {
@@ -199,19 +217,20 @@ static void ble_stack_init(bool init_softdevice)
     err_code = sd_softdevice_vector_table_base_set(BOOTLOADER_REGION_START);
     APP_ERROR_CHECK(err_code);
 
-    //SOFTDEVICE_HANDLER_APPSH_INIT(NRF_CLOCK_LFCLKSRC_XTAL_20_PPM, true);
-    SOFTDEVICE_HANDLER_APPSH_INIT(NRF_CLOCK_LFCLKSRC_RC_250_PPM_TEMP_8000MS_CALIBRATION, true);
+	SOFTDEVICE_HANDLER_APPSH_INIT(&clock_lf_cfg, true);
 
-    // Enable BLE stack
+	// Enable BLE stack.
     ble_enable_params_t ble_enable_params;
-    memset(&ble_enable_params, 0, sizeof(ble_enable_params));
-
-    // Below code line is needed for s130. For s110 is inrrelevant - but executable
-    // can run with both s130 and s110.
-    ble_enable_params.gatts_enable_params.attr_tab_size   = BLE_GATTS_ATTR_TAB_SIZE_DEFAULT;
+//	memset(&ble_enable_params, 0, sizeof(ble_enable_params));
+//	// Below code line is needed for s130. For s110 is inrrelevant - but executable
+//	// can run with both s130 and s110.
+//	ble_enable_params.gatts_enable_params.attr_tab_size   = BLE_GATTS_ATTR_TAB_SIZE_DEFAULT;
+	// Only one connection as a central is used when performing dfu.
+	err_code = softdevice_enable_get_default_config(1, 1, &ble_enable_params);
+	APP_ERROR_CHECK(err_code);
 
     ble_enable_params.gatts_enable_params.service_changed = IS_SRVC_CHANGED_CHARACT_PRESENT;
-    err_code = sd_ble_enable(&ble_enable_params);
+	err_code = softdevice_enable(&ble_enable_params);
     APP_ERROR_CHECK(err_code);
 
     err_code = softdevice_sys_evt_handler_set(sys_evt_dispatch);
@@ -246,17 +265,18 @@ static void gpio_init(void)
 #endif
 }
 
-/**@brief Function for application main entry.
+/**@brief Function for bootloader main entry.
 */
 int main(void)
 {
 	uint32_t err_code;
 	bool     dfu_start = false;
+//	bool     app_reset = (NRF_POWER->GPREGRET == BOOTLOADER_DFU_START);
 	bool     app_reset = false;
 	uint32_t gpregret;
 
 	// This check ensures that the defined fields in the bootloader corresponds with actual
-	// setting in the nRF51 chip.
+	// setting in the chip.
 	APP_ERROR_CHECK_BOOL(*((uint32_t *)NRF_UICR_BOOT_START_ADDRESS) == BOOTLOADER_REGION_START);
 	APP_ERROR_CHECK_BOOL(NRF_FICR->CODEPAGESIZE == CODE_PAGE_SIZE);
 
@@ -264,8 +284,8 @@ int main(void)
 	gpio_init();
 	timers_init();
 	config_uart();
-	bootloader_init();
-	write_string("\r\nFirmware 0.3.2\r\n", 18);
+	(void)bootloader_init();
+	write_string("\r\nFirmware\r\n", 12);
 
 	// get reset value from register
 	gpregret = NRF_POWER->GPREGRET;

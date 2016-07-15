@@ -159,9 +159,12 @@ static uint32_t service_change_indicate()
         }
 
         err_code = sd_ble_gatts_service_changed(m_conn_handle, DFU_SERVICE_HANDLE, BLE_HANDLE_MAX);
+//        if ((err_code == BLE_ERROR_INVALID_CONN_HANDLE) ||
+//            (err_code == NRF_ERROR_INVALID_STATE) ||
+//            (err_code == BLE_ERROR_NO_TX_BUFFERS))
         if ((err_code == BLE_ERROR_INVALID_CONN_HANDLE) ||
             (err_code == NRF_ERROR_INVALID_STATE) ||
-            (err_code == BLE_ERROR_NO_TX_BUFFERS))
+            (err_code == BLE_ERROR_NO_TX_PACKETS))
         {
             // Those errors can be expected when sending trying to send Service Changed Indication
             // if the CCCD is not set to indicate. Thus set the returning error code to success.
@@ -858,8 +861,10 @@ WRITE_VERBOSE("ble evt disconnected\r\n", 23);
                 id_key.id_info      = m_ble_peer_data.irk;
                 enc_key             = m_ble_peer_data.enc_key;
 
-                keys.keys_central.p_id_key  = &id_key;
-                keys.keys_central.p_enc_key = &enc_key;
+//                keys.keys_central.p_id_key  = &id_key;
+//                keys.keys_central.p_enc_key = &enc_key;
+                keys.keys_peer.p_id_key  = &id_key;
+                keys.keys_peer.p_enc_key = &enc_key;
 
                 err_code = sd_ble_gap_sec_params_reply(m_conn_handle,
                                                        BLE_GAP_SEC_STATUS_PAIRING_NOT_SUPP,
@@ -1063,15 +1068,17 @@ static void sec_params_init(void)
 {
     m_sec_params.bond         = SEC_PARAM_BOND;
     m_sec_params.mitm         = SEC_PARAM_MITM;
+    m_sec_params.lesc         = SEC_PARAM_LESC;
+    m_sec_params.keypress     = SEC_PARAM_KEYPRESS;
     m_sec_params.io_caps      = SEC_PARAM_IO_CAPABILITIES;
     m_sec_params.oob          = SEC_PARAM_OOB;
     m_sec_params.min_key_size = SEC_PARAM_MIN_KEY_SIZE;
     m_sec_params.max_key_size = SEC_PARAM_MAX_KEY_SIZE;
 }
 
-uint32_t dfu_ble_peer_data_get(dfu_ble_peer_data_t * p_peer_data) {
-    return NRF_ERROR_INVALID_DATA;
-}
+//uint32_t dfu_ble_peer_data_get(dfu_ble_peer_data_t * p_peer_data) {
+//    return NRF_ERROR_INVALID_DATA;
+//}
 
 uint32_t dfu_transport_update_start(void)
 {
@@ -1097,7 +1104,8 @@ uint32_t dfu_transport_update_start(void)
     }
 
     err_code = dfu_ble_peer_data_get(&m_ble_peer_data);
-    if (err_code == NRF_SUCCESS)
+ //   if (err_code == NRF_SUCCESS)
+    if (false)
     {
         m_ble_peer_data_valid = true;
     }

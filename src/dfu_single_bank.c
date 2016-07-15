@@ -34,6 +34,7 @@ static uint8_t                      m_init_packet_length;       /**< Length of i
 static uint16_t                     m_image_crc;                /**< Calculated CRC of the image received. */
 
 static app_timer_id_t               m_dfu_timer_id;             /**< Application timer id. */
+//APP_TIMER_DEF(m_dfu_timer_id);                                  /**< Application timer id. */
 static bool                         m_dfu_timed_out = false;    /**< Boolean flag value for tracking DFU timer timeout state. */
 
 static pstorage_handle_t            m_storage_handle_app;       /**< Pstorage handle for the application area (bank 0). Bank used when updating a SoftDevice w/wo bootloader. Handle also used when swapping received application from bank 1 to bank 0. */
