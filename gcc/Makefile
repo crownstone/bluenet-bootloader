@@ -4,11 +4,21 @@ MAKEFILE_DIR := $(dir $(MAKEFILE_NAME) )
 
 # Retrieve config settings
 ifndef BLUENET_CONFIG_DIR
-$(error BLUENET_CONFIG_DIR is not set. Make sure it is set.)
+ifndef BLUENET_WORKSPACE_DIR
+$(error neither BLUENET_WORKSPACE_DIR nor BLUENET_CONFIG_DIR is not set. Make sure at least one of the two is set.)
+endif
+ifdef BLUENET_WORKSPACE_DIR
+export BLUENET_CONFIG_DIR=$(BLUENET_WORKSPACE_DIR)/config
+endif
 endif
 
 ifndef BLUENET_DIR
-$(error BLUENET_DIR is not set. Make sure it is set.)
+ifndef BLUENET_WORKSPACE_DIR
+$(error neither BLUENET_WORKSPACE_DIR nor BLUENET_DIR is not set. Make sure at least one of the two is set.)
+endif
+ifdef BLUENET_WORKSPACE_DIR
+export BLUENET_DIR=$(BLUENET_WORKSPACE_DIR)/bluenet
+endif
 endif
 
 # TODO: is this optional this way?
@@ -164,6 +174,7 @@ $(info C_SOURCE_FILES = [${C_SOURCE_FILES}])
 $(info CFLAGS = [${CFLAGS}])
 
 OBJECT_DIRECTORY = _build
+# OBJECT_DIRECTORY = $(BLUENET_BUILD_DIR)/bootloader
 LISTING_DIRECTORY = $(OBJECT_DIRECTORY)
 OUTPUT_BINARY_DIRECTORY = $(OBJECT_DIRECTORY)
 

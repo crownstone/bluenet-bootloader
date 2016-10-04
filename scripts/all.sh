@@ -5,7 +5,8 @@ compilation_mode=release
 
 path="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
-. ${path}/check_targets.sh
+# configure environment variables, load configuration files, check targets and
+# assign serial_num from target
 source ${path}/config.sh
 
 objcopy=${COMPILER_PATH}/bin/${COMPILER_TYPE}-objcopy
@@ -14,12 +15,7 @@ objsize=${COMPILER_PATH}/bin/${COMPILER_TYPE}-size
 prefix=dobots
 device_variant=xxaa
 
-if [ -z "${BLUENET_BUILD_DIR}" ]; then
-	echo "First set BLUENET_BUILD_DIR in CMakeBuild.config."
-	exit 1
-fi
-
-output_path=${BLUENET_BUILD_DIR}
+output_path=${BLUENET_BIN_DIR}
 mkdir -p "$output_path"
 
 echo "++ Go to \"${path}/../gcc\""
