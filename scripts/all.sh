@@ -5,6 +5,8 @@ compilation_mode=release
 
 path="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
+. ${path}/check_targets.sh
+
 # configure environment variables, load configuration files, check targets and
 # assign serial_num from target
 source ${path}/config.sh
