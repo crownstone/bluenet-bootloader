@@ -1,15 +1,17 @@
 #!/bin/bash
 
+source ${path}/_utils.sh
+
 compilation_mode=release
 #compilation_mode=debug
 
 path="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
-. ${path}/check_targets.sh
+source ${path}/_check_targets.sh
 
 # configure environment variables, load configuration files, check targets and
 # assign serial_num from target
-source ${path}/config.sh
+source ${path}/_config.sh
 
 objcopy=${COMPILER_PATH}/bin/${COMPILER_TYPE}-objcopy
 objsize=${COMPILER_PATH}/bin/${COMPILER_TYPE}-size
@@ -36,9 +38,7 @@ sed -i "s/@BOOTLOADER_LENGTH@/${BOOTLOADER_LENGTH}/" dfu_gcc_nrf52.ld
 
 #make $compilation_mode
 make nrf52832_xxaa_s132
-if [ $? -ne 0 ]; then
-	exit 1
-fi
+checkError "Error building bootloader"
 
 # this creates a _build directory
 cd _build
