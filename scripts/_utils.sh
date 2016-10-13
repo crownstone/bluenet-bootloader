@@ -12,15 +12,19 @@ yellow=$(tput setaf 3)
 normal=$(tput sgr0)
 
 err() {
-	echo $red$1$normal
+	printf "$red$1$normal\n"
 }
 
 info() {
-	echo $yellow$1$normal
+	printf "$yellow$1$normal\n"
 }
 
 succ() {
-	echo $green$1$normal
+	printf "$green$1$normal\n"
+}
+
+log() {
+	printf "$normal$1$normal\n"
 }
 
 checkError() {

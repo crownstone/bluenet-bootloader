@@ -22,7 +22,7 @@ device_variant=xxaa
 output_path=${BLUENET_BIN_DIR}
 mkdir -p "$output_path"
 
-echo "++ Go to \"${path}/../gcc\""
+log "++ Go to \"${path}/../gcc\""
 cd "${path}/../gcc"
 
 #cp gcc_nrf51_bootloader_xxaa.ld.in gcc_nrf51_bootloader_xxaa.ld
@@ -44,7 +44,7 @@ checkError "Error building bootloader"
 cd _build
 
 # convert and/or rename to general names (.out is actually in .elf format)
-echo "++ Convert binaries to formats convenient for inspection and upload"
+log "++ Convert binaries to formats convenient for inspection and upload"
 #$objcopy -j .text -j .data -O binary ${prefix}_bootloader_${device_variant}.out bootloader.bin
 #$objcopy -j .text -j .data -O ihex ${prefix}_bootloader_${device_variant}.out bootloader_dfu.hex
 #cp ${prefix}_bootloader_${device_variant}.out bootloader.elf
@@ -57,7 +57,7 @@ cp nrf52832_xxaa_s132.hex bootloader.hex
 $objsize bootloader.elf
 
 # copy to target path
-echo "++ Copy files to $output_path"
+log "++ Copy files to $output_path"
 cp bootloader.bin $output_path
 cp bootloader.elf $output_path
 cp bootloader.hex $output_path
