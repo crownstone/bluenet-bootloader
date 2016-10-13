@@ -3,7 +3,7 @@
 compilation_mode=release
 
 path="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-
+source $path/_utils.sh
 source ${path}/config.sh
 
 objcopy=${COMPILER_PATH}/bin/${COMPILER_TYPE}-objcopy

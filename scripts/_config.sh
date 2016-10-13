@@ -1,6 +1,6 @@
 #!/bin/sh
 
-source _utils.sh
+source "$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )/_utils.sh"
 
 if [ ! -d "${BLUENET_DIR}" ]; then
 

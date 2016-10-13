@@ -1,12 +1,10 @@
 #!/bin/bash
 
-source ${path}/_utils.sh
-
 compilation_mode=release
 #compilation_mode=debug
 
 path="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-
+source ${path}/_utils.sh
 source ${path}/_check_targets.sh
 
 # configure environment variables, load configuration files, check targets and
