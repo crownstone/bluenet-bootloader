@@ -126,6 +126,7 @@ C_SOURCE_FILES += $(SDK_PATH)components/ble/common/ble_srv_common.c
 C_SOURCE_FILES += $(SDK_PATH)components/toolchain/system_nrf52.c
 C_SOURCE_FILES += $(SDK_PATH)components/softdevice/common/softdevice_handler/softdevice_handler.c
 C_SOURCE_FILES += $(SDK_PATH)components/softdevice/common/softdevice_handler/softdevice_handler_appsh.c
+C_SOURCE_FILES += $(SDK_PATH)components/ble/ble_services/ble_dis/ble_dis.c
 
 
 #assembly files common to all targets
@@ -160,6 +161,7 @@ INC_PATHS += -I$(SDK_PATH)components/toolchain
 INC_PATHS += -I$(SDK_PATH)components/drivers_nrf/common
 INC_PATHS += -I$(SDK_PATH)components/softdevice/common/softdevice_handler
 INC_PATHS += -I$(SDK_PATH)components/ble/ble_services/ble_dfu
+INC_PATHS += -I$(SDK_PATH)components/ble/ble_services/ble_dis
 
 ifneq ($(and $(SOFTDEVICE_DIR),$(SOFTDEVICE_DIR_API)),)
 INC_PATHS += -I"$(SOFTDEVICE_DIR)/$(SOFTDEVICE_DIR_API)"

@@ -51,6 +51,7 @@
 #include "nrf_mbr.h"
 //#include "nrf_log.h"
 
+#include "version.h"
 #include "serial.h"
 #include "cs_Boards.h"
 
@@ -295,7 +296,9 @@ int main(void)
 	gpio_init();
 	timers_init();
 	config_uart();
-	write_string("\r\nFirmware\r\n", 12);
+	write_string("\r\nFirmware ", 11);
+	write_string(BOOTLOADER_VERSION, strlen(BOOTLOADER_VERSION));
+	write_string("\r\n", 2);
 	(void)bootloader_init();
 
 	// get reset value from register
