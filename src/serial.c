@@ -10,7 +10,7 @@
 #include "nrf.h"
 #include "nrf_gpio.h"
 //#include "nRF51822.h"
-#include "cs_Boards.h"
+#include "cfg/cs_Boards.h"
 
 #define NRF_UART_9600_BAUD  0x00275000UL
 #define NRF_UART_38400_BAUD 0x009D5000UL
@@ -19,6 +19,7 @@
  * Configure the UART. Currently we set it on 38400 baud.
  */
 void _config_uart() {
+#if(HAS_SERIAL)
 	// Disable UART
 	NRF_UART0->ENABLE = UART_ENABLE_ENABLE_Disabled;
 	
@@ -51,6 +52,7 @@ void _config_uart() {
 	//NRF_UART0->TASKS_STARTRX = 1;
 	//NRF_UART0->EVENTS_RXDRDY = 0;
 	//NRF_UART0->EVENTS_TXDRDY = 0;
+#endif
 }
 
 void _write_token(const char token) {

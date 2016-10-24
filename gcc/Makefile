@@ -47,6 +47,7 @@ CFLAGS += -DAPPLICATION_START_ADDRESS=$(APPLICATION_START_ADDRESS)
 CFLAGS += -DBOOTLOADER_START_ADDRESS=$(BOOTLOADER_START_ADDRESS)
 CFLAGS += -DAPP_DATA_RESERVED=$(APP_DATA_RESERVED)
 CFLAGS += -DSERIAL_VERBOSITY=$(SERIAL_VERBOSITY)
+CFLAGS += -DDEVICE_TYPE=$(DEVICE_TYPE)
 
 # For the ble_debug_assert_handler
 CFLAGS += -DBSP_DEFINES_ONLY -DBSP_SIMPLE
@@ -74,7 +75,7 @@ RM := rm -rf
 VERBOSE := 1
 #echo suspend
 ifeq ("$(VERBOSE)","1")
-NO_ECHO := 
+NO_ECHO :=
 else
 NO_ECHO := @
 endif
@@ -106,6 +107,7 @@ C_SOURCE_FILES += dfu_init.c
 C_SOURCE_FILES += dfu_transport_ble.c
 #C_SOURCE_FILES += dfu_transport_serial.c
 C_SOURCE_FILES += serial.c
+C_SOURCE_FILES += dev_info_service.c
 
 #C_SOURCE_FILES += $(SDK_PATH)components/libraries/util/app_error.c
 #C_SOURCE_FILES += $(SDK_PATH)components/libraries/util/app_error_weak.c
@@ -169,14 +171,14 @@ else
 INC_PATHS += -I"$(SDK_PATH)components/softdevice/s${SOFTDEVICE_SERIES}/headers"
 endif
 
-INC_PATHS += -I"$(BLUENET_DIR)/include/cfg"
+INC_PATHS += -I"$(BLUENET_DIR)/include/"
 
 $(info INC_PATHS = [${INC_PATHS}])
 $(info C_SOURCE_FILES = [${C_SOURCE_FILES}])
 $(info CFLAGS = [${CFLAGS}])
 
-OBJECT_DIRECTORY = _build
-# OBJECT_DIRECTORY = $(BLUENET_BUILD_DIR)/bootloader
+# OBJECT_DIRECTORY = _build
+OBJECT_DIRECTORY = $(BLUENET_BUILD_DIR)/bootloader
 LISTING_DIRECTORY = $(OBJECT_DIRECTORY)
 OUTPUT_BINARY_DIRECTORY = $(OBJECT_DIRECTORY)
 
@@ -213,7 +215,7 @@ CFLAGS += -Wall -Werror -Os -g3
 CFLAGS += -mfloat-abi=hard -mfpu=fpv4-sp-d16
 # keep every function in separate section. This will allow linker to dump unused functions
 CFLAGS += -ffunction-sections -fdata-sections -fno-strict-aliasing
-CFLAGS += -fno-builtin --short-enums 
+CFLAGS += -fno-builtin --short-enums
 # keep every function in separate section. This will allow linker to dump unused functions
 LDFLAGS += -Xlinker -Map=$(LISTING_DIRECTORY)/$(OUTPUT_FILENAME).map
 LDFLAGS += -mthumb -mabi=aapcs -L $(TEMPLATE_PATH) -T$(LINKER_SCRIPT)
@@ -314,7 +316,7 @@ ASMFLAGS += -DNRF52_PAN_63
 #CFLAGS += -mfloat-abi=hard -mfpu=fpv4-sp-d16
 ## keep every function in separate section. This will allow linker to dump unused functions
 #CFLAGS += -ffunction-sections -fdata-sections -fno-strict-aliasing
-#CFLAGS += -fno-builtin --short-enums 
+#CFLAGS += -fno-builtin --short-enums
 ## keep every function in separate section. This will allow linker to dump unused functions
 #LDFLAGS += -Xlinker -Map=$(LISTING_DIRECTORY)/$(OUTPUT_FILENAME).map
 #LDFLAGS += -mthumb -mabi=aapcs -L $(TEMPLATE_PATH) -T$(LINKER_SCRIPT)
@@ -409,12 +411,14 @@ vpath %.s $(ASM_PATHS)
 
 OBJECTS = $(C_OBJECTS) $(ASM_OBJECTS)
 
+DEPENDENCIES := $(OBJECTS:.o=.d)
+
 nrf52832_xxaa_s132: OUTPUT_FILENAME := nrf52832_xxaa_s132
 #nrf52832_xxaa_s132: LINKER_SCRIPT=../../../dfu_gcc_nrf52.ld
 #nrf52832_xxaa_s132: LINKER_SCRIPT=$(SDK_PATH)examples/dfu/bootloader/dfu_gcc_nrf52.ld
 nrf52832_xxaa_s132: LINKER_SCRIPT=dfu_gcc_nrf52.ld
 
-nrf52832_xxaa_s132: $(BUILD_DIRECTORIES) $(OBJECTS)
+nrf52832_xxaa_s132: clean $(BUILD_DIRECTORIES) $(OBJECTS)
 	@echo Linking target: $(OUTPUT_FILENAME).out
 	$(NO_ECHO)$(CC) $(LDFLAGS) $(OBJECTS) $(LIBS) -lm -o $(OUTPUT_BINARY_DIRECTORY)/$(OUTPUT_FILENAME).out
 	$(NO_ECHO)$(MAKE) -f $(MAKEFILE_NAME) -C $(MAKEFILE_DIR) -e finalize
@@ -424,10 +428,12 @@ $(BUILD_DIRECTORIES):
 	echo $(MAKEFILE_NAME)
 	$(MK) $@
 
+-include $(DEPENDENCIES)
+
 # Create objects from C SRC files
 $(OBJECT_DIRECTORY)/%.o: %.c
 	@echo Compiling file: $(notdir $<)
-	$(NO_ECHO)$(CC) $(CFLAGS) $(INC_PATHS) -c -o $@ $<
+	$(NO_ECHO)$(CC) $(CFLAGS) $(INC_PATHS) -MMD -c -o $@ $<
 
 # Assemble files
 $(OBJECT_DIRECTORY)/%.o: %.s
@@ -454,7 +460,7 @@ genbin:
 	$(NO_ECHO)$(OBJCOPY) -O binary $(OUTPUT_BINARY_DIRECTORY)/$(OUTPUT_FILENAME).out $(OUTPUT_BINARY_DIRECTORY)/$(OUTPUT_FILENAME).bin
 
 ## Create binary .hex file from the .out file
-genhex: 
+genhex:
 	@echo Preparing: $(OUTPUT_FILENAME).hex
 	$(NO_ECHO)$(OBJCOPY) -O ihex $(OUTPUT_BINARY_DIRECTORY)/$(OUTPUT_FILENAME).out $(OUTPUT_BINARY_DIRECTORY)/$(OUTPUT_FILENAME).hex
 echosize:

@@ -36,15 +36,11 @@
 #include "nrf_delay.h"
 #include "sdk_common.h"
 
-#include "ble_dis.h"
+#include "dev_info_service.h"
 
 // #include "cs_Boards.h"
 
-#include "version.h"
 #include "serial.h"
-
-#define STRINGIFY(str) #str
-#define HW_VERSION(board, version) STRINGIFY(board)"_"STRINGIFY(version)
 
 #define DFU_REV_MAJOR                        0x00                                                    /** DFU Major revision number to be exposed. */
 #define DFU_REV_MINOR                        0x08                                                    /** DFU Minor revision number to be exposed. */
@@ -1055,20 +1051,7 @@ static void services_init(void)
     uint32_t       err_code;
 
     // add device information service
-
-    ble_dis_init_t dis_init_obj;
-    memset(&dis_init_obj, 0, sizeof(dis_init_obj));
-
-//    ble_srv_ascii_to_utf8(&dis_init_obj.hw_rev_str, STRINGIFY(HW_VERSION));
-    ble_srv_ascii_to_utf8(&dis_init_obj.hw_rev_str, HW_VERSION(HARDWARE_BOARD, HARDWARE_VERSION));
-    ble_srv_ascii_to_utf8(&dis_init_obj.fw_rev_str, BOOTLOADER_VERSION);
-
-    BLE_GAP_CONN_SEC_MODE_SET_OPEN(&dis_init_obj.dis_attr_md.read_perm);
-    BLE_GAP_CONN_SEC_MODE_SET_NO_ACCESS(&dis_init_obj.dis_attr_md.write_perm);
-
-    err_code = ble_dis_init(&dis_init_obj);
-
-    APP_ERROR_CHECK(err_code);
+    dev_info_service_init();
 
     // add dfu service
 

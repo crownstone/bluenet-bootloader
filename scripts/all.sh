@@ -17,6 +17,11 @@ objsize=${COMPILER_PATH}/bin/${COMPILER_TYPE}-size
 prefix=dobots
 device_variant=xxaa
 
+# create build directory
+build_path=${BLUENET_BUILD_DIR}/bootloader
+mkdir -p "$build_path"
+
+# create output directory
 output_path=${BLUENET_BIN_DIR}
 mkdir -p "$output_path"
 
@@ -38,8 +43,7 @@ sed -i "s/@BOOTLOADER_LENGTH@/${BOOTLOADER_LENGTH}/" dfu_gcc_nrf52.ld
 make nrf52832_xxaa_s132
 checkError "Error building bootloader"
 
-# this creates a _build directory
-cd _build
+cd $build_path
 
 # convert and/or rename to general names (.out is actually in .elf format)
 log "++ Convert binaries to formats convenient for inspection and upload"

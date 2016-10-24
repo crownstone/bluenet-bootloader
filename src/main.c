@@ -53,7 +53,8 @@
 
 #include "version.h"
 #include "serial.h"
-#include "cs_Boards.h"
+#include "cfg/cs_Boards.h"
+#include "cfg/cs_DeviceTypes.h"
 
 #define IS_SRVC_CHANGED_CHARACT_PRESENT 1                                                       /**< Include the service_changed characteristic. For DFU this should normally be the case. */
 
@@ -260,6 +261,7 @@ static void scheduler_init(void)
 
 static void gpio_init(void)
 {
+#if DEVICE_TYPE==DEVICE_CROWNSTONE
 	//! PWM pin
 	nrf_gpio_cfg_output(PIN_GPIO_SWITCH);
 #ifdef SWITCH_INVERSED
@@ -274,6 +276,7 @@ static void gpio_init(void)
 	nrf_gpio_pin_clear(PIN_GPIO_RELAY_OFF);
 	nrf_gpio_cfg_output(PIN_GPIO_RELAY_ON);
 	nrf_gpio_pin_clear(PIN_GPIO_RELAY_ON);
+#endif
 #endif
 }
 
@@ -397,7 +400,10 @@ int main(void)
 		// set register to new value, if firmware is buggy, do a couple of resets, then
 		// go back to dfu mode
 		// note: this also happens if dfu times out
-		NRF_POWER->GPREGRET = GPREGRET_NEW_FIRMWARE_LOADED;
+		// note2: [24.10.16] have to use the sd_power_gpregret functions after initializing the softdevice
+		// writing to the register directly at this point will deadlock
+		sd_power_gpregret_clr(0xFF);
+		sd_power_gpregret_set(GPREGRET_NEW_FIRMWARE_LOADED);
 	}
 
 	if (bootloader_app_is_valid(DFU_BANK_0_REGION_START) && !bootloader_dfu_sd_in_progress())
