@@ -1,4 +1,4 @@
-DFU-Bootloader-for-gcc-compiler
+DFU-Bootloader-for-gcc-compiler for nRF52
 ===============================
 
 This project contains code examples of a the DFU bootloader modified to be built by gcc. 
@@ -7,21 +7,15 @@ Note: In release (or all) mode, the bootloader uses ~32K memory, so the bootload
 
 Tested with:
 
-* nRF51 SDK version 8.1.1
-* S130 1.0.0
-* nRF51822 Development Kit version 2.1.0 or later
-
-And with:
-
-* nRF51 SDK version 8.1.1
-* S110 8.0.0
-* nRF51822 Development Kit version 2.1.0 or later
+* nRF5 SDK version 11
+* S132 2.0.0
+* nRF52 Development Kit v1.1.0
 
 The project may need modifications to work with other versions or other boards.
 
 ## About this project
 
-This application was originally forked from https://github.com/NordicSemiconductor/nrf51-dfu-bootloader-for-gcc-compiler but has in the meantime undergone drastic changes. Thus, the code may not have much in common anymore with the original fork. But it has been kept in sync with the bootloader included in the Nordic SDK version 8.1.1.
+This application was originally forked from https://github.com/NordicSemiconductor/nrf51-dfu-bootloader-for-gcc-compiler but has in the meantime undergone drastic changes. Thus, the code may not have much in common anymore with the original fork. But it has been kept in sync with the bootloader included in the Nordic SDK version 11.0.0.
 
 In addition to the code base from Nordic, we have added additional checks to the bootloader to handle errors in the firmware. One of these checks is the use of the GPREGRET register which was originally used solely to determine booting into DFU vs booting into firmware.
 
