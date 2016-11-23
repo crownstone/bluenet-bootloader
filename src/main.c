@@ -261,7 +261,7 @@ static void scheduler_init(void)
 
 static void gpio_init(void)
 {
-#if DEVICE_TYPE==DEVICE_CROWNSTONE
+#if IS_CROWNSTONE(DEVICE_TYPE)
 	//! PWM pin
 	nrf_gpio_cfg_output(PIN_GPIO_SWITCH);
 #ifdef SWITCH_INVERSED

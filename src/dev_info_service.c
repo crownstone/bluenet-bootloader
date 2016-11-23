@@ -14,11 +14,6 @@
 #include "cfg/cs_HardwareVersions.h"
 #include "version.h"
 
-#define STRINGIFY(str) #str
-#define HW_VERSION(board, version) board"_"STRINGIFY(version)
-//#define HW_VERSION(board, version) STRINGIFY(board)"_"STRINGIFY(version)
-//#define HW_VERSION HARDWARE_VERSION_STRING"_"STRINGIFY(HARDWARE_VERSION)
-
 /**@brief     Function for initializing services that will be used by the application.
  */
 void dev_info_service_init(void)
@@ -31,8 +26,7 @@ void dev_info_service_init(void)
     ble_dis_init_t dis_init_obj;
     memset(&dis_init_obj, 0, sizeof(dis_init_obj));
 
-//    ble_srv_ascii_to_utf8(&dis_init_obj.hw_rev_str, STRINGIFY(HW_VERSION));
-    ble_srv_ascii_to_utf8(&dis_init_obj.hw_rev_str, HW_VERSION(HARDWARE_VERSION_STRING, HARDWARE_VERSION));
+    ble_srv_ascii_to_utf8(&dis_init_obj.hw_rev_str, HARDWARE_VERSION_STRING);
     ble_srv_ascii_to_utf8(&dis_init_obj.fw_rev_str, BOOTLOADER_VERSION);
 
     BLE_GAP_CONN_SEC_MODE_SET_OPEN(&dis_init_obj.dis_attr_md.read_perm);
