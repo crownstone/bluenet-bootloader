@@ -12,11 +12,11 @@ MEMORY
    *  APP_ERROR_CHECK_BOOL(*((uint32_t *)NRF_UICR_BOOT_START_ADDRESS) == BOOTLOADER_REGION_START);
    */
   /* FLASH (rx) : ORIGIN = 0x7A000, LENGTH = 0x4000 */
-  FLASH (rx) : ORIGIN = 0x79000, LENGTH = 0x5000
+  FLASH (rx) : ORIGIN = 0x00079000, LENGTH = 0x5000
 
   /** RAM Region for bootloader. This setting is suitable when used with s132. */
   /* RAM (rwx) :  ORIGIN = 0x20002C00, LENGTH = 0x5380 */
-  RAM (rwx) : ORIGIN = 0x20002C00, LENGTH = 0x5380
+  RAM (rwx) : ORIGIN = 0x200026B8, LENGTH = 0xD948
 
   /** Location of non initialized RAM. Non initialized RAM is used for exchanging bond information
    *  from application to bootloader when using buttonluss DFU OTA. 
