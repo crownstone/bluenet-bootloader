@@ -53,8 +53,11 @@
 
 #include "version.h"
 #include "serial.h"
+
+/* BLUENET includes START */
 #include "cfg/cs_Boards.h"
 #include "cfg/cs_DeviceTypes.h"
+/* BLUENET includes END */
 
 #define IS_SRVC_CHANGED_CHARACT_PRESENT 1                                                       /**< Include the service_changed characteristic. For DFU this should normally be the case. */
 
@@ -303,6 +306,12 @@ int main(void)
 	write_string(BOOTLOADER_VERSION, strlen(BOOTLOADER_VERSION));
 	write_string("\r\n", 2);
 	(void)bootloader_init();
+
+//	write_string("DFU_APP_DATA_RESERVED: ", 23);
+//	char reservedText[6] = {0};
+//	get_dec_str(reservedText, 5, DFU_APP_DATA_RESERVED);
+//	write_string(reservedText, 6);
+//	write_string("\r\n", 3);
 
 	// get reset value from register
 	gpregret = NRF_POWER->GPREGRET;

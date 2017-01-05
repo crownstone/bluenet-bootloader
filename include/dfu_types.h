@@ -29,6 +29,10 @@
 #include "nrf.h"
 #include "app_util.h"
 
+/* BLUENET includes START */
+#include "third/nrf/pstorage_platform.h"
+/* BLUENET includes END */
+
 #define NRF_UICR_BOOT_START_ADDRESS         (NRF_UICR_BASE + 0x14)      /**< Register where the bootloader start address is stored in the UICR register. */
 
 #if defined(NRF52)
@@ -71,7 +75,16 @@
 
 #endif
 
-#define DFU_APP_DATA_RESERVED           APP_DATA_RESERVED                                               /**< Size of Application Data that must be preserved between application updates. This value must be a multiple of page size. Page size is 0x400 (1024d) bytes, thus this value must be 0x0000, 0x0400, 0x0800, 0x0C00, 0x1000, etc. */
+/**
+ * Size of Application Data that must be preserved between application updates. obtained from BLUENET pstorage_platform.h,
+ * can be overwritten with APP_DATA_RESERVED, but only with a bigger value, not with a smaller value!
+ */
+#ifdef APP_DATA_RESERVED
+#define DFU_APP_DATA_RESERVED           MAX(APP_DATA_RESERVED, PSTORAGE_RESERVED)
+#else
+#define DFU_APP_DATA_RESERVED           PSTORAGE_RESERVED
+//#define DFU_APP_DATA_RESERVED           0x5000
+#endif
 
 #define DFU_REGION_TOTAL_SIZE           (BOOTLOADER_REGION_START - CODE_REGION_1_START)                 /**< Total size of the region between SD and Bootloader. */
 

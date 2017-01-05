@@ -84,7 +84,7 @@ static void pstorage_callback_handler(pstorage_handle_t * p_handle,
             break;
 
         case PSTORAGE_CLEAR_OP_CODE:
-            WRITE_VERBOSE("pstorage cb handle clear", 25);
+            WRITE_VERBOSE("pstorage cb handle clear\r\n", 27);
             if (m_dfu_state == DFU_STATE_PREPARING)
             {
                 m_functions.cleared();
