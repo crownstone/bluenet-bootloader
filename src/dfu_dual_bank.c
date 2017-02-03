@@ -939,7 +939,30 @@ uint32_t dfu_bl_image_validate(void)
         sd_mbr_cmd.params.compare.ptr2 = (uint32_t *)(bl_image_start);
         sd_mbr_cmd.params.compare.len  = bootloader_settings.bl_image_size / sizeof(uint32_t);
 
-        return sd_mbr_command(&sd_mbr_cmd);
+        uint32_t err_code;
+        err_code = sd_mbr_command(&sd_mbr_cmd);
+
+        // [3.2.17] The APP_RESERVED_DATA value changed between bootloader version 1.0.0 and 1.1.0
+        //  because of this change the DFU_BANK_1_REGION_START changes, and uploading a bootloader
+        //  from version 1.0.0 to 1.1.0 will brick the bootloader, to avoid this, also check the
+        //  DFU_BANK_1_REGION_START_V1_0_0 when validating a bootloader.
+        //  See comments on nordic forum here:
+        //    https://devzone.nordicsemi.com/question/54242/updating-bootloader-to-bootloader-which-preserves-app-data/
+        //    https://devzone.nordicsemi.com/question/81141/cant-update-bootlader-over-the-air-when-changing-dfu_app_data_reserved/
+        if (err_code != NRF_SUCCESS) {
+            uint32_t bl_image_start = (bootloader_settings.sd_image_size == 0) ?
+                                      DFU_BANK_1_REGION_START_V1_0_0 :
+                                      bootloader_settings.sd_image_start +
+                                      bootloader_settings.sd_image_size;
+
+            sd_mbr_cmd.params.compare.ptr2 = (uint32_t *)(bl_image_start);
+
+            err_code = sd_mbr_command(&sd_mbr_cmd);
+
+            // todo: continue here checking other versions if not successful
+        }
+
+		return err_code;
     }
     return NRF_SUCCESS;
 }

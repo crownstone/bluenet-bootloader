@@ -28,6 +28,7 @@
 #include "nrf_mbr.h"
 #include "nrf.h"
 #include "app_util.h"
+#include "nordic_common.h"
 
 /* BLUENET includes START */
 #include "third/nrf/pstorage_platform.h"
@@ -77,14 +78,24 @@
 
 /**
  * Size of Application Data that must be preserved between application updates. obtained from BLUENET pstorage_platform.h,
- * can be overwritten with APP_DATA_RESERVED, but only with a bigger value, not with a smaller value!
+ * can be overwritten with APP_DATA_RESERVED, but keep aware that changing the APP_DATA_RESERVED might brick the
+ * bootloader if the function dfu_bl_image_validate is not updated accordingly.
  */
 #ifdef APP_DATA_RESERVED
 #define DFU_APP_DATA_RESERVED           MAX(APP_DATA_RESERVED, PSTORAGE_RESERVED)
 #else
 #define DFU_APP_DATA_RESERVED           PSTORAGE_RESERVED
-//#define DFU_APP_DATA_RESERVED           0x5000
 #endif
+
+#define DFU_APP_DATA_CURRENT            0x5000
+// !! If APP_DATA_RESERVED changes, uploading the new bootloader over dfu might brick the bootloader!!
+// to avoid this, define the current APP_RESERVED_DATA above, but leave the check intact
+// to detect updates of pstorage in the firmware and avoid overwriting pstorage data of the firmware
+STATIC_ASSERT((DFU_APP_DATA_RESERVED) == (DFU_APP_DATA_CURRENT));
+
+// define here the APP_DATA_RESERVERD values used by previous released bootloader versions
+// and update the function dfu_bl_image_validate in dfu_dual_bank.c accordingly!
+#define DFU_APP_DATA_RESERVERD_V1_0_0   0x1000
 
 #define DFU_REGION_TOTAL_SIZE           (BOOTLOADER_REGION_START - CODE_REGION_1_START)                 /**< Total size of the region between SD and Bootloader. */
 
@@ -93,14 +104,18 @@
 #endif
 
 #define DFU_IMAGE_MAX_SIZE_FULL         (DFU_REGION_TOTAL_SIZE - DFU_APP_DATA_RESERVED)                 /**< Maximum size of an application, excluding save data from the application. */
+#define DFU_IMAGE_MAX_SIZE_FULL_V1_0_0  (DFU_REGION_TOTAL_SIZE - DFU_APP_DATA_RESERVERD_V1_0_0)         /**< Maximum size of an application, excluding save data from the application. */
 
 #define DFU_IMAGE_MAX_SIZE_BANKED       (((DFU_IMAGE_MAX_SIZE_FULL) - \
                                         (DFU_IMAGE_MAX_SIZE_FULL % (2 * CODE_PAGE_SIZE)))/2)            /**< Maximum size of an application, excluding save data from the application. */
+#define DFU_IMAGE_MAX_SIZE_BANKED_V1_0_0 (((DFU_IMAGE_MAX_SIZE_FULL_V1_0_0) - \
+                                        (DFU_IMAGE_MAX_SIZE_FULL_V1_0_0 % (2 * CODE_PAGE_SIZE)))/2)     /**< Maximum size of an application, excluding save data from the application. */
 
 #define DFU_BL_IMAGE_MAX_SIZE           (BOOTLOADER_SETTINGS_ADDRESS - BOOTLOADER_REGION_START)         /**< Maximum size of a bootloader, excluding save data from the current bootloader. */
 
 #define DFU_BANK_0_REGION_START         CODE_REGION_1_START                                             /**< Bank 0 region start. */
 #define DFU_BANK_1_REGION_START         (DFU_BANK_0_REGION_START + DFU_IMAGE_MAX_SIZE_BANKED)           /**< Bank 1 region start. */
+#define DFU_BANK_1_REGION_START_V1_0_0  (DFU_BANK_0_REGION_START + DFU_IMAGE_MAX_SIZE_BANKED_V1_0_0)    /**< Bank 1 region start. */
 
 #define EMPTY_FLASH_MASK                0xFFFFFFFF                                                      /**< Bit mask that defines an empty address in flash. */
 
