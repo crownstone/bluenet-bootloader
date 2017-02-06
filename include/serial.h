@@ -28,7 +28,7 @@ extern "C" {
  * General configuration of the serial connection. This sets the pin to be used for UART, the baudrate, the parity
  * bits, etc.
  */
-void _config_uart();
+void _config_uart(uint8_t pinRx, uint8_t pinTx);
 
 /**
  * Write a string to the serial connection. Make sure you end with `\n` if you want to have new lines in the output.
@@ -59,7 +59,7 @@ void _get_dec_str(char* str, uint32_t len, uint32_t val);
 
 #else
 #undef VERBOSE
-#define config_uart(token)
+#define config_uart(pinRx, pinTx)
 #define write_string(str, len)
 #define get_dec_str(str, len, val)
 #endif

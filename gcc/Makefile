@@ -28,11 +28,6 @@ include $(BLUENET_DIR)/CMakeBuild.config.local
 endif
 include $(BLUENET_CONFIG_DIR)/CMakeBuild.config
 
-# Check that file to know how to set HARDWARE_BOARD
-ifndef HARDWARE_BOARD
-$(error HARDWARE_BOARD is not set. Check BLUENET_CONFIG_DIR/CMakeBuild.config)
-endif
-
 CFLAGS += -DBLE_STACK_SUPPORT_REQD -DBOOTLOADER_BANKED -DBLE_STACK_SUPPORT_REQD -DS$(SOFTDEVICE_SERIES)
 #CFLAGS += -DBLE_STACK_SUPPORT_REQD -DBOOTLOADER_BANKED -DBLE_STACK_SUPPORT_REQD
 
@@ -46,7 +41,10 @@ CFLAGS += -DSOFTDEVICE_MINOR=$(SOFTDEVICE_MINOR)
 CFLAGS += -DAPPLICATION_START_ADDRESS=$(APPLICATION_START_ADDRESS)
 CFLAGS += -DBOOTLOADER_START_ADDRESS=$(BOOTLOADER_START_ADDRESS)
 CFLAGS += -DSERIAL_VERBOSITY=$(SERIAL_VERBOSITY)
+
+ifdef DEVICE_TYPE
 CFLAGS += -DDEVICE_TYPE=$(DEVICE_TYPE)
+endif
 
 # optinal APP_DATA_RESERVED
 ifdef APP_DATA_RESERVED
@@ -55,10 +53,6 @@ endif
 
 # For the ble_debug_assert_handler
 CFLAGS += -DBSP_DEFINES_ONLY -DBSP_SIMPLE
-
-# Required for writing to proper gpio pins
-CFLAGS += -DHARDWARE_BOARD=$(HARDWARE_BOARD)
-CFLAGS += -DHARDWARE_VERSION=$(HARDWARE_VERSION)
 
 SDK_PATH=$(NRF51822_DIR)/
 
@@ -134,6 +128,7 @@ C_SOURCE_FILES += $(SDK_PATH)components/softdevice/common/softdevice_handler/sof
 C_SOURCE_FILES += $(SDK_PATH)components/softdevice/common/softdevice_handler/softdevice_handler_appsh.c
 C_SOURCE_FILES += $(SDK_PATH)components/ble/ble_services/ble_dis/ble_dis.c
 
+C_SOURCE_FILES += $(BLUENET_DIR)/src/cfg/cs_Boards.c
 
 #assembly files common to all targets
 ASM_SOURCE_FILES  = $(SDK_PATH)components/toolchain/gcc/gcc_startup_nrf52.s

@@ -18,19 +18,18 @@
 /**
  * Configure the UART. Currently we set it on 38400 baud.
  */
-void _config_uart() {
-#if(HAS_SERIAL)
+void _config_uart(uint8_t pinRx, uint8_t pinTx) {
 	// Disable UART
 	NRF_UART0->ENABLE = UART_ENABLE_ENABLE_Disabled;
 	
-	nrf_gpio_cfg_output(PIN_GPIO_TX);
-	nrf_gpio_cfg_input(PIN_GPIO_RX, NRF_GPIO_PIN_NOPULL);
+	nrf_gpio_cfg_output(pinTx);
+	nrf_gpio_cfg_input(pinRx, NRF_GPIO_PIN_NOPULL);
 
 	// Configure UART pins
-	NRF_UART0->PSELRXD = PIN_GPIO_RX;
+	NRF_UART0->PSELRXD = pinRx;
 	NRF_UART0->BAUDRATE = NRF_UART_38400_BAUD;
 	
-	NRF_UART0->PSELTXD = PIN_GPIO_TX;
+	NRF_UART0->PSELTXD = pinTx;
 
 	NRF_UART0->PSELRTS  = 0xFFFFFFFF;
 	NRF_UART0->PSELCTS  = 0xFFFFFFFF;
@@ -52,7 +51,6 @@ void _config_uart() {
 	//NRF_UART0->TASKS_STARTRX = 1;
 	//NRF_UART0->EVENTS_RXDRDY = 0;
 	//NRF_UART0->EVENTS_TXDRDY = 0;
-#endif
 }
 
 void _write_token(const char token) {

@@ -262,25 +262,25 @@ static void scheduler_init(void)
 }
 
 
-static void gpio_init(void)
+static void gpio_init(boards_config_t* board)
 {
-#if IS_CROWNSTONE(DEVICE_TYPE)
-	//! PWM pin
-	nrf_gpio_cfg_output(PIN_GPIO_SWITCH);
-#ifdef SWITCH_INVERSED
-	nrf_gpio_pin_set(PIN_GPIO_SWITCH);
-#else
-	nrf_gpio_pin_clear(PIN_GPIO_SWITCH);
-#endif
+	if (IS_CROWNSTONE(board->deviceType)) {
+		//! PWM pin
+		nrf_gpio_cfg_output(board->pinGpioPwm);
+		if (board->flags.pwmInverted) {
+			nrf_gpio_pin_set(board->pinGpioPwm);
+		} else {
+			nrf_gpio_pin_clear(board->pinGpioPwm);
+		}
 
-	//! Relay pins
-#if HAS_RELAY
-	nrf_gpio_cfg_output(PIN_GPIO_RELAY_OFF);
-	nrf_gpio_pin_clear(PIN_GPIO_RELAY_OFF);
-	nrf_gpio_cfg_output(PIN_GPIO_RELAY_ON);
-	nrf_gpio_pin_clear(PIN_GPIO_RELAY_ON);
-#endif
-#endif
+		//! Relay pins
+		if (board->flags.hasRelay) {
+			nrf_gpio_cfg_output(board->pinGpioRelayOff);
+			nrf_gpio_pin_clear(board->pinGpioRelayOff);
+			nrf_gpio_cfg_output(board->pinGpioRelayOn);
+			nrf_gpio_pin_clear(board->pinGpioRelayOn);
+		}
+	}
 }
 
 /**@brief Function for bootloader main entry.
@@ -298,10 +298,14 @@ int main(void)
 	APP_ERROR_CHECK_BOOL(*((uint32_t *)NRF_UICR_BOOT_START_ADDRESS) == BOOTLOADER_REGION_START);
 	APP_ERROR_CHECK_BOOL(NRF_FICR->CODEPAGESIZE == CODE_PAGE_SIZE);
 
+	boards_config_t board = {};
+	configure_board(&board);
+
+	config_uart(board.pinGpioRx, board.pinGpioTx);
+	gpio_init(&board);
+
 	// Initialize.
-	gpio_init();
 	timers_init();
-	config_uart();
 	write_string("\r\nFirmware ", 11);
 	write_string(BOOTLOADER_VERSION, strlen(BOOTLOADER_VERSION));
 	write_string("\r\n", 2);
