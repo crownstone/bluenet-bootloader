@@ -246,4 +246,6 @@ else
     # git push origin --tags
 fi
 
+succ "DONE. Created Release bootloader"_$version
+
 popd &> /dev/null
