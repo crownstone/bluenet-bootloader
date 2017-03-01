@@ -11,8 +11,8 @@ source ${path}/_check_targets.sh
 # assign serial_num from target
 source ${path}/_config.sh
 
-objcopy=${COMPILER_PATH}/bin/${COMPILER_TYPE}-objcopy
-objsize=${COMPILER_PATH}/bin/${COMPILER_TYPE}-size
+objcopy=${COMPILER_PATH}/bin/${COMPILER_TYPE}objcopy
+objsize=${COMPILER_PATH}/bin/${COMPILER_TYPE}size
 
 prefix=dobots
 device_variant=xxaa

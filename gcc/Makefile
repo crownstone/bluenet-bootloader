@@ -22,7 +22,7 @@ endif
 endif
 
 # TODO: is this optional this way?
-include $(BLUENET_DIR)/CMakeBuild.config.default
+include $(BLUENET_DIR)/conf/cmake/CMakeBuild.config.default
 ifneq ("$(wildcard $(BLUENET_DIR)/CMakeBuild.config.local)","")
 include $(BLUENET_DIR)/CMakeBuild.config.local
 endif
@@ -79,14 +79,14 @@ NO_ECHO := @
 endif
 
 # Toolchain commands
-CC              := '$(GNU_INSTALL_ROOT)/bin/$(GNU_PREFIX)-gcc'
-AS              := '$(GNU_INSTALL_ROOT)/bin/$(GNU_PREFIX)-as'
-AR              := '$(GNU_INSTALL_ROOT)/bin/$(GNU_PREFIX)-ar' -r
-LD              := '$(GNU_INSTALL_ROOT)/bin/$(GNU_PREFIX)-ld'
-NM              := '$(GNU_INSTALL_ROOT)/bin/$(GNU_PREFIX)-nm'
-OBJDUMP         := '$(GNU_INSTALL_ROOT)/bin/$(GNU_PREFIX)-objdump'
-OBJCOPY         := '$(GNU_INSTALL_ROOT)/bin/$(GNU_PREFIX)-objcopy'
-SIZE            := '$(GNU_INSTALL_ROOT)/bin/$(GNU_PREFIX)-size'
+CC              := '$(GNU_INSTALL_ROOT)/bin/$(GNU_PREFIX)gcc'
+AS              := '$(GNU_INSTALL_ROOT)/bin/$(GNU_PREFIX)as'
+AR              := '$(GNU_INSTALL_ROOT)/bin/$(GNU_PREFIX)ar' -r
+LD              := '$(GNU_INSTALL_ROOT)/bin/$(GNU_PREFIX)ld'
+NM              := '$(GNU_INSTALL_ROOT)/bin/$(GNU_PREFIX)nm'
+OBJDUMP         := '$(GNU_INSTALL_ROOT)/bin/$(GNU_PREFIX)objdump'
+OBJCOPY         := '$(GNU_INSTALL_ROOT)/bin/$(GNU_PREFIX)objcopy'
+SIZE            := '$(GNU_INSTALL_ROOT)/bin/$(GNU_PREFIX)size'
 
 #function for removing duplicates in a list
 remduplicates = $(strip $(if $1,$(firstword $1) $(call remduplicates,$(filter-out $(firstword $1),$1))))

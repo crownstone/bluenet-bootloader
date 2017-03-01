@@ -8,8 +8,8 @@ source ${path}/_check_targets.sh
 
 source ${path}/config.sh
 
-objcopy=${COMPILER_PATH}/bin/${COMPILER_TYPE}-objcopy
-objsize=${COMPILER_PATH}/bin/${COMPILER_TYPE}-size
+objcopy=${COMPILER_PATH}/bin/${COMPILER_TYPE}objcopy
+objsize=${COMPILER_PATH}/bin/${COMPILER_TYPE}size
 
 prefix=dobots
 device_variant=xxaa

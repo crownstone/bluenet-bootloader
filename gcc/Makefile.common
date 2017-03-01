@@ -36,13 +36,13 @@ endif
 CPU := cortex-m0
 
 # Toolchain commands
-CC       := "$(GNU_INSTALL_ROOT)/bin/$(GNU_PREFIX)-gcc"
-AS       := "$(GNU_INSTALL_ROOT)/bin/$(GNU_PREFIX)-as"
-AR       := "$(GNU_INSTALL_ROOT)/bin/$(GNU_PREFIX)-ar" -r
-LD       := "$(GNU_INSTALL_ROOT)/bin/$(GNU_PREFIX)-ld"
-NM       := "$(GNU_INSTALL_ROOT)/bin/$(GNU_PREFIX)-nm"
-OBJDUMP  := "$(GNU_INSTALL_ROOT)/bin/$(GNU_PREFIX)-objdump"
-OBJCOPY  := "$(GNU_INSTALL_ROOT)/bin/$(GNU_PREFIX)-objcopy"
+CC       := "$(GNU_INSTALL_ROOT)/bin/$(GNU_PREFIX)gcc"
+AS       := "$(GNU_INSTALL_ROOT)/bin/$(GNU_PREFIX)as"
+AR       := "$(GNU_INSTALL_ROOT)/bin/$(GNU_PREFIX)ar" -r
+LD       := "$(GNU_INSTALL_ROOT)/bin/$(GNU_PREFIX)ld"
+NM       := "$(GNU_INSTALL_ROOT)/bin/$(GNU_PREFIX)nm"
+OBJDUMP  := "$(GNU_INSTALL_ROOT)/bin/$(GNU_PREFIX)objdump"
+OBJCOPY  := "$(GNU_INSTALL_ROOT)/bin/$(GNU_PREFIX)objcopy"
 
 MK       := mkdir
 RM       := rm -rf
