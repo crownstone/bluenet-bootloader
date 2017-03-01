@@ -5,7 +5,12 @@ compilation_mode=release
 
 path="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 source ${path}/_utils.sh
-source ${path}/_check_targets.sh
+
+# do not overwrite environment variables for target release
+# we set the variables manually in the create_release.sh script
+if [[ $1 != "release" ]]; then
+	source ${path}/_check_targets.sh $target
+fi
 
 # configure environment variables, load configuration files, check targets and
 # assign serial_num from target
@@ -17,12 +22,29 @@ objsize=${COMPILER_PATH}/bin/${COMPILER_TYPE}size
 prefix=dobots
 device_variant=xxaa
 
-# create build directory
-build_path=${BLUENET_BUILD_DIR}/bootloader
-mkdir -p "$build_path"
+# create output and build directories
+if [[ $1 == "release" ]]; then
+	# for release target, use BLUENET_BUILD_DIR as build dir and
+	# BLUENET_RELEASE_DIR as output dir
+	if [ -z $BLUENET_RELEASE_DIR ]; then
+		err "BLUENET_RELEASE_DIR is not defined!"
+		exit 1
+	fi
+	build_path=${BLUENET_BUILD_DIR}
+	output_path=${BLUENET_RELEASE_DIR}
+else
+	# for all other targets, use BLUENET_BUILD_DIR/bootloader
+	# as build dir and BLUENET_BIN_DIR as output dir
+	# also update the BLUENET_BUILD_DIR environment variable so
+	# the make file uses the correct path
+	export BLUENET_BUILD_DIR=${BLUENET_BUILD_DIR}/bootloader
+	build_path=${BLUENET_BUILD_DIR}
+	output_path=${BLUENET_BIN_DIR}
+fi
 
-# create output directory
-output_path=${BLUENET_BIN_DIR}
+# create build directory
+mkdir -p "$build_path"
+# create ouptut directory
 mkdir -p "$output_path"
 
 log "++ Go to \"${path}/../gcc\""

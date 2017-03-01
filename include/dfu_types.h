@@ -31,7 +31,10 @@
 #include "nordic_common.h"
 
 /* BLUENET includes START */
-#include "third/nrf/pstorage_platform.h"
+// [6.2.17] importing pstorage_platform.h from bluenet creates problems wne trying to upload application over dfu......
+//   probably because the bootloader also has a pstorage_platform.h
+//   should look into that!
+//#include "third/nrf/pstorage_platform.h"
 /* BLUENET includes END */
 
 #define NRF_UICR_BOOT_START_ADDRESS         (NRF_UICR_BASE + 0x14)      /**< Register where the bootloader start address is stored in the UICR register. */
@@ -81,17 +84,19 @@
  * can be overwritten with APP_DATA_RESERVED, but keep aware that changing the APP_DATA_RESERVED might brick the
  * bootloader if the function dfu_bl_image_validate is not updated accordingly.
  */
-#ifdef APP_DATA_RESERVED
-#define DFU_APP_DATA_RESERVED           MAX(APP_DATA_RESERVED, PSTORAGE_RESERVED)
-#else
-#define DFU_APP_DATA_RESERVED           PSTORAGE_RESERVED
-#endif
+//#ifdef APP_DATA_RESERVED
+//#define DFU_APP_DATA_RESERVED           MAX(APP_DATA_RESERVED, PSTORAGE_RESERVED)
+//#else
+//#define DFU_APP_DATA_RESERVED           PSTORAGE_RESERVED
+//#endif
+//
+//#define DFU_APP_DATA_CURRENT            0x5000
+//// !! If APP_DATA_RESERVED changes, uploading the new bootloader over dfu might brick the bootloader!!
+//// to avoid this, define the current APP_RESERVED_DATA above, but leave the check intact
+//// to detect updates of pstorage in the firmware and avoid overwriting pstorage data of the firmware
+//STATIC_ASSERT((DFU_APP_DATA_RESERVED) == (DFU_APP_DATA_CURRENT));
 
 #define DFU_APP_DATA_CURRENT            0x5000
-// !! If APP_DATA_RESERVED changes, uploading the new bootloader over dfu might brick the bootloader!!
-// to avoid this, define the current APP_RESERVED_DATA above, but leave the check intact
-// to detect updates of pstorage in the firmware and avoid overwriting pstorage data of the firmware
-STATIC_ASSERT((DFU_APP_DATA_RESERVED) == (DFU_APP_DATA_CURRENT));
 
 // define here the APP_DATA_RESERVERD values used by previous released bootloader versions
 // and update the function dfu_bl_image_validate in dfu_dual_bank.c accordingly!
