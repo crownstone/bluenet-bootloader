@@ -97,6 +97,7 @@
 //STATIC_ASSERT((DFU_APP_DATA_RESERVED) == (DFU_APP_DATA_CURRENT));
 
 #define DFU_APP_DATA_CURRENT            0x5000
+#define DFU_APP_DATA_RESERVED           0x5000
 
 // define here the APP_DATA_RESERVERD values used by previous released bootloader versions
 // and update the function dfu_bl_image_validate in dfu_dual_bank.c accordingly!
