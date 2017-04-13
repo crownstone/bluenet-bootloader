@@ -155,7 +155,7 @@ cp $BLUENET_DIR/conf/cmake/CMakeBuild.config.default $directory/CMakeBuild.confi
 ### Fill Default Config Values
 ###############################
 
-sed -i "s/FIRMWARE_VERSION=\".*\"/FIRMWARE_VERSION=\"$version\"/" $directory/CMakeBuild.config
+# sed -i "s/FIRMWARE_VERSION=\".*\"/FIRMWARE_VERSION=\"$version\"/" $directory/CMakeBuild.config
 # sed -i "s/DEVICE_TYPE=.*/DEVICE_TYPE=$device_type/" $directory/CMakeBuild.config
 
 sed -i "s/NRF51822_DIR=/#NRF51822_DIR=/" $directory/CMakeBuild.config
