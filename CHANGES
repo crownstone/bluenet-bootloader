@@ -1,3 +1,9 @@
+Version 1.2.2:
+ - Fixed logging functions.
+ - Fixed missing DFU_APP_DATA_RESERVED, which would brick the crownstone.
+ - Merge branch 'master' of github.com:dobots/nrf51-dfu-bootloader-for-gcc-compiler
+ - Fixes for new build scripts. Check me please.
+
  - added success to create_release
  - added create_release script updated all.sh and Makefile for release build
  - bugfix bootloader
