@@ -17,7 +17,7 @@ device_variant=xxaa
 output_path=${BLUENET_BUILD_DIR}/bootloader
 mkdir -p "$output_path"
 
-log "++ Go to \"${path}/../gcc\""
+cs_log "Go to \"${path}/../gcc\""
 cd "${path}/../gcc"
 
 make clean

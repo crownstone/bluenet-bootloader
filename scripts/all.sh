@@ -27,7 +27,7 @@ if [[ $1 == "release" ]]; then
 	# for release target, use BLUENET_BUILD_DIR as build dir and
 	# BLUENET_RELEASE_DIR as output dir
 	if [ -z $BLUENET_RELEASE_DIR ]; then
-		err "BLUENET_RELEASE_DIR is not defined!"
+		cs_err "BLUENET_RELEASE_DIR is not defined!"
 		exit 1
 	fi
 	build_path=${BLUENET_BUILD_DIR}
@@ -47,7 +47,7 @@ mkdir -p "$build_path"
 # create ouptut directory
 mkdir -p "$output_path"
 
-log "++ Go to \"${path}/../gcc\""
+cs_log "Go to \"${path}/../gcc\""
 cd "${path}/../gcc"
 
 #cp gcc_nrf51_bootloader_xxaa.ld.in gcc_nrf51_bootloader_xxaa.ld
@@ -68,7 +68,7 @@ checkError "Error building bootloader"
 cd $build_path
 
 # convert and/or rename to general names (.out is actually in .elf format)
-log "++ Convert binaries to formats convenient for inspection and upload"
+cs_log "Convert binaries to formats convenient for inspection and upload"
 #$objcopy -j .text -j .data -O binary ${prefix}_bootloader_${device_variant}.out bootloader.bin
 #$objcopy -j .text -j .data -O ihex ${prefix}_bootloader_${device_variant}.out bootloader_dfu.hex
 #cp ${prefix}_bootloader_${device_variant}.out bootloader.elf
@@ -81,7 +81,7 @@ cp nrf52832_xxaa_s132.hex bootloader.hex
 $objsize bootloader.elf
 
 # copy to target path
-log "++ Copy files to $output_path"
+cs_log "Copy files to $output_path"
 cp bootloader.bin $output_path
 cp bootloader.elf $output_path
 cp bootloader.hex $output_path

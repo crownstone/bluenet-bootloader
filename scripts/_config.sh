@@ -7,9 +7,9 @@ if [ ! -d "${BLUENET_DIR}" ]; then
 	if [ -d "${BLUENET_WORKSPACE_DIR}" ]; then
 		BLUENET_DIR=${BLUENET_WORKSPACE_DIR}/bluenet
 	else
-		err "ERROR: could not find environment variables BLUENET_DIR or BLUENET_WORKSPACE_DIR"
-		err "Need to define at least one of the two!!"
-		# err "ERROR: environment variable 'BLUENET_DIR' should be set."
+		cs_err "ERROR: could not find environment variables BLUENET_DIR or BLUENET_WORKSPACE_DIR"
+		cs_err "Need to define at least one of the two!!"
+		# cs_err "ERROR: environment variable 'BLUENET_DIR' should be set."
 		exit 1
 	fi
 fi
@@ -18,6 +18,6 @@ fi
 # as first parameter
 source ${BLUENET_DIR}/scripts/_config.sh $1 $1
 
-log "COMPILER_PATH=${COMPILER_PATH}"
+cs_log "COMPILER_PATH=${COMPILER_PATH}"
 
-log "source ${BLUENET_CONFIG_DIR}/CMakeBuild.config"
+cs_log "source ${BLUENET_CONFIG_DIR}/CMakeBuild.config"
