@@ -92,6 +92,7 @@ popd &> /dev/null
 # enter version number?
 
 valid=0
+existing=0
 
 # Get old version number
 if [ -f $BLUENET_BOOTLOADER_DIR/VERSION ]; then
@@ -117,11 +118,70 @@ while [[ $valid == 0 ]]; do
 	fi
 
 	if [[ $version =~ ^[0-9]{1,2}\.[0-9]{1,3}\.[0-9]{1,3}$ ]]; then
-		valid=1
+
+		# Check if version already exists
+		directory=$BLUENET_RELEASE_DIR/"bootloader_"$version
+		if [ -d $directory ]; then
+			cs_err "Version already exists, are you sure? [y/N]: "
+			read version_response
+			if [[ $version_response == "y" ]]; then
+				existing=1
+				valid=1
+			fi
+		else
+			valid=1
+		fi
+
 	else
 		cs_err "Version does not match pattern"
 	fi
 done
+
+#####################################
+### Create Config file and directory
+#####################################
+
+# create directory in bluenet with new config file. copy from default and open to edit
+
+if [[ $existing == 0 ]]; then
+	cs_log "Creating new directory: "$directory
+	mkdir $directory &> /dev/null
+
+	cp $BLUENET_DIR/conf/cmake/CMakeBuild.config.default $directory/CMakeBuild.config
+fi
+
+###############################
+### Fill Default Config Values
+###############################
+
+sed -i "s/FIRMWARE_VERSION=\".*\"/FIRMWARE_VERSION=\"$version\"/" $directory/CMakeBuild.config
+# sed -i "s/DEVICE_TYPE=.*/DEVICE_TYPE=$device_type/" $directory/CMakeBuild.config
+
+sed -i "s/NRF51822_DIR=/#NRF51822_DIR=/" $directory/CMakeBuild.config
+sed -i "s/COMPILER_PATH=/#COMPILER_PATH=/" $directory/CMakeBuild.config
+
+sed -i "s/CROWNSTONE_SERVICE=.*/CROWNSTONE_SERVICE=1/" $directory/CMakeBuild.config
+sed -i "s/INDOOR_SERVICE=.*/INDOOR_SERVICE=0/" $directory/CMakeBuild.config
+sed -i "s/GENERAL_SERVICE=.*/GENERAL_SERVICE=0/" $directory/CMakeBuild.config
+sed -i "s/POWER_SERVICE=.*/POWER_SERVICE=0/" $directory/CMakeBuild.config
+sed -i "s/SCHEDULE_SERVICE=.*/SCHEDULE_SERVICE=0/" $directory/CMakeBuild.config
+
+sed -i "s/PERSISTENT_FLAGS_DISABLED=.*/PERSISTENT_FLAGS_DISABLED=0/" $directory/CMakeBuild.config
+sed -i "s/BLUETOOTH_NAME=\".*\"/BLUETOOTH_NAME=\"Crown\"/" $directory/CMakeBuild.config
+sed -i "s/SERIAL_VERBOSITY=.*/SERIAL_VERBOSITY=SERIAL_NONE/" $directory/CMakeBuild.config
+sed -i "s/DEFAULT_OPERATION_MODE=.*/DEFAULT_OPERATION_MODE=OPERATION_MODE_SETUP/" $directory/CMakeBuild.config
+
+xdg-open $directory/CMakeBuild.config &> /dev/null
+if [[ $? != 0 ]]; then
+	cs_info "Open $directory/CMakeBuild.config in to edit the config"
+fi
+
+cs_log "After editing the config file, press [ENTER] to continue"
+read
+#else
+#	cs_warn "Warn: Using existing configuration"
+#fi
+
 
 ########################
 ### Update release index
@@ -135,7 +195,7 @@ else
 	stable=1
 fi
 
-# NOTE: do this before modifying the paths otherwise BLUENET_RELEASE_DIR will point the the subdirectory
+# NOTE: do this before modifying the paths otherwise BLUENET_RELEASE_DIR will point to the subdirectory
 #   but the index file is located in the root directory
 
 # goto bluenet scripts dir
@@ -157,13 +217,31 @@ popd &> /dev/null
 ###  modify paths
 ############################
 
+export BLUENET_CONFIG_DIR=$directory
 export BLUENET_BUILD_DIR=$BLUENET_BUILD_DIR/"bootloader_"$version
 export BLUENET_RELEASE_DIR=$BLUENET_RELEASE_DIR/"bootloader_"$version
-export BLUENET_BIN_DIR=$BLUENET_RELEASE_DIR
+export BLUENET_BIN_DIR=$BLUENET_RELEASE_DIR/bin
 
 ############################
 ### Run
 ############################
+
+###################
+### Config File
+###################
+
+#create new config directory in release directory
+mkdir -p $BLUENET_RELEASE_DIR/config
+
+cs_info "Copy configuration to release dir ..."
+cp $BLUENET_CONFIG_DIR/CMakeBuild.config $BLUENET_RELEASE_DIR/config
+
+checkError
+cs_succ "Copy DONE"
+
+###################
+### Bootloader
+###################
 
 cs_info "Updating version ..."
 
@@ -176,7 +254,8 @@ pushd $BLUENET_BOOTLOADER_DIR/scripts &> /dev/null
 # goto bootloader scripts dir
 
 cs_info "Build bootloader ..."
-./all.sh release
+#./all.sh release
+./all.sh
 
 checkError
 cs_succ "Build DONE"
