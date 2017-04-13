@@ -146,9 +146,10 @@ done
 if [[ $existing == 0 ]]; then
 	cs_log "Creating new directory: "$directory
 	mkdir $directory &> /dev/null
-
-	cp $BLUENET_DIR/conf/cmake/CMakeBuild.config.default $directory/CMakeBuild.config
 fi
+
+cp $BLUENET_DIR/conf/cmake/CMakeBuild.config.default $directory/CMakeBuild.config
+
 
 ###############################
 ### Fill Default Config Values
