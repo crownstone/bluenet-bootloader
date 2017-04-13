@@ -1,4 +1,9 @@
 Version 1.2.2:
+ - Don't write bootloader version as firmware version for release.
+ - Fixed bug in release script.
+ - Updated release script. Now overwrites some config values.
+
+Version 1.2.2:
  - Fixed logging functions.
  - Fixed missing DFU_APP_DATA_RESERVED, which would brick the crownstone.
  - Merge branch 'master' of github.com:dobots/nrf51-dfu-bootloader-for-gcc-compiler
