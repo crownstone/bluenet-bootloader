@@ -113,7 +113,7 @@ bool bootloader_app_is_valid(uint32_t app_addr)
     // There exists an application in CODE region 1.
     if (*((uint32_t *)app_addr) == EMPTY_FLASH_MASK)
     {
-        write_string("nothing at code region 0\r\n", 27);
+        write_string("empty code region 0\r\n", 21);
         return false;
     }
 

@@ -341,7 +341,7 @@ int main(void)
 
 	switch(gpregret) {
 		case GPREGRET_BROWNOUT_RESET + 10:
-			write_string("Too many brownouts detected!!\r\n", 31);
+			write_string("Too many brownouts\r\n", 20);
 		case GPREGRET_DFU_RESET: {
 			write_string("Enter bootloader\r\n", 18);
 			dfu_start = true;
