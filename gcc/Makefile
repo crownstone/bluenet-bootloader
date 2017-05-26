@@ -211,11 +211,14 @@ CFLAGS += -DNRF52_PAN_62
 CFLAGS += -DNRF52_PAN_63
 CFLAGS += -mcpu=cortex-m4
 CFLAGS += -mthumb -mabi=aapcs --std=gnu99
-CFLAGS += -Wall -Werror -Os -g3
+CFLAGS += -Wall -Werror -Os -g3 
 CFLAGS += -mfloat-abi=hard -mfpu=fpv4-sp-d16
 # keep every function in separate section. This will allow linker to dump unused functions
 CFLAGS += -ffunction-sections -fdata-sections -fno-strict-aliasing
 CFLAGS += -fno-builtin --short-enums
+# optimize the code globally, i.e. also across different C files, not only within the individual C files.
+CFLAGS += -flto
+LDFLAGS += -flto
 # keep every function in separate section. This will allow linker to dump unused functions
 LDFLAGS += -Xlinker -Map=$(LISTING_DIRECTORY)/$(OUTPUT_FILENAME).map
 LDFLAGS += -mthumb -mabi=aapcs -L $(TEMPLATE_PATH) -T$(LINKER_SCRIPT)
