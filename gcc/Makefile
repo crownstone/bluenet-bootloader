@@ -52,7 +52,8 @@ CFLAGS += -DAPP_DATA_RESERVED=$(APP_DATA_RESERVED)
 endif
 
 # For the ble_debug_assert_handler
-CFLAGS += -DBSP_DEFINES_ONLY -DBSP_SIMPLE
+CFLAGS += -DBSP_DEFINES_ONLY -DBSP_SIMPLE -DBOOTLOADER_COMPILATION
+
 
 SDK_PATH=$(NRF51822_DIR)/
 
@@ -163,6 +164,12 @@ INC_PATHS += -I$(SDK_PATH)components/drivers_nrf/common
 INC_PATHS += -I$(SDK_PATH)components/softdevice/common/softdevice_handler
 INC_PATHS += -I$(SDK_PATH)components/ble/ble_services/ble_dfu
 INC_PATHS += -I$(SDK_PATH)components/ble/ble_services/ble_dis
+
+# The following is only necessary because ble/cs_Nordic.h does not separate header files required for bootloader
+# versus app
+#INC_PATHS += -I$(SDK_PATH)components/drivers_nrf/saadc
+#INC_PATHS += -I$(SDK_PATH)components/drivers_nrf/timer
+#INC_PATHS += -I$(SDK_PATH)components/drivers_nrf/ppi
 
 ifneq ($(and $(SOFTDEVICE_DIR),$(SOFTDEVICE_DIR_API)),)
 INC_PATHS += -I"$(SOFTDEVICE_DIR)/$(SOFTDEVICE_DIR_API)"
