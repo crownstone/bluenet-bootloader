@@ -6,5 +6,5 @@
  */
 #pragma once
 
-#define BOOTLOADER_VERSION "1.2.2"
+#define BOOTLOADER_VERSION "1.3.0"
 
