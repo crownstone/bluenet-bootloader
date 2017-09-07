@@ -265,7 +265,7 @@ static void scheduler_init(void)
 static void gpio_init(boards_config_t* board)
 {
 	if (IS_CROWNSTONE(board->deviceType)) {
-		//! PWM pin
+		// PWM pin
 		nrf_gpio_cfg_output(board->pinGpioPwm);
 		if (board->flags.pwmInverted) {
 			nrf_gpio_pin_set(board->pinGpioPwm);
@@ -273,7 +273,7 @@ static void gpio_init(boards_config_t* board)
 			nrf_gpio_pin_clear(board->pinGpioPwm);
 		}
 
-		//! Relay pins
+		// Relay pins
 		if (board->flags.hasRelay) {
 			nrf_gpio_cfg_output(board->pinGpioRelayOff);
 			nrf_gpio_pin_clear(board->pinGpioRelayOff);
@@ -301,8 +301,8 @@ int main(void)
 	boards_config_t board = {};
 	configure_board(&board);
 
-	config_uart(board.pinGpioRx, board.pinGpioTx);
 	gpio_init(&board);
+	config_uart(board.pinGpioRx, board.pinGpioTx);
 
 	// Initialize.
 	timers_init();
