@@ -220,7 +220,7 @@ popd &> /dev/null
 
 export BLUENET_CONFIG_DIR=$directory
 export BLUENET_BUILD_DIR=$BLUENET_BUILD_DIR/"bootloader_"$version
-export BLUENET_RELEASE_DIR=$BLUENET_RELEASE_DIR/"bootloader_"$version
+export BLUENET_RELEASE_DIR=$BLUENET_RELEASE_DIR/bootloaders/"bootloader_"$version
 export BLUENET_BIN_DIR=$BLUENET_RELEASE_DIR/bin
 
 ############################
