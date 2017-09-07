@@ -120,7 +120,7 @@ while [[ $valid == 0 ]]; do
 	if [[ $version =~ ^[0-9]{1,2}\.[0-9]{1,3}\.[0-9]{1,3}$ ]]; then
 
 		# Check if version already exists
-		directory=$BLUENET_RELEASE_DIR/"bootloader_"$version
+		directory=$BLUENET_RELEASE_DIR/bootloaders/"bootloader_"$version
 		if [ -d $directory ]; then
 			cs_err "Version already exists, are you sure? [y/N]: "
 			read version_response
@@ -247,7 +247,7 @@ cs_succ "Copy DONE"
 cs_info "Updating version ..."
 
 # update version
-sed -i "s/BOOTLOADER_VERSION= \".*\"/BOOTLOADER_VERSION= \"$version\"/" $BLUENET_BOOTLOADER_DIR/include/version.h
+sed -i "s/BOOTLOADER_VERSION \".*\"/BOOTLOADER_VERSION \"$version\"/" $BLUENET_BOOTLOADER_DIR/include/version.h
 
 
 pushd $BLUENET_BOOTLOADER_DIR/scripts &> /dev/null
