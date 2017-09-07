@@ -1,3 +1,10 @@
+Version 1.3.0:
+ - Changed release path.
+ - Config uart after initializing gpio (igbt and relay pins).
+ - Add BOOTLOADER_COMPILATION flag so we can exclude headers from cs_Nordic.h (such as the ones for ADC).
+ - Reduced size of some logs.
+ - Optimize compiler by using -flto (optimizes globally rather than only for individual compilation units).
+
 Version 1.2.2:
  - Don't write bootloader version as firmware version for release.
  - Fixed bug in release script.
