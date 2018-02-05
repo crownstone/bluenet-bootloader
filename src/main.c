@@ -64,7 +64,6 @@
 //#define APP_GPIOTE_MAX_USERS            1                                                       /**< Number of GPIOTE users in total. Used by button module and dfu_transport_serial module (flow control). */
 
 #define APP_TIMER_PRESCALER             0                                                       /**< Value of the RTC1 PRESCALER register. */
-//#define APP_TIMER_MAX_TIMERS            3 //2 doesn't matter                                                       /**< Maximum number of simultaneously created timers. */
 #define APP_TIMER_OP_QUEUE_SIZE         4                                                       /**< Size of timer operation queues. */
 
 //#define BUTTON_DETECTION_DELAY          APP_TIMER_TICKS(50, APP_TIMER_PRESCALER)                /**< Delay from a GPIOTE event until a button is reported as pushed (in number of timer ticks). */
