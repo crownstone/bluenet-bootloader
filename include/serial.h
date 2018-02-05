@@ -16,13 +16,9 @@ extern "C" {
 
 #define VERBOSE
 
-//#undef DEBUG
-//#define DEBUG                0
-//#define INFO                 1
-//#define WARN                 2
-//#define ERROR                3
-//#define FATAL                4
-#define SERIAL_NONE                 5
+#define SERIAL_BYTE_PROTOCOL_ONLY   5
+#define SERIAL_READ_ONLY            6
+#define SERIAL_NONE                 7
 
 /**
  * General configuration of the serial connection. This sets the pin to be used for UART, the baudrate, the parity
@@ -47,8 +43,13 @@ void _get_dec_str(char* str, uint32_t len, uint32_t val);
 
 #define WRITE_VERBOSE(str, len)
 
-#if SERIAL_VERBOSITY<SERIAL_NONE
+#if SERIAL_VERBOSITY<SERIAL_READ_ONLY
 #define config_uart  _config_uart
+#else
+#define config_uart(pinRx, pinTx)
+#endif
+
+#if SERIAL_VERBOSITY<SERIAL_BYTE_PROTOCOL_ONLY
 #define write_string _write_string
 #define get_dec_str  _get_dec_str
 
@@ -59,7 +60,6 @@ void _get_dec_str(char* str, uint32_t len, uint32_t val);
 
 #else
 #undef VERBOSE
-#define config_uart(pinRx, pinTx)
 #define write_string(str, len)
 #define get_dec_str(str, len, val)
 #endif

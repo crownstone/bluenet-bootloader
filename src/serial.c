@@ -12,8 +12,8 @@
 //#include "nRF51822.h"
 #include "cfg/cs_Boards.h"
 
-#define NRF_UART_9600_BAUD  0x00275000UL
-#define NRF_UART_38400_BAUD 0x009D5000UL
+//#define NRF_UART_9600_BAUD  0x00275000UL
+//#define NRF_UART_38400_BAUD 0x009D5000UL
 
 /**
  * Configure the UART. Currently we set it on 38400 baud.
@@ -27,7 +27,7 @@ void _config_uart(uint8_t pinRx, uint8_t pinTx) {
 
 	// Configure UART pins
 	NRF_UART0->PSELRXD = pinRx;
-	NRF_UART0->BAUDRATE = NRF_UART_38400_BAUD;
+	NRF_UART0->BAUDRATE = UART_BAUDRATE_BAUDRATE_Baud230400;
 	
 	NRF_UART0->PSELTXD = pinTx;
 
