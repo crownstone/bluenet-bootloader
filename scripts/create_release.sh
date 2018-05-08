@@ -58,7 +58,7 @@ modifications=$(git ls-files -m | wc -l)
 if [[ $modifications != 0 ]]; then
 	cs_err "There are modified files in your bluenet code"
 	cs_err "Commit the files or stash them first!!"
-#	exit 1
+	exit 1
 fi
 
 # Check for untracked files
@@ -195,30 +195,6 @@ while [[ $valid == 0 ]]; do
 	fi
 
 	if [[ $version =~ ^[0-9]{1,2}\.[0-9]{1,3}\.[0-9]{1,3}$ ]]; then
-		# cs_info "Select model:"
-		# printf "$yellow"
-		# options=("Crownstone" "Guidestone" "Dongle")
-		# select opt in "${options[@]}"
-		# do
-		# 	case $opt in
-		# 		"Crownstone")
-		# 			model="crownstone"
-		# 			# device_type="DEVICE_CROWNSTONE_PLUG"
-		# 			break
-		# 			;;
-		# 		"Guidestone")
-		# 			model="guidestone"
-		# 			# device_type="DEVICE_GUIDESTONE"
-		# 			break
-		# 			;;
-		# 		"Dongle")
-		# 			model="dongle"
-		# 			break
-		# 			;;
-		# 		*) echo invalid option;;
-		# 	esac
-		# done
-		# printf "$normal"
 		model="bootloader"
 
 		directory="${BLUENET_BOOTLOADER_DIR}/release/${model}_${version}"
@@ -367,6 +343,8 @@ cs_info "Copy configuration to release dir ..."
 mkdir -p $BLUENET_RELEASE_DIR/config
 cp $BLUENET_CONFIG_DIR/CMakeBuild.config $BLUENET_RELEASE_DIR/config
 checkError
+# Write down which git hash of bluenet was used.
+git rev-parse HEAD > $BLUENET_RELEASE_DIR/config/bluenet-git-hash.txt
 cs_succ "Copy DONE"
 
 ###################
@@ -384,10 +362,6 @@ cs_succ "Softdevice DONE"
 ###################
 ### Bootloader
 ###################
-
-# Update version
-#cs_info "Updating version ..."
-#sed -i "s/BOOTLOADER_VERSION \".*\"/BOOTLOADER_VERSION \"$version\"/" $BLUENET_BOOTLOADER_DIR/include/version.h
 
 # Build bootloader
 cs_info "Build bootloader ..."
@@ -460,8 +434,7 @@ fi
 
 cs_log "Create tag"
 pushd $BLUENET_BOOTLOADER_DIR &> /dev/null
-#git tag -a -m "Tagging version $version" "v$version"
-echo 'git tag -a -m "Tagging version $version" "v$version"'
+git tag -a -m "Tagging version $version" "v$version"
 popd &> /dev/null
 cs_succ "DONE. Created Release "$version
 
