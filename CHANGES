@@ -1,3 +1,16 @@
+Version 1.4.0:
+ - Add release config for bootloader_1.4.0
+ - Add release config for bootloader_1.4.0-RC0
+ - release script: fixed bluenet git hash
+ - Updated release script: write down bluenet git hash.
+ - Updated release script.
+ - Fixed getting bootloader version from config.
+ - Get bootloader version from config.
+ - Changed some of the debug strings.
+ - Added default hardware board. Moved UICR layout to config.
+ - APP_TIMER_MAX_TIMERS is deprecated.
+ - Add SERIAL_BYTE_PROTOCOL_ONLY. Set baudrate to 230400.
+
 Version 1.3.0:
  - Fixed release script: set version.
 
