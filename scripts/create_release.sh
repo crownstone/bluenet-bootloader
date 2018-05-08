@@ -343,9 +343,12 @@ cs_info "Copy configuration to release dir ..."
 mkdir -p $BLUENET_RELEASE_DIR/config
 cp $BLUENET_CONFIG_DIR/CMakeBuild.config $BLUENET_RELEASE_DIR/config
 checkError
-# Write down which git hash of bluenet was used.
-git rev-parse HEAD > $BLUENET_RELEASE_DIR/config/bluenet-git-hash.txt
 cs_succ "Copy DONE"
+
+# Write down which git hash of bluenet was used.
+pushd $BLUENET_DIR
+git rev-parse HEAD > $BLUENET_RELEASE_DIR/config/bluenet-git-hash.txt
+popd &> /dev/null
 
 ###################
 ### Softdevice
