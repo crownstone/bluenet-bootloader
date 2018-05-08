@@ -51,7 +51,6 @@
 #include "nrf_mbr.h"
 //#include "nrf_log.h"
 
-#include "version.h"
 #include "serial.h"
 
 /* BLUENET includes START */

@@ -12,7 +12,6 @@
 #include "app_error.h"
 
 #include "cfg/cs_HardwareVersions.h"
-#include "version.h"
 
 /**@brief     Function for initializing services that will be used by the application.
  */
