@@ -305,9 +305,18 @@ int main(void)
 
 	// Initialize.
 	timers_init();
-	write_string("\r\nFirmware ", 11);
+//	write_string("\r\nFirmware ", 11);
+	write_string("\r\nBootloader ", 13);
 	write_string(BOOTLOADER_VERSION, strlen(BOOTLOADER_VERSION));
 	write_string("\r\n", 2);
+
+	// Write max app size
+	write_string("max app size:", 13);
+	__attribute__((unused)) char decText[8] = {0};
+	get_dec_str(decText, 7, DFU_IMAGE_MAX_SIZE_BANKED);
+	write_string(decText, 7);
+	write_string("\r\n", 2);
+
 	(void)bootloader_init();
 
 //	write_string("DFU_APP_DATA_RESERVED: ", 23);
@@ -366,7 +375,7 @@ int main(void)
 			get_dec_str(gpregretText, 4, gpregret);
 			write_string("App reset, count=", 17);
 			write_string(gpregretText, 5);
-			WRITE_VERBOSE("\r\n", 3);
+			WRITE_VERBOSE("\r\n", 2);
 #endif
 			break;
 		}
@@ -397,7 +406,7 @@ int main(void)
 	}
 
 	if (dfu_start || (!bootloader_app_is_valid(DFU_BANK_0_REGION_START))) {
-		write_string("Start DFU\r\n", 12);
+		write_string("Start DFU\r\n", 11);
 		// Initiate an update of the firmware.
 		err_code = bootloader_dfu_start();
 //#ifdef VERBOSE

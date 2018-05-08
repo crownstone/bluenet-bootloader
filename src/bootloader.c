@@ -308,16 +308,20 @@ uint32_t bootloader_dfu_start(void)
     uint32_t err_code;
 
     // Clear swap if banked update is used.
-    WRITE_VERBOSE("dfu_init   \r\n", 14);
+    WRITE_VERBOSE("dfu_init\r\n", 10);
     err_code = dfu_init();
     if (err_code != NRF_SUCCESS)
     {
         return err_code;
     }
-    WRITE_VERBOSE("dfu_transpo\r\n", 14);
+    WRITE_VERBOSE("dfu_transpo\r\n", 13);
     err_code = dfu_transport_update_start();
+    if (err_code != NRF_SUCCESS)
+    {
+    	return err_code;
+    }
 
-    WRITE_VERBOSE("wait_for_ev\r\n", 14);
+    WRITE_VERBOSE("wait_for_evt\r\n", 14);
     wait_for_events();
 
     return err_code;
