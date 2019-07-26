@@ -1001,7 +1001,18 @@ static uint32_t update_UICR_BL(const uint32 BL_ADDR)
         CRITICAL_REGION_EXIT();
     }
 
+    uicr_address = 0x10001014;
+    present_uicr_addr = *(uint32_t *)uicr_address;
+    while (NRF_NVMC->READY == NVMC_READY_READY_Busy){}
+
     NRF_LOG_FLUSH();
+    if (present_uicr_addr == BL_ADDR)
+    {
+        ret NRF_SUCCESS;
+
+    }
+
+
 
     return ret_val;
 }
@@ -1019,15 +1030,29 @@ static void fs_evt_handler(fs_evt_t const * const evt, fs_ret_t result)
     }
 }
 
+static uint32_t duplicate_appdata()
+{
+    // TODO: 
+    // 1. copy the app data from the old address to the new address
+    // 2. compare the content between old and new location
+    // 3. return NRF_SUCCESS on content match, otherwise NRF_FAIL
+}
+
+static uint32_t compare_content(uint32 *dest, uint32 *src, uint32_t size)
+{
+    uint32_t err_code = dfu_compare_block(src, dst, len);
+
+
+}
+
 /* This function should be present in version 0x10 (these codes are for internal use only)
  * - Copy the incoming bootloader to the new location which is 0x7'6000.
  * - After copy is successful, change the UICR address to the new address 0x7'6000
  */
-
 uint32_t dfu_bl_image_copy(void)
 {
     uint32_t err_code;
-    
+
     // Specify the destination address
     const uint32_t DEST_BL_ADDR = 0x71000; //this should be 0x76000 for release version and 0x71000 for debug version
 
@@ -1039,14 +1064,14 @@ uint32_t dfu_bl_image_copy(void)
 
     if (bootloader_settings.bl_image_size != 0)
     {
-        // the new bootloader app is present inside bank 1, continue copying this to the new flash location.
-        // ret_val = fstorage(?, (uint32_t const * const) DEST_BL_ADDR, (uint32_t const * const) SRC_BL_ADDR, bootloader_settings.bl_image_size);
-
         err_code = dfu_copy_sd((uint32*) SRC_BL_ADDR, (uint32_t*) DEST_BL_ADDR, bootloader_settings.bl_image_size);
+
         if (err_code == FS_SUCCESS)
         {
-            // do some checks here if necessary
-            err_code = update_UICR_BL(DEST_BL_ADDR);
+            // verify if the bootloader is copied successfully
+            err_code = dfu_compare_block(DEST_BL_ADDR, SRC_BL_ADDR, bootloader_settings.bl_image_size);
+            if (err_code == NRF_SUCCESS)
+                err_code = update_UICR_BL(DEST_BL_ADDR);
         }
     }
     return err_code;
