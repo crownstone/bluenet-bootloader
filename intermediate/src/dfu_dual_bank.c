@@ -26,6 +26,8 @@
 #include "sdk_common.h"
 #include "app_util_platform.h"
 
+#define SECURE_BL_ADDR 0x76000
+
 static dfu_state_t                  m_dfu_state;                /**< Current DFU state. */
 static uint32_t                     m_image_size;               /**< Size of the image that will be transmitted. */
 
@@ -122,7 +124,6 @@ static uint32_t dfu_timer_restart(void)
 
     return err_code;
 }
-
 
 /**@brief   Function for preparing of flash before receiving SoftDevice image.
  *
@@ -746,6 +747,66 @@ uint32_t dfu_sd_image_swap(void)
     return NRF_SUCCESS;
 }
 
+static void flash_page_erase(uint32_t * p_page)
+{
+    // Turn on flash erase enable and wait until the NVMC is ready.
+    NRF_NVMC->CONFIG = (NVMC_CONFIG_WEN_Een << NVMC_CONFIG_WEN_Pos);
+    while (NRF_NVMC->READY == NVMC_READY_READY_Busy)
+    {
+        // Do nothing.
+    }
+
+    // Erase page.
+    NRF_NVMC->ERASEPAGE = (uint32_t)p_page;
+    while (NRF_NVMC->READY == NVMC_READY_READY_Busy)
+    {
+        // Do nothing.
+    }
+
+    // Turn off flash erase enable and wait until the NVMC is ready.
+    NRF_NVMC->CONFIG = (NVMC_CONFIG_WEN_Ren << NVMC_CONFIG_WEN_Pos);
+    while (NRF_NVMC->READY == NVMC_READY_READY_Busy)
+    {
+        // Do nothing
+    }
+}
+
+static void erase_pages(uint32_t page_addr, const uint32_t size_words)
+{
+    uint32_t pages_required = (size_words + 0x1000 - 1) / 0x1000;
+
+    for(uint8_t counter = 0; counter < pages_required; counter++)
+    {
+        flash_page_erase((uint32_t*)page_addr);
+        page_addr += 0x1000;
+    }
+}
+
+static uint32_t copy_flash_content(uint32_t * const dest_addr, uint32_t const * const src_addr, uint32_t size_bytes)
+{
+    uint32_t size_words = size_bytes/sizeof(uint32_t);
+    erase_pages((uint32_t)dest_addr, size_words);
+
+    NRF_NVMC->CONFIG = (NVMC_CONFIG_WEN_Wen << NVMC_CONFIG_WEN_Pos);
+    while (NRF_NVMC->READY == NVMC_READY_READY_Busy);
+
+    for(int index = 0; index < size_words; index++)
+    {
+        dest_addr[index] = src_addr[index];
+        while (NRF_NVMC->READY == NVMC_READY_READY_Busy);
+    }
+
+    NRF_NVMC->CONFIG = (NVMC_CONFIG_WEN_Ren << NVMC_CONFIG_WEN_Pos);
+    while (NRF_NVMC->READY == NVMC_READY_READY_Busy);
+
+    uint32_t cmp_result = memcmp((void*)dest_addr, (void*)src_addr, (size_t) size_bytes);
+
+    cmp_result = (cmp_result == 0) ? NRF_SUCCESS : NRF_ERROR_DATA_SIZE;
+
+    // TODO: do a memcmp with src and dest and then update the return value
+    return cmp_result;
+}
+
 // Original BL Swap function
 // uint32_t dfu_bl_image_swap(void)
 // {
@@ -771,13 +832,8 @@ uint32_t dfu_sd_image_swap(void)
 // }
 
 // Nordic's new implementation
-uint32_t dfu_bl_image_swap(void)
+uint32_t set_uicr(const uint32_t BL_ADDR)
 {
-    bootloader_settings_t bootloader_settings;
-    sd_mbr_command_t      sd_mbr_cmd;
-
-    bootloader_settings_get(&bootloader_settings);
-    
     // Storage buffers and variables to hold the UICR register content
     static uint32_t uicr_buffer[59]    = {0x00000000};
     static uint32_t pselreset_0        = 0x00000000;
@@ -785,77 +841,130 @@ uint32_t dfu_bl_image_swap(void)
     static uint32_t approtect          = 0x00000000;
     static uint32_t nfcpins            = 0x00000000;
     
-    if (bootloader_settings.bl_image_size != 0)
+    CRITICAL_REGION_ENTER();
+    
+    // Read and buffer UICR register content prior to erase
+    uint32_t uicr_address = 0x10001014;
+
+    for(int i = 0; i < 59; i++)
     {
-        CRITICAL_REGION_ENTER();
-      
-        // Read and buffer UICR register content prior to erase
-        uint32_t uicr_address = 0x10001014;
- 
-        for(int i = 0; i < 59; i++)
+        uicr_buffer[i] = *(uint32_t *)uicr_address; 
+        while (NRF_NVMC->READY == NVMC_READY_READY_Busy){}
+        // Set UICR address to the next register
+        uicr_address += 0x04;
+    }
+    
+    pselreset_0 = NRF_UICR->PSELRESET[0];
+    pselreset_1 = NRF_UICR->PSELRESET[1];
+    approtect   = NRF_UICR->APPROTECT;
+    nfcpins     = NRF_UICR->NFCPINS;
+    
+    //Modify the Bootloader start address  to correspond to the new bootloader
+    uicr_buffer[0] = BL_ADDR;
+    
+    // Enable Erase mode
+    NRF_NVMC->CONFIG = NVMC_CONFIG_WEN_Een << NVMC_CONFIG_WEN_Pos; //0x02; 
+    while (NRF_NVMC->READY == NVMC_READY_READY_Busy){}
+    
+    // Erase the UICR registers
+    NRF_NVMC->ERASEUICR = NVMC_ERASEUICR_ERASEUICR_Erase << NVMC_ERASEUICR_ERASEUICR_Pos; //0x00000001;
+    while (NRF_NVMC->READY == NVMC_READY_READY_Busy){}
+    
+    // Enable WRITE mode
+    NRF_NVMC->CONFIG = NVMC_CONFIG_WEN_Wen << NVMC_CONFIG_WEN_Pos; //0x01;
+    while (NRF_NVMC->READY == NVMC_READY_READY_Busy){}
+
+    // Write the modified UICR content back to the UICR registers 
+    uicr_address = 0x10001014;
+    for(int j = 0; j < 59; j++)
+    {
+        // Skip writing to registers that were 0xFFFFFFFF before the UICR register were erased. 
+        if(uicr_buffer[j] != 0xFFFFFFFF)
         {
-            uicr_buffer[i] = *(uint32_t *)uicr_address; 
-            while (NRF_NVMC->READY == NVMC_READY_READY_Busy){}
-            // Set UICR address to the next register
-            uicr_address += 0x04;
+            *(uint32_t *)uicr_address = uicr_buffer[j];
+            // Wait untill the NVMC peripheral has finished writting to the UICR register
+            while (NRF_NVMC->READY == NVMC_READY_READY_Busy){}                
         }
-      
-        pselreset_0 = NRF_UICR->PSELRESET[0];
-        pselreset_1 = NRF_UICR->PSELRESET[1];
-        approtect   = NRF_UICR->APPROTECT;
-        nfcpins     = NRF_UICR->NFCPINS;
-        
-        //Modify the Bootloader start address  to correspond to the new bootloader
-        uicr_buffer[0] = 0x00076000;
-       
-        // Enable Erase mode
-        NRF_NVMC->CONFIG = NVMC_CONFIG_WEN_Een << NVMC_CONFIG_WEN_Pos; //0x02; 
-        while (NRF_NVMC->READY == NVMC_READY_READY_Busy){}
-        
-        // Erase the UICR registers
-        NRF_NVMC->ERASEUICR = NVMC_ERASEUICR_ERASEUICR_Erase << NVMC_ERASEUICR_ERASEUICR_Pos; //0x00000001;
-        while (NRF_NVMC->READY == NVMC_READY_READY_Busy){}
-       
-        // Enable WRITE mode
-        NRF_NVMC->CONFIG = NVMC_CONFIG_WEN_Wen << NVMC_CONFIG_WEN_Pos; //0x01;
-        while (NRF_NVMC->READY == NVMC_READY_READY_Busy){}
-   
-        // Write the modified UICR content back to the UICR registers 
-        uicr_address = 0x10001014;
-        for(int j = 0; j < 59; j++)
-        {
-            // Skip writing to registers that were 0xFFFFFFFF before the UICR register were erased. 
-            if(uicr_buffer[j] != 0xFFFFFFFF)
-            {
-                *(uint32_t *)uicr_address = uicr_buffer[j];
-                // Wait untill the NVMC peripheral has finished writting to the UICR register
-                while (NRF_NVMC->READY == NVMC_READY_READY_Busy){}                
-            }
-            // Set UICR address to the next register
-            uicr_address += 0x04;  
-        }
+        // Set UICR address to the next register
+        uicr_address += 0x04;  
+    }
 
-        NRF_UICR->PSELRESET[0]  = pselreset_0;
-        NRF_UICR->PSELRESET[1]  = pselreset_1;
-        NRF_UICR->APPROTECT     = approtect;
-        NRF_UICR->NFCPINS       = nfcpins;
+    NRF_UICR->PSELRESET[0]  = pselreset_0;
+    NRF_UICR->PSELRESET[1]  = pselreset_1;
+    NRF_UICR->APPROTECT     = approtect;
+    NRF_UICR->NFCPINS       = nfcpins;
 
-        CRITICAL_REGION_EXIT();
+    CRITICAL_REGION_EXIT();
 
-        uint32_t bl_image_start = (bootloader_settings.sd_image_size == 0) ?
+    return NRF_SUCCESS;
+}
+
+uint32_t verify_bl()
+{
+    bootloader_settings_t boot_settings;
+    bootloader_settings_get(&boot_settings);
+
+    uint32_t status = 0;
+
+    const uint32_t BL_TARGET = SECURE_BL_ADDR; // THIS NEED TO BE THE FINAL TARGET
+
+    uint32_t DFU_BL =  (boot_settings.sd_image_size == 0) ?
+                        DFU_BANK_1_REGION_START :
+                        boot_settings.sd_image_start + boot_settings.sd_image_size;
+    
+    uint32_t bl_length = boot_settings.bl_image_size;
+
+    if (bl_length != 0 && bl_length != 0xffffffff)
+        status = dfu_compare_block((uint32_t *)BL_TARGET, (uint32_t *)DFU_BL, bl_length);
+    else
+        status = 7; // Failed because there isn't any data in Bank 1
+
+    return status;
+}
+
+uint32_t verify_sd()
+{
+    bootloader_settings_t boot_settings;
+    bootloader_settings_get(&boot_settings);
+
+    uint32_t DFU_SD = boot_settings.sd_image_start, sd_length = boot_settings.sd_image_size;
+
+    uint32_t status = 0;
+
+    const uint32_t SD_TARGET = SOFTDEVICE_REGION_START;
+
+    if (sd_length != 0 && sd_length != 0xffffffff)
+        status = dfu_compare_block((uint32_t *)SD_TARGET, (uint32_t *)DFU_SD, sd_length);
+    else
+        status = 7; // Failed because there isn't any data in Bank 1
+    
+    return status;
+}
+
+// Nordic's new implementation
+uint32_t dfu_bl_image_swap(void)
+{
+    uint32_t status = 0;
+
+    const uint32_t BL_ADDR = 0x76000;
+
+    bootloader_settings_t bootloader_settings;
+    bootloader_settings_get(&bootloader_settings);
+
+    uint32_t bl_image_start = (bootloader_settings.sd_image_size == 0) ?
                                   DFU_BANK_1_REGION_START :
                                   bootloader_settings.sd_image_start + 
                                   bootloader_settings.sd_image_size;
 
-        sd_mbr_cmd.command               = SD_MBR_COMMAND_COPY_BL;
-        sd_mbr_cmd.params.copy_bl.bl_src = (uint32_t *)(bl_image_start);
-        sd_mbr_cmd.params.copy_bl.bl_len = bootloader_settings.bl_image_size / sizeof(uint32_t);
+    copy_flash_content((uint32_t*)BL_ADDR, (uint32_t*)bl_image_start, bootloader_settings.bl_image_size);
 
-        return sd_mbr_command(&sd_mbr_cmd);
-    }
-    return NRF_SUCCESS;
+    status = verify_bl();
+    status = verify_sd();
+
+    set_uicr(BL_ADDR); // TODO: do it after verifying
+
+    return status;
 }
-
 
 uint32_t dfu_bl_image_validate(void)
 {
@@ -882,7 +991,6 @@ uint32_t dfu_bl_image_validate(void)
     }
     return NRF_SUCCESS;
 }
-
 
 uint32_t dfu_sd_image_validate(void)
 {
