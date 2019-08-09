@@ -77,7 +77,7 @@ ASM_SOURCE_FILES  = $(abspath $(SDK_PATH)/components/toolchain/gcc/gcc_startup_n
 #includes common to all targets
 INC_PATHS += -I$(abspath ./config)
 INC_PATHS += -I$(abspath ./config/bsp)
-INC_PATHS += -I$(abspath $(SDK_PATH)/components/libraries/bootloader_dfu)
+INC_PATHS += -I$(abspath ./inc)
 INC_PATHS += -I$(abspath $(SDK_PATH)/components/libraries/scheduler)
 INC_PATHS += -I$(abspath $(SDK_PATH)/components/drivers_nrf/config)
 INC_PATHS += -I$(abspath $(SDK_PATH)/components/drivers_nrf/delay)

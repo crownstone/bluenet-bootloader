@@ -930,3 +930,46 @@ uint32_t dfu_sd_image_validate(void)
 
     return err_code;
 }
+
+uint32_t check_status()
+{
+    bootloader_settings_t boot_settings;
+    bootloader_settings_get(&boot_settings);
+
+    uint8_t return_bits = 0;
+    uint32_t status = 0;
+
+    const uint32_t SD_TARGET = SOFTDEVICE_REGION_START;
+    const uint32_t BL_TARGET = 0x76000; // THIS NEED TO BE THE FINAL TARGET
+
+    const uint8_t BL = 0b10, SD = 0b01;
+
+    uint32_t DFU_SD = boot_settings.sd_image_start;
+    uint32_t sd_length = boot_settings.sd_image_size;
+
+    uint32_t DFU_BL =  (boot_settings.sd_image_size == 0) ?
+                        DFU_BANK_1_REGION_START :
+                        boot_settings.sd_image_start + 
+                        boot_settings.sd_image_size;
+    uint32_t bl_length = boot_settings.bl_image_size;
+
+    if (boot_settings.sd_image_size != 0)
+    {
+        status = dfu_compare_block((uint32_t *)SD_TARGET, (uint32_t *)DFU_SD, sd_length);
+        if (status != NRF_SUCCESS)
+        {
+            return_bits |= SD; // DFU should copy the Softdevice
+        }
+    }
+
+    if (boot_settings.bl_image_size != 0)
+    {
+        status = dfu_compare_block((uint32_t *)BL_TARGET, (uint32_t *)DFU_BL, bl_length);
+        if (status != NRF_SUCCESS)
+        {
+            return_bits |= BL; // DFU should copy the BL
+        }
+    }
+
+    return (uint32_t) return_bits;
+}

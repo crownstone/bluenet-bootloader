@@ -49,6 +49,7 @@
 #include "pstorage_platform.h"
 #include "nrf_mbr.h"
 #include "nrf_log.h"
+#include "dfu.h"
 
 #if BUTTONS_NUMBER < 1
 #error "Not enough buttons on board"
@@ -190,13 +191,15 @@ int main(void)
     {
         NRF_POWER->GPREGRET = 0;
     }
-    
+
     leds_init();
 
     // This check ensures that the defined fields in the bootloader corresponds with actual
     // setting in the chip.
     APP_ERROR_CHECK_BOOL(*((uint32_t *)NRF_UICR_BOOT_START_ADDRESS) == BOOTLOADER_REGION_START);
     APP_ERROR_CHECK_BOOL(NRF_FICR->CODEPAGESIZE == CODE_PAGE_SIZE);
+
+    uint32_t check_status();
 
     // Initialize.
     timers_init();
