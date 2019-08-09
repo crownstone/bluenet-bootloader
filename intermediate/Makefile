@@ -41,17 +41,19 @@ remduplicates = $(strip $(if $1,$(firstword $1) $(call remduplicates,$(filter-ou
 
 #source common to all targets
 C_SOURCE_FILES += \
+$(abspath ./src/bootloader.c) \
+$(abspath ./src/dfu_dual_bank.c) \
+$(abspath ./src/dfu_ble_svc.c) \
+$(abspath ./src/main.c) \
 $(abspath $(SDK_PATH)/components/libraries/util/app_error.c) \
 $(abspath $(SDK_PATH)/components/libraries/util/app_error_weak.c) \
 $(abspath $(SDK_PATH)/components/libraries/scheduler/app_scheduler.c) \
 $(abspath $(SDK_PATH)/components/libraries/timer/app_timer.c) \
 $(abspath $(SDK_PATH)/components/libraries/timer/app_timer_appsh.c) \
 $(abspath $(SDK_PATH)/components/libraries/util/app_util_platform.c) \
-$(abspath $(SDK_PATH)/components/libraries/bootloader_dfu/bootloader.c) \
 $(abspath $(SDK_PATH)/components/libraries/bootloader_dfu/bootloader_settings.c) \
 $(abspath $(SDK_PATH)/components/libraries/bootloader_dfu/bootloader_util.c) \
 $(abspath $(SDK_PATH)/components/libraries/crc16/crc16.c) \
-$(abspath $(SDK_PATH)/components/libraries/bootloader_dfu/dfu_dual_bank.c) \
 $(abspath $(SDK_PATH)/components/libraries/bootloader_dfu/dfu_init_template.c) \
 $(abspath $(SDK_PATH)/components/libraries/bootloader_dfu/dfu_transport_ble.c) \
 $(abspath $(SDK_PATH)/components/libraries/hci/hci_mem_pool.c) \
@@ -59,8 +61,6 @@ $(abspath $(SDK_PATH)/components/libraries/util/nrf_assert.c) \
 $(abspath $(SDK_PATH)/components/drivers_nrf/delay/nrf_delay.c) \
 $(abspath $(SDK_PATH)/components/drivers_nrf/common/nrf_drv_common.c) \
 $(abspath $(SDK_PATH)/components/drivers_nrf/pstorage/pstorage_raw.c) \
-$(abspath ./src/dfu_ble_svc.c) \
-$(abspath ./src/main.c) \
 $(abspath $(SDK_PATH)/components/ble/common/ble_advdata.c) \
 $(abspath $(SDK_PATH)/components/ble/common/ble_conn_params.c) \
 $(abspath $(SDK_PATH)/components/ble/ble_services/ble_dfu/ble_dfu.c) \
