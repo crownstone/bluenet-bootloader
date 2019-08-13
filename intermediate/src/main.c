@@ -193,11 +193,14 @@ int main(void)
     {
         NRF_POWER->GPREGRET = 0;
     }
-    // else
-    // {
-    //     NRF_POWER->GPREGRET = 1;
-    // }
-    
+
+    /* why is this needed?
+    When a DFU is performed on top of the current legacy bootloader,
+    it automatically goes into the DFU and starts performing bootloader update
+    with the wrong content, which is WRONG! 
+    This hack is a work-around to prevent this. 
+    This is needed only in Stage 1, in every other step this check is disabled */
+    if ( BOOTLOADER_REGION_START != 0x79000 ) cont_dfu = true;
 
     leds_init();
 
