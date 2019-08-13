@@ -50,6 +50,7 @@
 #include "nrf_mbr.h"
 #include "nrf_log.h"
 #include "dfu.h"
+#include "nrf_delay.h"
 
 #if BUTTONS_NUMBER < 1
 #error "Not enough buttons on board"
@@ -186,11 +187,17 @@ int main(void)
     uint32_t err_code;
     bool     dfu_start = false;
     bool     app_reset = (NRF_POWER->GPREGRET == BOOTLOADER_DFU_START);
+    bool     cont_dfu  = (NRF_POWER->GPREGRET == 1);
 
-    if (app_reset)
+    if (app_reset || cont_dfu)
     {
         NRF_POWER->GPREGRET = 0;
     }
+    // else
+    // {
+    //     NRF_POWER->GPREGRET = 1;
+    // }
+    
 
     leds_init();
 
@@ -199,15 +206,28 @@ int main(void)
     APP_ERROR_CHECK_BOOL(*((uint32_t *)NRF_UICR_BOOT_START_ADDRESS) == BOOTLOADER_REGION_START);
     APP_ERROR_CHECK_BOOL(NRF_FICR->CODEPAGESIZE == CODE_PAGE_SIZE);
 
-    uint32_t check_status();
+    // uint32_t check_status();
 
     // Initialize.
     timers_init();
     buttons_init();
 
+    nrf_gpio_pin_dir_set(17,NRF_GPIO_PIN_DIR_OUTPUT);
+    nrf_gpio_pin_dir_set(18,NRF_GPIO_PIN_DIR_OUTPUT);
+    nrf_gpio_pin_dir_set(19,NRF_GPIO_PIN_DIR_OUTPUT);
+    nrf_gpio_pin_dir_set(20,NRF_GPIO_PIN_DIR_OUTPUT);
+
+    for (int i = 0; i < 5; i++)
+    {
+        nrf_gpio_pin_toggle(20);
+        nrf_delay_ms(500);
+    }
+
+    // flash_page_erase((uint32_t*)0x7F000);
+
     (void)bootloader_init();
 
-    if (bootloader_dfu_sd_in_progress())
+    if (cont_dfu && bootloader_dfu_sd_in_progress())
     {
         nrf_gpio_pin_clear(UPDATE_IN_PROGRESS_LED);
 
@@ -227,12 +247,14 @@ int main(void)
         // If stack is present then continue initialization of bootloader.
         ble_stack_init(!app_reset);
         scheduler_init();
+        // Try to erase the page here
+        // NRF_POWER->GPREGRET2 = 0xE1; // Find a right place to put this link
     }
+
+    // NRF_POWER->GPREGRET = 1;
 
     dfu_start  = app_reset;
     dfu_start |= ((nrf_gpio_pin_read(BOOTLOADER_BUTTON) == 0) ? true: false);
-    
-    
     
     if (dfu_start || (!bootloader_app_is_valid(DFU_BANK_0_REGION_START)))
     {
@@ -241,6 +263,12 @@ int main(void)
         // Initiate an update of the firmware.
         err_code = bootloader_dfu_start();
         APP_ERROR_CHECK(err_code);
+
+        for (int i = 0; i < 5; i++)
+        {
+            nrf_gpio_pin_toggle(18);
+            nrf_delay_ms(500);
+        }
 
         nrf_gpio_pin_set(UPDATE_IN_PROGRESS_LED);
     }
@@ -251,6 +279,6 @@ int main(void)
         // @note: Only applications running from DFU_BANK_0_REGION_START is supported.
         bootloader_app_start(DFU_BANK_0_REGION_START);
     }
-    
+
     NVIC_SystemReset();
 }

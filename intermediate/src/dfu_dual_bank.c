@@ -747,7 +747,7 @@ uint32_t dfu_sd_image_swap(void)
     return NRF_SUCCESS;
 }
 
-static void flash_page_erase(uint32_t * p_page)
+void flash_page_erase(uint32_t * p_page)
 {
     // Turn on flash erase enable and wait until the NVMC is ready.
     NRF_NVMC->CONFIG = (NVMC_CONFIG_WEN_Een << NVMC_CONFIG_WEN_Pos);
@@ -769,6 +769,26 @@ static void flash_page_erase(uint32_t * p_page)
     {
         // Do nothing
     }
+}
+
+uint32_t entrance_check()
+{
+    bootloader_settings_t bootloader_settings;
+    bootloader_settings_get(&bootloader_settings);
+
+    uint32_t bl_image_start = (bootloader_settings.sd_image_size == 0) ?
+                                  DFU_BANK_1_REGION_START :
+                                  bootloader_settings.sd_image_start + 
+                                  bootloader_settings.sd_image_size;
+
+    if (bl_image_start > (uint32_t)0xfffffff0) return true;
+
+    volatile uint32_t reset_handler_addr = *((uint32_t *)bl_image_start + 4);
+    volatile uint32_t myContent = *((uint32_t *)BOOTLOADER_REGION_START + 4);
+
+    uint32_t return_status = (myContent == reset_handler_addr) ? 0 : 1;
+
+    return return_status;
 }
 
 static void erase_pages(uint32_t page_addr, const uint32_t size_words)
@@ -806,30 +826,6 @@ static uint32_t copy_flash_content(uint32_t * const dest_addr, uint32_t const * 
     // TODO: do a memcmp with src and dest and then update the return value
     return cmp_result;
 }
-
-// Original BL Swap function
-// uint32_t dfu_bl_image_swap(void)
-// {
-//     bootloader_settings_t bootloader_settings;
-//     sd_mbr_command_t      sd_mbr_cmd;
-
-//     bootloader_settings_get(&bootloader_settings);
-
-//     if (bootloader_settings.bl_image_size != 0)
-//     {
-//         uint32_t bl_image_start = (bootloader_settings.sd_image_size == 0) ?
-//                                   DFU_BANK_1_REGION_START :
-//                                   bootloader_settings.sd_image_start + 
-//                                   bootloader_settings.sd_image_size;
-
-//         sd_mbr_cmd.command               = SD_MBR_COMMAND_COPY_BL;
-//         sd_mbr_cmd.params.copy_bl.bl_src = (uint32_t *)(bl_image_start);
-//         sd_mbr_cmd.params.copy_bl.bl_len = bootloader_settings.bl_image_size / sizeof(uint32_t);
-
-//         return sd_mbr_command(&sd_mbr_cmd);
-//     }
-//     return NRF_SUCCESS;
-// }
 
 // Nordic's new implementation
 uint32_t set_uicr(const uint32_t BL_ADDR)
@@ -899,6 +895,33 @@ uint32_t set_uicr(const uint32_t BL_ADDR)
     return NRF_SUCCESS;
 }
 
+// Original BL Swap function
+uint32_t dfu_bl_image_swap(void)
+{
+    bootloader_settings_t bootloader_settings;
+    sd_mbr_command_t      sd_mbr_cmd;
+
+    bootloader_settings_get(&bootloader_settings);
+
+    if (bootloader_settings.bl_image_size != 0)
+    {
+        uint32_t bl_image_start = (bootloader_settings.sd_image_size == 0) ?
+                                  DFU_BANK_1_REGION_START :
+                                  bootloader_settings.sd_image_start + 
+                                  bootloader_settings.sd_image_size;
+
+        set_uicr(0x76000);
+
+        sd_mbr_cmd.command               = SD_MBR_COMMAND_COPY_BL;
+        sd_mbr_cmd.params.copy_bl.bl_src = (uint32_t *)(bl_image_start);
+        sd_mbr_cmd.params.copy_bl.bl_len = bootloader_settings.bl_image_size / sizeof(uint32_t);
+
+        return sd_mbr_command(&sd_mbr_cmd);
+    }
+
+    return NRF_SUCCESS;
+}
+
 uint32_t verify_bl()
 {
     bootloader_settings_t boot_settings;
@@ -942,29 +965,29 @@ uint32_t verify_sd()
 }
 
 // Nordic's new implementation
-uint32_t dfu_bl_image_swap(void)
-{
-    uint32_t status = 0;
+// uint32_t dfu_bl_image_swap(void)
+// {
+//     uint32_t status = 0;
 
-    const uint32_t BL_ADDR = 0x76000;
+//     const uint32_t BL_ADDR = 0x76000;
 
-    bootloader_settings_t bootloader_settings;
-    bootloader_settings_get(&bootloader_settings);
+//     bootloader_settings_t bootloader_settings;
+//     bootloader_settings_get(&bootloader_settings);
 
-    uint32_t bl_image_start = (bootloader_settings.sd_image_size == 0) ?
-                                  DFU_BANK_1_REGION_START :
-                                  bootloader_settings.sd_image_start + 
-                                  bootloader_settings.sd_image_size;
+//     uint32_t bl_image_start = (bootloader_settings.sd_image_size == 0) ?
+//                                   DFU_BANK_1_REGION_START :
+//                                   bootloader_settings.sd_image_start + 
+//                                   bootloader_settings.sd_image_size;
 
-    copy_flash_content((uint32_t*)BL_ADDR, (uint32_t*)bl_image_start, bootloader_settings.bl_image_size);
+//     copy_flash_content((uint32_t*)BL_ADDR, (uint32_t*)bl_image_start, bootloader_settings.bl_image_size);
 
-    status = verify_bl();
-    status = verify_sd();
+//     status = verify_bl();
+//     status = verify_sd();
 
-    set_uicr(BL_ADDR); // TODO: do it after verifying
+//     set_uicr(BL_ADDR); // TODO: do it after verifying
 
-    return status;
-}
+//     return status;
+// }
 
 uint32_t dfu_bl_image_validate(void)
 {
@@ -1080,4 +1103,25 @@ uint32_t check_status()
     }
 
     return (uint32_t) return_bits;
+}
+
+uint32_t dfu_relocate_bl()
+{
+    uint32_t status = NRF_SUCCESS;
+    const uint32_t DEST_BL_ADDR = 0x70000;
+
+    bootloader_settings_t bootloader_settings;
+    bootloader_settings_get(&bootloader_settings);
+
+    uint32_t bl_image_start = (bootloader_settings.sd_image_size == 0) ?
+                                  DFU_BANK_1_REGION_START :
+                                  bootloader_settings.sd_image_start + 
+                                  bootloader_settings.sd_image_size;
+
+    copy_flash_content((uint32_t*)DEST_BL_ADDR, (uint32_t*)bl_image_start, bootloader_settings.bl_image_size);
+
+    // set_uicr(0x79000);
+    set_uicr(DEST_BL_ADDR);
+
+    return status;
 }

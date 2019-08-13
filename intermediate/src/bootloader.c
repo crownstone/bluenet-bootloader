@@ -26,6 +26,8 @@
 #include "app_scheduler.h"
 #include "nrf_delay.h"
 #include "sdk_common.h"
+#include "nrf_gpio.h"
+#include "nrf_delay.h"
 
 #define IRQ_ENABLED             0x01                    /**< Field identifying if an interrupt is enabled. */
 #define MAX_NUMBER_INTERRUPTS   32                      /**< Maximum number of interrupts available. */
@@ -89,6 +91,8 @@ static void wait_for_events(void)
             (m_update_status == BOOTLOADER_TIMEOUT)  ||
             (m_update_status == BOOTLOADER_RESET))
         {
+            if (m_update_status == BOOTLOADER_COMPLETE)
+                NRF_POWER->GPREGRET = 1;
             // When update has completed or a timeout/reset occured we will return.
             return;
         }
@@ -324,7 +328,6 @@ bool bootloader_dfu_sd_in_progress(void)
     return false;
 }
 
-
 uint32_t bootloader_dfu_sd_update_continue(void)
 {
     uint32_t err_code;
@@ -339,8 +342,20 @@ uint32_t bootloader_dfu_sd_update_continue(void)
     // a debugger to be attached.
     nrf_delay_ms(100);
 
+    for (int i = 0; i < 5; i++)
+    {
+        nrf_gpio_pin_toggle(17);
+        nrf_delay_ms(1000);
+    }
+
     err_code = dfu_sd_image_swap();
     APP_ERROR_CHECK(err_code);
+
+    for (int i = 0; i < 5; i++)
+    {
+        nrf_gpio_pin_toggle(18);
+        nrf_delay_ms(1000);
+    }
 
     err_code = dfu_sd_image_validate();
     APP_ERROR_CHECK(err_code);
