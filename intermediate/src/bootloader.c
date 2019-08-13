@@ -345,7 +345,7 @@ uint32_t bootloader_dfu_sd_update_continue(void)
     for (int i = 0; i < 5; i++)
     {
         nrf_gpio_pin_toggle(17);
-        nrf_delay_ms(1000);
+        nrf_delay_ms(500);
     }
 
     err_code = dfu_sd_image_swap();
@@ -354,14 +354,26 @@ uint32_t bootloader_dfu_sd_update_continue(void)
     for (int i = 0; i < 5; i++)
     {
         nrf_gpio_pin_toggle(18);
-        nrf_delay_ms(1000);
+        nrf_delay_ms(500);
     }
 
     err_code = dfu_sd_image_validate();
     APP_ERROR_CHECK(err_code);
 
-    err_code = dfu_bl_image_swap();
-    APP_ERROR_CHECK(err_code);
+    volatile uint32_t uicr_content = *((uint32_t*)0x10001014);
+
+    if (uicr_content == 0x70000)
+    {
+        // execute the final stage
+        err_code = dfu_bl_image_swap();
+        APP_ERROR_CHECK(err_code);
+    }
+    else if (uicr_content == 0x79000)
+    {
+        // execute the second stage
+        err_code = dfu_relocate_bl();
+        APP_ERROR_CHECK(err_code);
+    }
 
     return err_code;
 }
