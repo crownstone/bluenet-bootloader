@@ -25,6 +25,8 @@
 #include "dfu_init.h"
 #include "sdk_common.h"
 #include "app_util_platform.h"
+#include "nrf_gpio.h"
+#include "nrf_delay.h"
 
 #define SECURE_BL_ADDR 0x76000
 
@@ -802,6 +804,10 @@ void erase_pages(uint32_t page_addr, const uint32_t size_words)
     }
 }
 
+/* Copies "size_bytes" bytes of flash content from "src_addr" to "dest_addr"
+
+   Returns NRF_SUCCESS on success writes,
+           NRF_ERROR_INVALID_DATA on failed writes */
 uint32_t copy_flash_content(uint32_t * const dest_addr, uint32_t const * const src_addr, uint32_t size_bytes)
 {
     uint32_t size_words = size_bytes/sizeof(uint32_t);
@@ -821,15 +827,16 @@ uint32_t copy_flash_content(uint32_t * const dest_addr, uint32_t const * const s
 
     uint32_t cmp_result = memcmp((void*)dest_addr, (void*)src_addr, (size_t) size_bytes);
 
-    cmp_result = (cmp_result == 0) ? NRF_SUCCESS : NRF_ERROR_DATA_SIZE;
+    cmp_result = (cmp_result == 0) ? NRF_SUCCESS : NRF_ERROR_INVALID_DATA;
 
-    // TODO: do a memcmp with src and dest and then update the return value
     return cmp_result;
 }
 
 // Nordic's new implementation
 uint32_t set_uicr(const uint32_t BL_ADDR)
 {
+    uint32_t err_code = NRF_SUCCESS;
+
     // Storage buffers and variables to hold the UICR register content
     static uint32_t uicr_buffer[59]    = {0x00000000};
     static uint32_t pselreset_0        = 0x00000000;
@@ -837,11 +844,11 @@ uint32_t set_uicr(const uint32_t BL_ADDR)
     static uint32_t approtect          = 0x00000000;
     static uint32_t nfcpins            = 0x00000000;
     
-    CRITICAL_REGION_ENTER();
-    
     // Read and buffer UICR register content prior to erase
     uint32_t uicr_address = 0x10001014;
 
+    CRITICAL_REGION_ENTER();
+    
     for(int i = 0; i < 59; i++)
     {
         uicr_buffer[i] = *(uint32_t *)uicr_address; 
@@ -892,82 +899,21 @@ uint32_t set_uicr(const uint32_t BL_ADDR)
 
     CRITICAL_REGION_EXIT();
 
-    return NRF_SUCCESS;
-}
+    nrf_delay_ms(100); // make sure the flash operation are completed
 
-// // Original BL Swap function
-// uint32_t dfu_bl_image_swap(void)
-// {
-//     bootloader_settings_t bootloader_settings;
-//     sd_mbr_command_t      sd_mbr_cmd;
-
-//     bootloader_settings_get(&bootloader_settings);
-
-//     if (bootloader_settings.bl_image_size != 0)
-//     {
-//         uint32_t bl_image_start = (bootloader_settings.sd_image_size == 0) ?
-//                                   DFU_BANK_1_REGION_START :
-//                                   bootloader_settings.sd_image_start + 
-//                                   bootloader_settings.sd_image_size;
-
-//         set_uicr(0x76000);
-
-//         sd_mbr_cmd.command               = SD_MBR_COMMAND_COPY_BL;
-//         sd_mbr_cmd.params.copy_bl.bl_src = (uint32_t *)(bl_image_start);
-//         sd_mbr_cmd.params.copy_bl.bl_len = bootloader_settings.bl_image_size / sizeof(uint32_t);
-
-//         return sd_mbr_command(&sd_mbr_cmd);
-//     }
-
-//     return NRF_SUCCESS;
-// }
-
-uint32_t verify_bl()
-{
-    bootloader_settings_t boot_settings;
-    bootloader_settings_get(&boot_settings);
-
-    uint32_t status = 0;
-
-    const uint32_t BL_TARGET = SECURE_BL_ADDR; // THIS NEED TO BE THE FINAL TARGET
-
-    uint32_t DFU_BL =  (boot_settings.sd_image_size == 0) ?
-                        DFU_BANK_1_REGION_START :
-                        boot_settings.sd_image_start + boot_settings.sd_image_size;
+    uicr_address = 0x10001014;
     
-    uint32_t bl_length = boot_settings.bl_image_size;
+    uint32_t uicr_content = *((uint32_t*)uicr_address);
 
-    if (bl_length != 0 && bl_length != (uint32_t)0xffffffff)
-        status = dfu_compare_block((uint32_t *)BL_TARGET, (uint32_t *)DFU_BL, bl_length);
-    else
-        status = 7; // Failed because there isn't any data in Bank 1
+    err_code = (BL_ADDR == uicr_content) ? NRF_SUCCESS : NRF_ERROR_INVALID_DATA;
 
-    return status;
-}
-
-uint32_t verify_sd()
-{
-    bootloader_settings_t boot_settings;
-    bootloader_settings_get(&boot_settings);
-
-    uint32_t DFU_SD = boot_settings.sd_image_start, sd_length = boot_settings.sd_image_size;
-
-    uint32_t status = 0;
-
-    const uint32_t SD_TARGET = SOFTDEVICE_REGION_START;
-
-    if (sd_length != 0 && sd_length != (uint32_t)0xffffffff)
-        status = dfu_compare_block((uint32_t *)SD_TARGET, (uint32_t *)DFU_SD, sd_length);
-    else
-        status = 7; // Failed because there isn't any data in Bank 1
-    
-    return status;
+    return err_code;
 }
 
 // Nordic's new implementation
 uint32_t dfu_bl_image_swap(void)
 {
-    uint32_t status = 0;
+    uint32_t status = NRF_SUCCESS;
 
     const uint32_t BL_ADDR = 0x76000;
 
@@ -979,12 +925,18 @@ uint32_t dfu_bl_image_swap(void)
                                   bootloader_settings.sd_image_start + 
                                   bootloader_settings.sd_image_size;
 
-    copy_flash_content((uint32_t*)BL_ADDR, (uint32_t*)bl_image_start, bootloader_settings.bl_image_size);
+    status = copy_flash_content((uint32_t*)BL_ADDR, (uint32_t*)bl_image_start, bootloader_settings.bl_image_size);
 
-    status = verify_bl();
-    status = verify_sd();
+#ifdef DEBUG_LEDS
+    for (int i = 0; i < 5; i++)
+    {
+        nrf_gpio_pin_toggle(19);
+        nrf_delay_ms(500);
+    }
+#endif
 
-    set_uicr(BL_ADDR); // TODO: do it after verifying
+    if (NRF_SUCCESS == status)
+        status = set_uicr(BL_ADDR);
 
     return status;
 }
@@ -1105,6 +1057,7 @@ uint32_t check_status()
     return (uint32_t) return_bits;
 }
 
+// This function relocates the incoming bootloader to 0x70000, which is initially at 0x79000.
 uint32_t dfu_relocate_bl()
 {
     uint32_t status = NRF_SUCCESS;
@@ -1118,9 +1071,13 @@ uint32_t dfu_relocate_bl()
                                   bootloader_settings.sd_image_start + 
                                   bootloader_settings.sd_image_size;
 
-    copy_flash_content((uint32_t*)DEST_BL_ADDR, (uint32_t*)bl_image_start, bootloader_settings.bl_image_size);
+    status = copy_flash_content((uint32_t*)DEST_BL_ADDR, (uint32_t*)bl_image_start, bootloader_settings.bl_image_size);
 
-    set_uicr(DEST_BL_ADDR);
+    if (status == NRF_SUCCESS)
+    {
+        // The copy was successful, set the BOOTLOADER_UICR
+        status = set_uicr(DEST_BL_ADDR);
+    }
 
     return status;
 }
