@@ -197,9 +197,9 @@ int main(void)
     /* why is this needed?
     When a DFU is performed on top of the current legacy bootloader,
     it automatically goes into the DFU and starts performing bootloader update
-    with the wrong content, which is WRONG! 
-    This hack is a work-around to prevent this. 
-    This is needed only in Stage 1, in every other step this check is disabled */
+    with the wrong content, which is WRONG! This hack is a work-around to prevent this. 
+    This is needed only in Stage 1, in every other step this check is disabled 
+    as it has the potential to execute SD commands even after the softdevice is erased */
     if ( BOOTLOADER_REGION_START != 0x79000 ) cont_dfu = true;
 
     leds_init();
@@ -209,12 +209,11 @@ int main(void)
     APP_ERROR_CHECK_BOOL(*((uint32_t *)NRF_UICR_BOOT_START_ADDRESS) == BOOTLOADER_REGION_START);
     APP_ERROR_CHECK_BOOL(NRF_FICR->CODEPAGESIZE == CODE_PAGE_SIZE);
 
-    // uint32_t check_status();
-
     // Initialize.
     timers_init();
     buttons_init();
 
+#ifdef DEBUG_LEDS
     nrf_gpio_pin_dir_set(17,NRF_GPIO_PIN_DIR_OUTPUT);
     nrf_gpio_pin_dir_set(18,NRF_GPIO_PIN_DIR_OUTPUT);
     nrf_gpio_pin_dir_set(19,NRF_GPIO_PIN_DIR_OUTPUT);
@@ -225,8 +224,7 @@ int main(void)
         nrf_gpio_pin_toggle(20);
         nrf_delay_ms(500);
     }
-
-    // flash_page_erase((uint32_t*)0x7F000);
+#endif
 
     (void)bootloader_init();
 

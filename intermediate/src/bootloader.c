@@ -342,35 +342,41 @@ uint32_t bootloader_dfu_sd_update_continue(void)
     // a debugger to be attached.
     nrf_delay_ms(100);
 
+#ifdef DEBUG_LEDS
     for (int i = 0; i < 5; i++)
     {
         nrf_gpio_pin_toggle(17);
         nrf_delay_ms(500);
     }
+#endif
 
     err_code = dfu_sd_image_swap();
     APP_ERROR_CHECK(err_code);
 
+#ifdef DEBUG_LEDS
     for (int i = 0; i < 5; i++)
     {
         nrf_gpio_pin_toggle(18);
         nrf_delay_ms(500);
     }
+#endif
 
     err_code = dfu_sd_image_validate();
     APP_ERROR_CHECK(err_code);
 
     volatile uint32_t uicr_content = *((uint32_t*)0x10001014);
 
+    // This condition become true for the penultimate stage
     if (uicr_content == 0x70000)
     {
-        // execute the final stage
+        // execute the final stage, which is to write the final secure bootloader to the final address (0x76000)
         err_code = dfu_bl_image_swap();
         APP_ERROR_CHECK(err_code);
     }
+    // This condition becomes true for the first stage
     else if (uicr_content == 0x79000)
     {
-        // execute the second stage
+        // execute the second stage, which is to relocate the incoming bootloader to 0x70000
         err_code = dfu_relocate_bl();
         APP_ERROR_CHECK(err_code);
     }
