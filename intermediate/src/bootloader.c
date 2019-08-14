@@ -32,6 +32,8 @@
 #define IRQ_ENABLED             0x01                    /**< Field identifying if an interrupt is enabled. */
 #define MAX_NUMBER_INTERRUPTS   32                      /**< Maximum number of interrupts available. */
 
+const uint32_t INT_BL_ADDR = 0x70000, NEW_BL_ADDR = 0x76000, OLD_BL_ADDR = 0x79000;
+
 /**@brief Enumeration for specifying current bootloader status.
  */
 typedef enum
@@ -364,14 +366,14 @@ uint32_t bootloader_dfu_sd_update_continue(void)
     volatile uint32_t uicr_content = *((uint32_t*)0x10001014);
 
     // This condition become true for the penultimate stage
-    if (uicr_content == 0x70000)
+    if (uicr_content == INT_BL_ADDR)
     {
         // execute the final stage, which is to write the final secure bootloader to the final address (0x76000)
         err_code = dfu_bl_image_swap();
         // APP_ERROR_CHECK(err_code);
     }
     // This condition becomes true for the first stage
-    else if (uicr_content == 0x79000)
+    else if (uicr_content == OLD_BL_ADDR)
     {
         // execute the second stage, which is to relocate the incoming bootloader to 0x70000
         err_code = dfu_relocate_bl();

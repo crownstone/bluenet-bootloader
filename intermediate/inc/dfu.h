@@ -127,15 +127,11 @@ uint32_t dfu_relocate_bl(void);
 
 void flash_page_erase(uint32_t *);
 
-uint32_t entrance_check();
-
 /**@brief Function for handling DFU init packet complete.
  *
  * @return    NRF_SUCCESS on success, an error_code otherwise.
  */
 uint32_t dfu_init_pkt_complete(void);
-
-uint32_t check_status();
 
 #endif // DFU_H__
 
