@@ -937,7 +937,7 @@ uint32_t verify_bl()
     
     uint32_t bl_length = boot_settings.bl_image_size;
 
-    if (bl_length != 0 && bl_length != 0xffffffff)
+    if (bl_length != 0 && bl_length != (uint32_t)0xffffffff)
         status = dfu_compare_block((uint32_t *)BL_TARGET, (uint32_t *)DFU_BL, bl_length);
     else
         status = 7; // Failed because there isn't any data in Bank 1
@@ -956,7 +956,7 @@ uint32_t verify_sd()
 
     const uint32_t SD_TARGET = SOFTDEVICE_REGION_START;
 
-    if (sd_length != 0 && sd_length != 0xffffffff)
+    if (sd_length != 0 && sd_length != (uint32_t)0xffffffff)
         status = dfu_compare_block((uint32_t *)SD_TARGET, (uint32_t *)DFU_SD, sd_length);
     else
         status = 7; // Failed because there isn't any data in Bank 1
@@ -981,8 +981,8 @@ uint32_t dfu_bl_image_swap(void)
 
     copy_flash_content((uint32_t*)BL_ADDR, (uint32_t*)bl_image_start, bootloader_settings.bl_image_size);
 
-    // status = verify_bl();
-    // status = verify_sd();
+    status = verify_bl();
+    status = verify_sd();
 
     set_uicr(BL_ADDR); // TODO: do it after verifying
 
@@ -1120,7 +1120,6 @@ uint32_t dfu_relocate_bl()
 
     copy_flash_content((uint32_t*)DEST_BL_ADDR, (uint32_t*)bl_image_start, bootloader_settings.bl_image_size);
 
-    // set_uicr(0x79000);
     set_uicr(DEST_BL_ADDR);
 
     return status;
