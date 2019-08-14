@@ -22,9 +22,9 @@ else
 NO_ECHO := @
 endif
 
-GNU_INSTALL_ROOT = /home/naveen/Development/gcc-arm
+GNU_INSTALL_ROOT = #/home/workstation/Development/gcc-arm
 GNU_PREFIX = arm-none-eabi
-SDK_PATH = /home/naveen/Development/nRF-sdk-11
+SDK_PATH = #/home/workstation/Development/nRF-sdk-11
 
 # Toolchain commands
 CC              := '$(GNU_INSTALL_ROOT)/bin/$(GNU_PREFIX)-gcc'
