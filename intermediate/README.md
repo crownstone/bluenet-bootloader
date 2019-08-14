@@ -14,16 +14,18 @@ During the execution of this bootloader, it expects the DFU to contain only the 
 In this final stage of transition, the DFU is expected have **Secure bootloader and Softdevice 6.1**. This bootloader first writes the softdevice to the location where the SD resides. Later, the secure bootloader is copied to the final location `0x76000` and the `BOOTLOADER_UICR` is set to this new address and a reset is performed.
 
 The following table shows how the significance of each step with some appropriate details.
+
 | # | Process   | Vulnerable | Time Taken | Failure Consequence | DFU Content |  DFU BL Addr. |
-|---|-----------|------------|------------|---------------------|-------------------|-------------------|
-| 1 | The intermediate bootloader is copied to the same old address. | No       | ~10-15 secs | Will fail to write the new bootloader | Intermediate Bootloader | 0x79000 |
+|---|-----------|------------|------------|---------------------|----------|--------------|
+| 1 | The intermediate bootloader is copied to the same old address. | No | ~10-15 secs | Will fail to write the new bootloader | Intermediate Bootloader | 0x79000 |
 | 2 | The same intermediate bootloader is sent through the DFU to write at 0x70000 | No       | ~10-15 secs | Will fail to write the new bootloader while the control is still at 0x79000 | Intermediate Bootloader | 0x70000 |
 | 3 | The secure bootloader along with softdevice 6.1 is sent as DFU update | No       | ~10-15 secs | Will fail to write the new bootloader while the control is still at 0x79000 | Secure Bootloader + Softdevice 6.1 | 0x70000 |
 
 
-The following table shows how the significance of each step in the final stage.
+The following table shows the significance of each step in the final stage.
+
 | # | Process   | Vulnerable | Time Taken | Failure Consequence |  BOOTLOADER_UICR |
-|---|-----------|------------|------------|---------------------|-------------------|-------------------|
+|---|-----------|------------|------------|---------------------|-------------------|
 | A | The combined package of Softdevice 6.1 + Secure Bootloader is sent over as DFU. | No       | ~40 secs | Will corrupt the DFU data present in bank-1. A fresh copy would be copied over the next update as the bootloader at 0x70000 is still preserved. | 0x70000 |
 | B | This step is obsolete | No       | - | - | - |
 | C | The new softdevice 6.1 is copied into the its region. | No       | ~3-4 secs | Will fail to copy the new softdevice corrupting the current softdevice, however the copy operation would be retried as the bootloader (except for the BLE) is still operational. |  0x70000 |
