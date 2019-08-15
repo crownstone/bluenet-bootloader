@@ -45,6 +45,8 @@ $(abspath ./src/bootloader.c) \
 $(abspath ./src/dfu_dual_bank.c) \
 $(abspath ./src/dfu_ble_svc.c) \
 $(abspath ./src/main.c) \
+$(abspath ./src/dev_info_service.c) \
+$(abspath ./src/dfu_transport_ble.c) \
 $(abspath $(SDK_PATH)/components/libraries/util/app_error.c) \
 $(abspath $(SDK_PATH)/components/libraries/util/app_error_weak.c) \
 $(abspath $(SDK_PATH)/components/libraries/scheduler/app_scheduler.c) \
@@ -55,7 +57,6 @@ $(abspath $(SDK_PATH)/components/libraries/bootloader_dfu/bootloader_settings.c)
 $(abspath $(SDK_PATH)/components/libraries/bootloader_dfu/bootloader_util.c) \
 $(abspath $(SDK_PATH)/components/libraries/crc16/crc16.c) \
 $(abspath $(SDK_PATH)/components/libraries/bootloader_dfu/dfu_init_template.c) \
-$(abspath $(SDK_PATH)/components/libraries/bootloader_dfu/dfu_transport_ble.c) \
 $(abspath $(SDK_PATH)/components/libraries/hci/hci_mem_pool.c) \
 $(abspath $(SDK_PATH)/components/libraries/util/nrf_assert.c) \
 $(abspath $(SDK_PATH)/components/drivers_nrf/delay/nrf_delay.c) \
@@ -64,6 +65,7 @@ $(abspath $(SDK_PATH)/components/drivers_nrf/pstorage/pstorage_raw.c) \
 $(abspath $(SDK_PATH)/components/ble/common/ble_advdata.c) \
 $(abspath $(SDK_PATH)/components/ble/common/ble_conn_params.c) \
 $(abspath $(SDK_PATH)/components/ble/ble_services/ble_dfu/ble_dfu.c) \
+$(abspath $(SDK_PATH)/components/ble/ble_services/ble_dis/ble_dis.c) \
 $(abspath $(SDK_PATH)/components/ble/common/ble_srv_common.c) \
 $(abspath $(SDK_PATH)/components/toolchain/system_nrf52.c) \
 $(abspath $(SDK_PATH)/components/softdevice/common/softdevice_handler/softdevice_handler.c) \
@@ -98,6 +100,7 @@ INC_PATHS += -I$(abspath $(SDK_PATH)/components/toolchain)
 INC_PATHS += -I$(abspath $(SDK_PATH)/components/drivers_nrf/common)
 INC_PATHS += -I$(abspath $(SDK_PATH)/components/softdevice/common/softdevice_handler)
 INC_PATHS += -I$(abspath $(SDK_PATH)/components/ble/ble_services/ble_dfu)
+INC_PATHS += -I$(abspath $(SDK_PATH)/components/ble/ble_services/ble_dis)
 
 # $(info INC_PATHS is $(INC_PATHS))
 
@@ -111,6 +114,7 @@ BUILD_DIRECTORIES := $(sort $(OBJECT_DIRECTORY) $(OUTPUT_BINARY_DIRECTORY) $(LIS
 #flags common to all targets
 CFLAGS  = -DBOOTLOADER_START_ADDRESS=0x00079000
 CFLAGS += -DNRF52
+CFLAGS += -DBOOTLOADER_VERSION=\"1.8.0\"
 CFLAGS += -DDEBUG_LEDS # This is the debug flag to use the LEDs for visual feedback of the each step.
 CFLAGS += -DBOARD_PCA10040
 CFLAGS += -DNRF52_PAN_12
