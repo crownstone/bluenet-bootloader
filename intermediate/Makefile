@@ -71,8 +71,6 @@ $(abspath $(SDK_PATH)/components/toolchain/system_nrf52.c) \
 $(abspath $(SDK_PATH)/components/softdevice/common/softdevice_handler/softdevice_handler.c) \
 $(abspath $(SDK_PATH)/components/softdevice/common/softdevice_handler/softdevice_handler_appsh.c) \
 
-# $(info C_SOURCE_FILES is $(C_SOURCE_FILES))
-
 #assembly files common to all targets
 ASM_SOURCE_FILES  = $(abspath $(SDK_PATH)/components/toolchain/gcc/gcc_startup_nrf52.s)
 
@@ -102,8 +100,6 @@ INC_PATHS += -I$(abspath $(SDK_PATH)/components/softdevice/common/softdevice_han
 INC_PATHS += -I$(abspath $(SDK_PATH)/components/ble/ble_services/ble_dfu)
 INC_PATHS += -I$(abspath $(SDK_PATH)/components/ble/ble_services/ble_dis)
 
-# $(info INC_PATHS is $(INC_PATHS))
-
 OBJECT_DIRECTORY = _build
 LISTING_DIRECTORY = $(OBJECT_DIRECTORY)
 OUTPUT_BINARY_DIRECTORY = $(OBJECT_DIRECTORY)
@@ -115,7 +111,8 @@ BUILD_DIRECTORIES := $(sort $(OBJECT_DIRECTORY) $(OUTPUT_BINARY_DIRECTORY) $(LIS
 CFLAGS  = -DBOOTLOADER_START_ADDRESS=0x00079000
 CFLAGS += -DNRF52
 CFLAGS += -DBOOTLOADER_VERSION=\"1.8.0\"
-CFLAGS += -DDEBUG_LEDS # This is the debug flag to use the LEDs for visual feedback of the each step.
+CFLAGS += -DUICR_BOARD_INDEX=1
+# CFLAGS += -DDEBUG_LEDS # This is the debug flag to use the LEDs for visual feedback of the each step.
 CFLAGS += -DBOARD_PCA10040
 CFLAGS += -DNRF52_PAN_12
 CFLAGS += -DNRF52_PAN_15

@@ -11,6 +11,8 @@
 #include "ble_dis.h"
 #include "app_error.h"
 
+#include "cs_HardwareVersions.h"
+
 // #define BOOTLOADER_VERSION "0.0.7"
 // char BOOTLOADER_VERSION[] = "0.0.7";
 
@@ -26,7 +28,7 @@ void dev_info_service_init(void)
     ble_dis_init_t dis_init_obj;
     memset(&dis_init_obj, 0, sizeof(dis_init_obj));
 
-    // ble_srv_ascii_to_utf8(&dis_init_obj.hw_rev_str, (char*)get_hardware_version());
+    ble_srv_ascii_to_utf8(&dis_init_obj.hw_rev_str, (char*)get_hardware_version());
     ble_srv_ascii_to_utf8(&dis_init_obj.fw_rev_str, BOOTLOADER_VERSION);
 
     BLE_GAP_CONN_SEC_MODE_SET_OPEN(&dis_init_obj.dis_attr_md.read_perm);
