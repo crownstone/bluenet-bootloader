@@ -260,13 +260,13 @@ int main(void)
         // Initiate an update of the firmware.
         err_code = bootloader_dfu_start();
         APP_ERROR_CHECK(err_code);
-
+#ifdef DEBUG_LEDS
         for (int i = 0; i < 5; i++)
         {
             nrf_gpio_pin_toggle(18);
             nrf_delay_ms(500);
         }
-
+#endif
         nrf_gpio_pin_set(UPDATE_IN_PROGRESS_LED);
     }
 
