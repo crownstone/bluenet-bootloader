@@ -248,11 +248,7 @@ int main(void)
         // If stack is present then continue initialization of bootloader.
         ble_stack_init(!app_reset);
         scheduler_init();
-        // Try to erase the page here
-        // NRF_POWER->GPREGRET2 = 0xE1; // Find a right place to put this link
     }
-
-    // NRF_POWER->GPREGRET = 1;
 
     dfu_start  = app_reset;
     dfu_start |= ((nrf_gpio_pin_read(BOOTLOADER_BUTTON) == 0) ? true: false);
