@@ -90,6 +90,8 @@ void assert_nrf_callback(uint16_t line_num, const uint8_t * p_file_name)
 }
 
 
+
+#ifdef DEBUG_LEDS
 /**@brief Function for initialization of LEDs.
  */
 static void leds_init(void)
@@ -97,6 +99,7 @@ static void leds_init(void)
     nrf_gpio_range_cfg_output(LED_START, LED_STOP);
     nrf_gpio_pins_set(LEDS_MASK);
 }
+#endif
 
 
 /**@brief Function for initializing the timer handler module (app_timer).
@@ -182,16 +185,6 @@ int main(void)
         NRF_POWER->GPREGRET = 0;
     }
 
-    /* why is this needed?
-    When a DFU is performed on top of the current legacy bootloader,
-    it automatically goes into the DFU and starts performing bootloader update
-    with the wrong content, which is WRONG! This hack is a work-around to prevent this. 
-    This is needed only in Stage 1, in every other step this check is disabled 
-    as it has the potential to execute SD commands even after the softdevice is erased */
-    // if ( BOOTLOADER_REGION_START != 0x79000 ) cont_dfu = true;
-
-    leds_init();
-
     // This check ensures that the defined fields in the bootloader corresponds with actual
     // setting in the chip.
     APP_ERROR_CHECK_BOOL(*((uint32_t *)NRF_UICR_BOOT_START_ADDRESS) == BOOTLOADER_REGION_START);
@@ -201,6 +194,7 @@ int main(void)
     timers_init();
 
 #ifdef DEBUG_LEDS
+    leds_init();
     nrf_gpio_pin_dir_set(17,NRF_GPIO_PIN_DIR_OUTPUT);
     nrf_gpio_pin_dir_set(18,NRF_GPIO_PIN_DIR_OUTPUT);
     nrf_gpio_pin_dir_set(19,NRF_GPIO_PIN_DIR_OUTPUT);
