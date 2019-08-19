@@ -735,7 +735,9 @@ static void advertising_start(void)
         err_code = sd_ble_gap_adv_start(&m_adv_params);
         APP_ERROR_CHECK(err_code);
 
+#ifdef DEBUG_LEDS
         nrf_gpio_pin_clear(ADVERTISING_LED_PIN_NO);
+#endif
 
         m_is_advertising = true;
     }
@@ -752,8 +754,9 @@ static void advertising_stop(void)
 
         err_code = sd_ble_gap_adv_stop();
         APP_ERROR_CHECK(err_code);
-
+#ifdef DEBUG_LEDS
         nrf_gpio_pin_set(ADVERTISING_LED_PIN_NO);
+#endif
 
         m_is_advertising = false;
     }
@@ -772,8 +775,10 @@ static void on_ble_evt(ble_evt_t * p_ble_evt)
     switch (p_ble_evt->header.evt_id)
     {
         case BLE_GAP_EVT_CONNECTED:
+#ifdef DEBUG_LEDS
             nrf_gpio_pin_clear(CONNECTED_LED_PIN_NO);
             nrf_gpio_pin_set(ADVERTISING_LED_PIN_NO);
+#endif
 
             m_conn_handle    = p_ble_evt->evt.gap_evt.conn_handle;
             m_is_advertising = false;
@@ -785,7 +790,9 @@ static void on_ble_evt(ble_evt_t * p_ble_evt)
                 uint16_t sys_attr_len = 128;
             
                 m_direct_adv_cnt = APP_DIRECTED_ADV_TIMEOUT;
+#ifdef DEBUG_LEDS
                 nrf_gpio_pin_set(CONNECTED_LED_PIN_NO);
+#endif
         
                 err_code = sd_ble_gatts_sys_attr_get(m_conn_handle, 
                                                      sys_attr, 
@@ -939,6 +946,7 @@ static void ble_evt_dispatch(ble_evt_t * p_ble_evt)
 }
 
 
+#ifdef DEBUG_LEDS
 /**@brief       Function for the LEDs initialization.
  *
  * @details     Initializes all LEDs used by this application.
@@ -950,6 +958,7 @@ static void leds_init(void)
     nrf_gpio_pin_set(ADVERTISING_LED_PIN_NO);
     nrf_gpio_pin_set(CONNECTED_LED_PIN_NO);
 }
+#endif
 
 
 /**@brief     Function for the GAP initialization.
@@ -1041,7 +1050,9 @@ uint32_t dfu_transport_update_start(void)
     m_tear_down_in_progress = false;
     m_pkt_type              = PKT_TYPE_INVALID;
 
+#ifdef DEBUG_LEDS
     leds_init();
+#endif
 
     err_code = softdevice_ble_evt_handler_set(ble_evt_dispatch);
     VERIFY_SUCCESS(err_code);
