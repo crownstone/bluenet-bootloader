@@ -951,8 +951,21 @@ uint32_t dfu_bl_image_validate(void)
 
     if (bootloader_settings.bl_image_size != 0)
     {
+        uint32_t bank_1_region = DFU_BANK_1_REGION_START;
+
+        if (BOOTLOADER_REGION_START == OLD_BL_ADDR)
+        {
+            // TODO: calculate this with an equation
+            bank_1_region = 0x48000;
+        }
+        else if (BOOTLOADER_REGION_START == INT_BL_ADDR)
+        {
+            // TODO: calculate this with an equation
+            bank_1_region = 0x46000;
+        }
+
         uint32_t bl_image_start = (bootloader_settings.sd_image_size == 0) ?
-                                  DFU_BANK_1_REGION_START :
+                                  bank_1_region :
                                   bootloader_settings.sd_image_start +
                                   bootloader_settings.sd_image_size;
 
@@ -960,8 +973,8 @@ uint32_t dfu_bl_image_validate(void)
         sd_mbr_cmd.params.compare.ptr1 = (uint32_t *)BOOTLOADER_REGION_START;
         sd_mbr_cmd.params.compare.ptr2 = (uint32_t *)(bl_image_start);
         sd_mbr_cmd.params.compare.len  = bootloader_settings.bl_image_size / sizeof(uint32_t);
-
         err_code = sd_mbr_command(&sd_mbr_cmd);
+
         return err_code;
     }
     return NRF_SUCCESS;
