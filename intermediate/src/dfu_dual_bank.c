@@ -941,6 +941,19 @@ uint32_t dfu_bl_image_swap(void)
     return status;
 }
 
+/* The address of Bank-1 depends on the bootloader address, since the update process
+   involves bootloader present at different addresses, the Bank 1 address also changes.
+   With the input of the old bootloader, it calculates the address of Bank 1. */
+static uint32_t find_bank_1_region(uint32_t bootloader_addr)
+{
+    uint32_t dfu_region_total_size = bootloader_addr - CODE_REGION_1_START;
+    uint32_t dfu_image_max_size_full = dfu_region_total_size - DFU_APP_DATA_RESERVED;
+    uint32_t dfu_image_max_size_banked = ((dfu_image_max_size_full) - (dfu_image_max_size_full % (2 * CODE_PAGE_SIZE)))/2;
+    uint32_t dfu_bank_1_region_start = CODE_REGION_1_START + dfu_image_max_size_banked;
+
+    return dfu_bank_1_region_start;
+}
+
 uint32_t dfu_bl_image_validate(void)
 {
     bootloader_settings_t bootloader_settings;
@@ -955,13 +968,13 @@ uint32_t dfu_bl_image_validate(void)
 
         if (BOOTLOADER_REGION_START == OLD_BL_ADDR)
         {
-            // TODO: calculate this with an equation
-            bank_1_region = 0x48000;
+            // bank_1_region = 0x48000;
+            bank_1_region = find_bank_1_region(OLD_BL_ADDR);
         }
         else if (BOOTLOADER_REGION_START == INT_BL_ADDR)
         {
-            // TODO: calculate this with an equation
-            bank_1_region = 0x46000;
+            // bank_1_region = 0x46000;
+            bank_1_region = find_bank_1_region(INT_BL_ADDR);
         }
 
         uint32_t bl_image_start = (bootloader_settings.sd_image_size == 0) ?
