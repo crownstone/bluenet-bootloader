@@ -298,7 +298,6 @@ static void interrupts_disable(void)
     }
 }
 
-
 void bootloader_app_start(uint32_t app_addr)
 {
     // If the applications CRC has been checked and passed, the magic number will be written and we
@@ -313,7 +312,6 @@ void bootloader_app_start(uint32_t app_addr)
 
     bootloader_util_app_start(CODE_REGION_1_START);
 }
-
 
 bool bootloader_dfu_sd_in_progress(void)
 {
@@ -334,6 +332,12 @@ uint32_t bootloader_dfu_sd_update_continue(void)
 {
     uint32_t err_code;
 
+    if ((dfu_sd_image_validate() == NRF_SUCCESS) &&
+        (dfu_bl_image_validate() == NRF_SUCCESS))
+    {
+        return NRF_SUCCESS;
+    }
+
     // Ensure that flash operations are not executed within the first 100 ms seconds to allow
     // a debugger to be attached.
     nrf_delay_ms(100);
@@ -346,11 +350,8 @@ uint32_t bootloader_dfu_sd_update_continue(void)
     }
 #endif
 
-    if (dfu_sd_image_validate() != NRF_SUCCESS)
-    {
-        err_code = dfu_sd_image_swap();
-        APP_ERROR_CHECK(err_code);
-    }
+    err_code = dfu_sd_image_swap();
+    APP_ERROR_CHECK(err_code);
 
 #ifdef DEBUG_LEDS
     for (int i = 0; i < 5; i++)
