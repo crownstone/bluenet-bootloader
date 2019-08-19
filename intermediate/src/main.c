@@ -107,18 +107,6 @@ static void timers_init(void)
     APP_TIMER_APPSH_INIT(APP_TIMER_PRESCALER, APP_TIMER_OP_QUEUE_SIZE, true);
 }
 
-
-/**@brief Function for initializing the button module.
- */
-static void buttons_init(void)
-{
-    nrf_gpio_cfg_sense_input(BOOTLOADER_BUTTON,
-                             BUTTON_PULL, 
-                             NRF_GPIO_PIN_SENSE_LOW);
-
-}
-
-
 /**@brief Function for dispatching a BLE stack event to all modules with a BLE stack event handler.
  *
  * @details This function is called from the scheduler in the main loop after a BLE stack
@@ -184,12 +172,12 @@ static void scheduler_init(void)
  */
 int main(void)
 {
-    uint32_t err_code;
+    uint32_t err_code, gpregret;
+    gpregret = NRF_POWER->GPREGRET;
     bool     dfu_start = false;
-    bool     app_reset = (NRF_POWER->GPREGRET == BOOTLOADER_DFU_START);
-    bool     cont_dfu  = (NRF_POWER->GPREGRET == 1);
+    bool     app_reset = (BOOTLOADER_DFU_START == gpregret);
 
-    if (app_reset || cont_dfu)
+    if (app_reset)
     {
         NRF_POWER->GPREGRET = 0;
     }
@@ -200,7 +188,7 @@ int main(void)
     with the wrong content, which is WRONG! This hack is a work-around to prevent this. 
     This is needed only in Stage 1, in every other step this check is disabled 
     as it has the potential to execute SD commands even after the softdevice is erased */
-    if ( BOOTLOADER_REGION_START != 0x79000 ) cont_dfu = true;
+    // if ( BOOTLOADER_REGION_START != 0x79000 ) cont_dfu = true;
 
     leds_init();
 
@@ -211,7 +199,6 @@ int main(void)
 
     // Initialize.
     timers_init();
-    buttons_init();
 
 #ifdef DEBUG_LEDS
     nrf_gpio_pin_dir_set(17,NRF_GPIO_PIN_DIR_OUTPUT);
@@ -228,10 +215,11 @@ int main(void)
 
     (void)bootloader_init();
 
-    if (cont_dfu && bootloader_dfu_sd_in_progress())
+    if (bootloader_dfu_sd_in_progress())
     {
+#ifdef DEBUG_LEDS
         nrf_gpio_pin_clear(UPDATE_IN_PROGRESS_LED);
-
+#endif
         err_code = bootloader_dfu_sd_update_continue();
         APP_ERROR_CHECK(err_code);
 
@@ -240,8 +228,9 @@ int main(void)
 
         err_code = bootloader_dfu_sd_update_finalize();
         APP_ERROR_CHECK(err_code);
-
+#ifdef DEBUG_LEDS
         nrf_gpio_pin_set(UPDATE_IN_PROGRESS_LED);
+#endif
     }
     else
     {
@@ -251,12 +240,12 @@ int main(void)
     }
 
     dfu_start  = app_reset;
-    dfu_start |= ((nrf_gpio_pin_read(BOOTLOADER_BUTTON) == 0) ? true: false);
     
     if (dfu_start || (!bootloader_app_is_valid(DFU_BANK_0_REGION_START)))
     {
+#ifdef DEBUG_LEDS
         nrf_gpio_pin_clear(UPDATE_IN_PROGRESS_LED);
-
+#endif
         // Initiate an update of the firmware.
         err_code = bootloader_dfu_start();
         APP_ERROR_CHECK(err_code);
@@ -266,8 +255,8 @@ int main(void)
             nrf_gpio_pin_toggle(18);
             nrf_delay_ms(500);
         }
-#endif
         nrf_gpio_pin_set(UPDATE_IN_PROGRESS_LED);
+#endif
     }
 
     if (bootloader_app_is_valid(DFU_BANK_0_REGION_START) && !bootloader_dfu_sd_in_progress())
