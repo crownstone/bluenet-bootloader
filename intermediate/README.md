@@ -46,21 +46,17 @@ The following table shows the significance of each step in the final stage.
 ### Step 1
 
 In order to create the first stage intermediate bootloader, following is the procedure:
-* In the Makefile present in `intermediate/` directory, change the address of `BOOTLOADER_START_ADDRESS` to `0x79000`. The final statement will be `CFLAGS  = -DBOOTLOADER_START_ADDRESS=0x00079000`
-* In same Makefile, change the version in `BOOTLOADER_VERSION` to `\"1.8.0\"`. The final statement will be `CFLAGS += -DBOOTLOADER_VERSION=\"1.8.0\"`.
-* In the Linker file (`dfu_gcc_nrf52.ld`) present in `intermediate/`, change the address of `FLASH` to `0x79000`. The final statement will be `FLASH (rx) : ORIGIN = 0x79000, LENGTH = 0x4000`
-* Create a build out of source with the aforementioned setting by running `$ make`.
-* To create a DFU package out of the build generated, run the following command from `intermediate/` directory, `$ nrfutil dfu genpkg --bootloader _build/bootloader.hex --sd-req 0x81 ibl_0x79000.zip`.
+* In the `CMakeBuild.config` file present in the bluenet config directory, set the following: `BOOTLOADER_START_ADDRESS` to `0x79000` and `BOOTLOADER_VERSION` to `"1.8.0"`
+* Create a build out of source with the aforementioned setting by running `$ make` (from `intermediate/` directory).
+* To create a DFU package out of the build generated, run the following command from `intermediate/` directory, `$ nrfutil dfu genpkg --bootloader _build/bootloader.hex --sd-req 0x81 bl_v1.8.0.zip`.
 * DFU the above created package ONLY when the read firmware version is `1.3.0`.
 
 ### Step 2
 
 In order to create the second stage intermediate bootloader, following the same process as above with address as `0x70000`.
-* In the Makefile present in `intermediate/` directory, change the address of `BOOTLOADER_START_ADDRESS` to `0x70000`. The final statement will be `CFLAGS  = -DBOOTLOADER_START_ADDRESS=0x00070000`
-* In same Makefile, change the version in `BOOTLOADER_VERSION` to `\"1.9.0\"`. The final statement will be `CFLAGS += -DBOOTLOADER_VERSION=\"1.9.0\"`.
-* In the Linker file (`dfu_gcc_nrf52.ld`) present in `intermediate/`, change the address of `FLASH` to `0x70000`. The final statement will be `FLASH (rx) : ORIGIN = 0x70000, LENGTH = 0x4000`
-* Create a build out of source with the aforementioned setting by running `$ make`.
-* To create a DFU package out of the build generated, run the following command from `intermediate/` directory, `$ nrfutil dfu genpkg --bootloader _build/bootloader.hex --sd-req 0x81 ibl_0x70000.zip`.
+* In the `CMakeBuild.config` file present in the bluenet config directory, set the following: `BOOTLOADER_START_ADDRESS` to `0x70000` and `BOOTLOADER_VERSION` to `"1.9.0"`
+* Create a build out of source with the aforementioned setting by running `$ make` (from `intermediate/` directory).
+* To create a DFU package out of the build generated, run the following command from `intermediate/` directory, `$ nrfutil dfu genpkg --bootloader _build/bootloader.hex --sd-req 0x81 bl_v1.9.0.zip`.
 * (Common to both Step 1 and 2) To flash the device with the builds generated, run the following commands `$ make flash_softdevice && make flash` which flashes softdevice 2.0 and legacy bootloader.
 * DFU the above created package ONLY when the read firmware version is `1.8.0`.
 
