@@ -93,8 +93,6 @@ static void wait_for_events(void)
             (m_update_status == BOOTLOADER_TIMEOUT)  ||
             (m_update_status == BOOTLOADER_RESET))
         {
-            if (m_update_status == BOOTLOADER_COMPLETE)
-                NRF_POWER->GPREGRET = 1;
             // When update has completed or a timeout/reset occured we will return.
             return;
         }
