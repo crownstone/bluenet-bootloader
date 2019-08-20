@@ -22,9 +22,37 @@ else
 NO_ECHO := @
 endif
 
-GNU_INSTALL_ROOT = #/home/workstation/Development/gcc-arm
+GNU_INSTALL_ROOT = /home/naveen/Development/gcc-arm
 GNU_PREFIX = arm-none-eabi
-SDK_PATH = #/home/workstation/Development/nRF-sdk-11
+SDK_PATH = /home/naveen/Development/nRF-sdk-11
+
+# Retrieve config settings
+ifndef BLUENET_CONFIG_DIR
+ifndef BLUENET_WORKSPACE_DIR
+$(error neither BLUENET_WORKSPACE_DIR nor BLUENET_CONFIG_DIR is not set. Make sure at least one of the two is set.)
+endif
+ifdef BLUENET_WORKSPACE_DIR
+export BLUENET_CONFIG_DIR=$(BLUENET_WORKSPACE_DIR)/config
+endif
+endif
+
+ifndef BLUENET_DIR
+ifndef BLUENET_WORKSPACE_DIR
+$(error neither BLUENET_WORKSPACE_DIR nor BLUENET_DIR is not set. Make sure at least one of the two is set.)
+endif
+ifdef BLUENET_WORKSPACE_DIR
+export BLUENET_DIR=$(BLUENET_WORKSPACE_DIR)/bluenet
+endif
+endif
+
+# TODO: is this optional this way?
+include $(BLUENET_DIR)/conf/cmake/CMakeBuild.config.default
+ifneq ("$(wildcard $(BLUENET_DIR)/CMakeBuild.config.local)","")
+include $(BLUENET_DIR)/CMakeBuild.config.local
+endif
+include $(BLUENET_CONFIG_DIR)/CMakeBuild.config
+
+
 
 # Toolchain commands
 CC              := '$(GNU_INSTALL_ROOT)/bin/$(GNU_PREFIX)-gcc'
@@ -70,6 +98,7 @@ $(abspath $(SDK_PATH)/components/ble/common/ble_srv_common.c) \
 $(abspath $(SDK_PATH)/components/toolchain/system_nrf52.c) \
 $(abspath $(SDK_PATH)/components/softdevice/common/softdevice_handler/softdevice_handler.c) \
 $(abspath $(SDK_PATH)/components/softdevice/common/softdevice_handler/softdevice_handler_appsh.c) \
+$(abspath $(BLUENET_DIR)/src/cfg/cs_Boards.c) \
 
 #assembly files common to all targets
 ASM_SOURCE_FILES  = $(abspath $(SDK_PATH)/components/toolchain/gcc/gcc_startup_nrf52.s)
@@ -99,6 +128,7 @@ INC_PATHS += -I$(abspath $(SDK_PATH)/components/drivers_nrf/common)
 INC_PATHS += -I$(abspath $(SDK_PATH)/components/softdevice/common/softdevice_handler)
 INC_PATHS += -I$(abspath $(SDK_PATH)/components/ble/ble_services/ble_dfu)
 INC_PATHS += -I$(abspath $(SDK_PATH)/components/ble/ble_services/ble_dis)
+INC_PATHS += -I$(abspath $(BLUENET_DIR)/include)
 
 OBJECT_DIRECTORY = _build
 LISTING_DIRECTORY = $(OBJECT_DIRECTORY)
@@ -110,9 +140,10 @@ BUILD_DIRECTORIES := $(sort $(OBJECT_DIRECTORY) $(OUTPUT_BINARY_DIRECTORY) $(LIS
 #flags common to all targets
 CFLAGS  = -DBOOTLOADER_START_ADDRESS=0x00079000
 CFLAGS += -DNRF52
-CFLAGS += -DBOOTLOADER_VERSION=\"1.8.0\"
+CFLAGS += -DBOOTLOADER_VERSION="\"$(BOOTLOADER_VERSION)\""
 CFLAGS += -DUICR_BOARD_INDEX=1
 # CFLAGS += -DDEBUG_LEDS # This is the debug flag to use the LEDs for visual feedback of the each step.
+CFLAGS += -DDEFAULT_HARDWARE_BOARD=$(DEFAULT_HARDWARE_BOARD)
 CFLAGS += -DBOARD_PCA10040
 CFLAGS += -DNRF52_PAN_12
 CFLAGS += -DNRF52_PAN_15
@@ -210,7 +241,7 @@ bootloader: LINKER_SCRIPT=./dfu_gcc_nrf52.ld
 bootloader: $(BUILD_DIRECTORIES) $(OBJECTS)
 	@echo Linking target: $(OUTPUT_FILENAME).out
 	$(NO_ECHO)$(CC) $(LDFLAGS) $(OBJECTS) $(LIBS) -lm -o $(OUTPUT_BINARY_DIRECTORY)/$(OUTPUT_FILENAME).out
-	cp $(OUTPUT_BINARY_DIRECTORY)/$(OUTPUT_FILENAME).out $(OUTPUT_BINARY_DIRECTORY)/$(OUTPUT_FILENAME).elf
+	@cp $(OUTPUT_BINARY_DIRECTORY)/$(OUTPUT_FILENAME).out $(OUTPUT_BINARY_DIRECTORY)/$(OUTPUT_FILENAME).elf
 	$(NO_ECHO)$(MAKE) -f $(MAKEFILE_NAME) -C $(MAKEFILE_DIR) -e finalize
 
 ## Create build directories

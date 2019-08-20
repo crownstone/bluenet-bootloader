@@ -52,6 +52,11 @@
 #include "dfu.h"
 #include "nrf_delay.h"
 
+/* BLUENET includes START */
+#include "cfg/cs_Boards.h"
+#include "cfg/cs_DeviceTypes.h"
+/* BLUENET includes END */
+
 #if BUTTONS_NUMBER < 1
 #error "Not enough buttons on board"
 #endif
@@ -72,6 +77,16 @@
 
 #define SCHED_QUEUE_SIZE                20                                                      /**< Maximum number of events in the scheduler queue. */
 
+// command to enter dfu mode
+#define GPREGRET_DFU_RESET              66
+// command for normal reset
+#define GPREGRET_SOFT_RESET             0
+// gpregret value after dfu upload (or timeout)
+#define GPREGRET_NEW_FIRMWARE_LOADED    64
+// gpregret default value (to detect accidental resets)
+#define GPREGRET_DEFAULT                1
+// msk for brownout reset
+#define GPREGRET_BROWNOUT_RESET         96
 
 /**@brief Callback function for asserts in the SoftDevice.
  *
@@ -135,7 +150,11 @@ static void ble_stack_init(bool init_softdevice)
 {
     uint32_t         err_code;
     sd_mbr_command_t com = {SD_MBR_COMMAND_INIT_SD, };
-    nrf_clock_lf_cfg_t clock_lf_cfg = NRF_CLOCK_LFCLKSRC;
+
+    nrf_clock_lf_cfg_t clock_lf_cfg = {.source        = NRF_CLOCK_LF_SRC_RC,   \
+                                       .rc_ctiv       = 16,                    \
+                                       .rc_temp_ctiv  = 2,                     \
+                                       .xtal_accuracy = 0};
 
     if (init_softdevice)
     {
@@ -170,25 +189,45 @@ static void scheduler_init(void)
     APP_SCHED_INIT(SCHED_MAX_EVENT_DATA_SIZE, SCHED_QUEUE_SIZE);
 }
 
+static void gpio_init(boards_config_t* board)
+{
+	if (IS_CROWNSTONE(board->deviceType)) {
+		// PWM pin
+		nrf_gpio_cfg_output(board->pinGpioPwm);
+		if (board->flags.pwmInverted) {
+			nrf_gpio_pin_set(board->pinGpioPwm);
+		} else {
+			nrf_gpio_pin_clear(board->pinGpioPwm);
+		}
+
+		// Relay pins
+		if (board->flags.hasRelay) {
+			nrf_gpio_cfg_output(board->pinGpioRelayOff);
+			nrf_gpio_pin_clear(board->pinGpioRelayOff);
+			nrf_gpio_cfg_output(board->pinGpioRelayOn);
+			nrf_gpio_pin_clear(board->pinGpioRelayOn);
+		}
+	}
+}
 
 /**@brief Function for bootloader main entry.
  */
 int main(void)
 {
     uint32_t err_code, gpregret;
-    gpregret = NRF_POWER->GPREGRET;
     bool     dfu_start = false;
-    bool     app_reset = (BOOTLOADER_DFU_START == gpregret);
-
-    if (app_reset)
-    {
-        NRF_POWER->GPREGRET = 0;
-    }
+    bool     app_reset = false;
 
     // This check ensures that the defined fields in the bootloader corresponds with actual
     // setting in the chip.
     APP_ERROR_CHECK_BOOL(*((uint32_t *)NRF_UICR_BOOT_START_ADDRESS) == BOOTLOADER_REGION_START);
     APP_ERROR_CHECK_BOOL(NRF_FICR->CODEPAGESIZE == CODE_PAGE_SIZE);
+
+    boards_config_t board = {};
+	configure_board(&board);
+
+	gpio_init(&board);
+	// config_uart(board.pinGpioRx, board.pinGpioTx);
 
     // Initialize.
     timers_init();
@@ -208,6 +247,30 @@ int main(void)
 #endif
 
     (void)bootloader_init();
+
+    gpregret = NRF_POWER->GPREGRET;
+
+    NRF_POWER->GPREGRET = GPREGRET_DEFAULT;
+
+    switch (gpregret) {
+
+        case GPREGRET_BROWNOUT_RESET + 10:
+        case GPREGRET_DFU_RESET: {
+			dfu_start = true; // Enter bootloader
+	        break;
+		}
+        case BOOTLOADER_DFU_START: {
+			app_reset = true;
+			break;
+		}
+        case GPREGRET_SOFT_RESET: {
+            break;
+        }
+        default: {
+            gpregret += 1;
+            NRF_POWER->GPREGRET = gpregret;
+        }
+    }
 
     if (bootloader_dfu_sd_in_progress())
     {

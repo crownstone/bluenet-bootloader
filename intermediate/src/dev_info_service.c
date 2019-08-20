@@ -11,7 +11,7 @@
 #include "ble_dis.h"
 #include "app_error.h"
 
-#include "cs_HardwareVersions.h"
+#include "cfg/cs_HardwareVersions.h"
 
 // #define BOOTLOADER_VERSION "0.0.7"
 // char BOOTLOADER_VERSION[] = "0.0.7";
