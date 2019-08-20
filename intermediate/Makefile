@@ -22,9 +22,9 @@ else
 NO_ECHO := @
 endif
 
-GNU_INSTALL_ROOT = /home/naveen/Development/gcc-arm
+GNU_INSTALL_ROOT = #/home/workspace/Development/gcc-arm
 GNU_PREFIX = arm-none-eabi
-SDK_PATH = /home/naveen/Development/nRF-sdk-11
+SDK_PATH = #/home/workspace/Development/nRF-sdk-11
 
 # Retrieve config settings
 ifndef BLUENET_CONFIG_DIR
@@ -138,7 +138,7 @@ OUTPUT_BINARY_DIRECTORY = $(OBJECT_DIRECTORY)
 BUILD_DIRECTORIES := $(sort $(OBJECT_DIRECTORY) $(OUTPUT_BINARY_DIRECTORY) $(LISTING_DIRECTORY) )
 
 #flags common to all targets
-CFLAGS  = -DBOOTLOADER_START_ADDRESS=0x00079000
+CFLAGS  = -DBOOTLOADER_START_ADDRESS=$(BOOTLOADER_START_ADDRESS)
 CFLAGS += -DNRF52
 CFLAGS += -DBOOTLOADER_VERSION="\"$(BOOTLOADER_VERSION)\""
 CFLAGS += -DUICR_BOARD_INDEX=1
@@ -182,6 +182,7 @@ LDFLAGS += -mfloat-abi=hard -mfpu=fpv4-sp-d16
 LDFLAGS += -Wl,--gc-sections
 # use newlib in nano version
 LDFLAGS += --specs=nano.specs -lc -lnosys
+LDFLAGS += -Wl,--defsym=BOOTLOADER_START_ADDRESS=${BOOTLOADER_START_ADDRESS}
 
 # Assembler flags
 ASMFLAGS += -x assembler-with-cpp
