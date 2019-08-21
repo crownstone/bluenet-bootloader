@@ -14,7 +14,7 @@
 #include "dfu.h"
 #include <dfu_types.h>
 #include <stddef.h>
-// #include "boards.h"
+#include "boards.h"
 #include "nrf.h"
 #include "nrf_sdm.h"
 #include "nrf_gpio.h"
@@ -37,11 +37,15 @@
 #include "sdk_common.h"
 #include "dev_info_service.h"
 
+#ifdef DEBUG_LEDS
+#include "boards.h"
+#define ADVERTISING_LED_PIN_NO               BSP_LED_0                                               /**< Is on when device is advertising. */
+#define CONNECTED_LED_PIN_NO                 BSP_LED_1                                               /**< Is on when device has connected. */
+#endif
+
 #define DFU_REV_MAJOR                        0x00                                                    /** DFU Major revision number to be exposed. */
 #define DFU_REV_MINOR                        0x08                                                    /** DFU Minor revision number to be exposed. */
 #define DFU_REVISION                         ((DFU_REV_MAJOR << 8) | DFU_REV_MINOR)                  /** DFU Revision number to be exposed. Combined of major and minor versions. */
-// #define ADVERTISING_LED_PIN_NO               BSP_LED_0                                               /**< Is on when device is advertising. */
-// #define CONNECTED_LED_PIN_NO                 BSP_LED_1                                               /**< Is on when device has connected. */
 #define DFU_SERVICE_HANDLE                   0x000C                                                  /**< Handle of DFU service when DFU service is first service initialized. */
 #define BLE_HANDLE_MAX                       0xFFFF                                                  /**< Max handle value is BLE. */
 
