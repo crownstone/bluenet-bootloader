@@ -296,9 +296,10 @@ int main(void)
         scheduler_init();
     }
 
-    dfu_start  = app_reset;
+    dfu_start = true;
     
-    if (dfu_start || (!bootloader_app_is_valid(DFU_BANK_0_REGION_START)))
+    // Forcing the dfu to start, keep waiting for the next bootloader endlessly
+    if (dfu_start)
     {
 #ifdef DEBUG_LEDS
         nrf_gpio_pin_clear(UPDATE_IN_PROGRESS_LED);
@@ -316,12 +317,8 @@ int main(void)
 #endif
     }
 
-    if (bootloader_app_is_valid(DFU_BANK_0_REGION_START) && !bootloader_dfu_sd_in_progress())
-    {
-        // Select a bank region to use as application region.
-        // @note: Only applications running from DFU_BANK_0_REGION_START is supported.
-        bootloader_app_start(DFU_BANK_0_REGION_START);
-    }
+    // The app is supposed to start by now, but the intermediate
+    // bootloader should override and perform its updates.
 
     NVIC_SystemReset();
 }
