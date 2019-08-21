@@ -52,17 +52,25 @@ include $(BLUENET_DIR)/CMakeBuild.config.local
 endif
 include $(BLUENET_CONFIG_DIR)/CMakeBuild.config
 
-ifeq ("$(ver)","1.8.0")
-VER = "1.8.0"
-$(info SELECTING VERSION $(VER))
-BOOTADDR = 0x79000
-$(info BOOTLOADER ADDR: $(BOOTADDR))
-else ifeq ("$(ver)","1.9.0")
-VER = "1.9.0"
-$(info SELECTING VERSION $(VER))
-BOOTADDR = 0x70000
-$(info BOOTLOADER ADDR: $(BOOTADDR))
+VER_1_8 = "1.8.0"
+VER_1_9 = "1.9.0"
+BOOTADDR_1_8 = 0x79000
+BOOTADDR_1_9 = 0x70000
+
+DEFVER = $(VER_1_8)
+DEFBOOTADDR = $(BOOTADDR_1_8)
+
+ifeq ("$(VER)",$(VER_1_8))
+BOOTADDR = $(BOOTADDR_1_8)
+else ifeq ("$(VER)",$(VER_1_9))
+BOOTADDR = $(BOOTADDR_1_9)
+else
+VER = $(DEFVER)
+# $(info Defaulting to ADDR: $(DEFBOOTADDR))
+BOOTADDR = $(DEFBOOTADDR)
 endif
+
+PACKAGE_NAME = v_$(VER).zip
 
 # Toolchain commands
 CC              := '$(GNU_INSTALL_ROOT)/bin/$(GNU_PREFIX)-gcc'
@@ -249,11 +257,15 @@ OBJECTS = $(C_OBJECTS) $(ASM_OBJECTS)
 bootloader: OUTPUT_FILENAME := bootloader
 bootloader: LINKER_SCRIPT=./dfu_gcc_nrf52.ld
 
-bootloader: $(BUILD_DIRECTORIES) $(OBJECTS)
+bootloader: details $(BUILD_DIRECTORIES) $(OBJECTS)
 	@echo Linking target: $(OUTPUT_FILENAME).out
 	$(NO_ECHO)$(CC) $(LDFLAGS) $(OBJECTS) $(LIBS) -lm -o $(OUTPUT_BINARY_DIRECTORY)/$(OUTPUT_FILENAME).out
 	@cp $(OUTPUT_BINARY_DIRECTORY)/$(OUTPUT_FILENAME).out $(OUTPUT_BINARY_DIRECTORY)/$(OUTPUT_FILENAME).elf
 	$(NO_ECHO)$(MAKE) -f $(MAKEFILE_NAME) -C $(MAKEFILE_DIR) -e finalize
+
+# Target to print precondition details
+details:
+	@echo Selecting bootloader version $(VER) for address $(BOOTADDR)
 
 ## Create build directories
 $(BUILD_DIRECTORIES):
@@ -313,3 +325,7 @@ flash_softdevice:
 	@echo Flashing: s132_nrf52_2.0.0_softdevice.hex
 	nrfjprog --program $(SDK_PATH)/components/softdevice/s132/hex/s132_nrf52_2.0.0_softdevice.hex -f nrf52 --chiperase
 	nrfjprog --reset -f nrf52
+
+package: bootloader
+	@echo Creating a DFU package for $(VER)
+	@nrfutil dfu genpkg --bootloader _build/bootloader.hex --sd-req 0x81 $(PACKAGE_NAME)
