@@ -2,6 +2,8 @@
 
 This intermediate bootloader makes sure the upgrade process of the Legacy Bootloader + Softdevice v2.0 to Secure Bootloader + Softdevice v6.1 happens in a fault tolerant way.
 
+For the current bootloaders present in the devices currently have a problem of not erasing the bootloader settings page after the DFU process has finished. This causes the new bootloader to start writing the stale content present in the DFU bank into an important region. If this problem is left unattended, it WILL instantly brick the device. To circumvent the problem, `GPREGRET` register has been used. To enter the bootloader copy process, it check for a `1` in the `GPREGRET` register. This is written when bootloader successfully flashes into its bank. This check process is disabled for stages after `1`.
+
 ### Stage 1
 The incoming bootloader at this point will just replace the current legacy bootloader present in the device residing at the address `0x79000`.
 
@@ -30,7 +32,7 @@ The following table shows the significance of each step in the final stage.
 | D | The new secure bootloader is copied into the address 0x76000 | No       | < 500 ms | Will fail to copy the new bootloader, however the copy operation would be retried as the bootloader (except for the BLE) is still operational at 0x70000. |  0x70000 |
 | E | The `BOOTLOADER_UICR` is set to 0x76000 | No       | < 100 ms | Will fail to transfer the control to the new bootloader, however the set operation would be retried as the bootloader (except for the BLE) is still operational at 0x70000. |  0x79000 |
 
-The flow is explained clearly here flowchart.pdf. The intermediate bootloader functioning is show in green box in the flowchart.
+The flow is explained clearly here []. The intermediate bootloader functioning is show in green box in the flowchart.
 
 ## Build process:
 
@@ -45,12 +47,19 @@ The flow is explained clearly here flowchart.pdf. The intermediate bootloader fu
 
 ### Step 1
 
-* To create a bootloader of version 1.8.0, run the following command `$ create.sh debug 1.8.0`. This will create a DFU package of the version v1.8.0 with a package called `debug_v1.8.0.zip`
+In order to create the first stage intermediate bootloader, following is the procedure:
+* In the `CMakeBuild.config` file present in the bluenet config directory, set the following: `BOOTLOADER_START_ADDRESS` to `0x79000` and `BOOTLOADER_VERSION` to `"1.8.0"`
+* Create a build out of source with the aforementioned setting by running `$ make` (from `intermediate/` directory).
+* To create a DFU package out of the build generated, run the following command from `intermediate/` directory, `$ nrfutil dfu genpkg --bootloader _build/bootloader.hex --sd-req 0x81 bl_v1.8.0.zip`.
 * DFU the above created package ONLY when the read firmware version is `1.3.0`.
 
 ### Step 2
 
-* To create a bootloader of version 1.8.0, run the following command `$ create.sh debug 1.9.0`. This will create a DFU package of the version v1.8.0 with a package called `debug_v1.9.0.zip`
+In order to create the second stage intermediate bootloader, following the same process as above with address as `0x70000`.
+* In the `CMakeBuild.config` file present in the bluenet config directory, set the following: `BOOTLOADER_START_ADDRESS` to `0x70000` and `BOOTLOADER_VERSION` to `"1.9.0"`
+* Create a build out of source with the aforementioned setting by running `$ make` (from `intermediate/` directory).
+* To create a DFU package out of the build generated, run the following command from `intermediate/` directory, `$ nrfutil dfu genpkg --bootloader _build/bootloader.hex --sd-req 0x81 bl_v1.9.0.zip`.
+* (Common to both Step 1 and 2) To flash the device with the builds generated, run the following commands `$ make flash_softdevice && make flash` which flashes softdevice 2.0 and legacy bootloader.
 * DFU the above created package ONLY when the read firmware version is `1.8.0`.
 
 ### Step 3
