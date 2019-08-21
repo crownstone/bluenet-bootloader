@@ -22,9 +22,9 @@ else
 NO_ECHO := @
 endif
 
-GNU_INSTALL_ROOT = #/home/workspace/Development/gcc-arm
+GNU_INSTALL_ROOT = /home/naveen/Development/gcc-arm
 GNU_PREFIX = arm-none-eabi
-SDK_PATH = #/home/workspace/Development/nRF-sdk-11
+SDK_PATH = /home/naveen/Development/nRF-sdk-11
 
 # Retrieve config settings
 ifndef BLUENET_CONFIG_DIR
@@ -52,7 +52,17 @@ include $(BLUENET_DIR)/CMakeBuild.config.local
 endif
 include $(BLUENET_CONFIG_DIR)/CMakeBuild.config
 
-
+ifeq ("$(ver)","1.8.0")
+VER = "1.8.0"
+$(info SELECTING VERSION $(VER))
+BOOTADDR = 0x79000
+$(info BOOTLOADER ADDR: $(BOOTADDR))
+else ifeq ("$(ver)","1.9.0")
+VER = "1.9.0"
+$(info SELECTING VERSION $(VER))
+BOOTADDR = 0x70000
+$(info BOOTLOADER ADDR: $(BOOTADDR))
+endif
 
 # Toolchain commands
 CC              := '$(GNU_INSTALL_ROOT)/bin/$(GNU_PREFIX)-gcc'
@@ -138,9 +148,9 @@ OUTPUT_BINARY_DIRECTORY = $(OBJECT_DIRECTORY)
 BUILD_DIRECTORIES := $(sort $(OBJECT_DIRECTORY) $(OUTPUT_BINARY_DIRECTORY) $(LISTING_DIRECTORY) )
 
 #flags common to all targets
-CFLAGS  = -DBOOTLOADER_START_ADDRESS=$(BOOTLOADER_START_ADDRESS)
+CFLAGS  = -DBOOTLOADER_START_ADDRESS=$(BOOTADDR)
 CFLAGS += -DNRF52
-CFLAGS += -DBOOTLOADER_VERSION="\"$(BOOTLOADER_VERSION)\""
+CFLAGS += -DBOOTLOADER_VERSION=\"$(VER)\"
 CFLAGS += -DUICR_BOARD_INDEX=1
 # CFLAGS += -DDEBUG_LEDS # This is the debug flag to use the LEDs for visual feedback of the each step.
 CFLAGS += -DDEFAULT_HARDWARE_BOARD=$(DEFAULT_HARDWARE_BOARD)
@@ -182,7 +192,7 @@ LDFLAGS += -mfloat-abi=hard -mfpu=fpv4-sp-d16
 LDFLAGS += -Wl,--gc-sections
 # use newlib in nano version
 LDFLAGS += --specs=nano.specs -lc -lnosys
-LDFLAGS += -Wl,--defsym=BOOTLOADER_START_ADDRESS=${BOOTLOADER_START_ADDRESS}
+LDFLAGS += -Wl,--defsym=BOOTLOADER_START_ADDRESS=$(BOOTADDR)
 
 # Assembler flags
 ASMFLAGS += -x assembler-with-cpp
