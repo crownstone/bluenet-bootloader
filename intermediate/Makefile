@@ -52,6 +52,8 @@ include $(BLUENET_DIR)/CMakeBuild.config.local
 endif
 include $(BLUENET_CONFIG_DIR)/CMakeBuild.config
 
+DEFAULT_HARDWARE_BOARD=ACR01B2C
+
 VER_1_8 = "1.8.0"
 VER_1_9 = "1.9.0"
 BOOTADDR_1_8 = 0x79000
@@ -70,7 +72,7 @@ VER = $(DEFVER)
 BOOTADDR = $(DEFBOOTADDR)
 endif
 
-PACKAGE_NAME = $(PACKAGE_PREFIX)v_$(VER).zip
+PACKAGE_NAME = $(PACKAGE_PREFIX)_v$(VER).zip
 
 # Toolchain commands
 CC              := '$(GNU_INSTALL_ROOT)/bin/$(GNU_PREFIX)-gcc'
@@ -160,7 +162,7 @@ CFLAGS  = -DBOOTLOADER_START_ADDRESS=$(BOOTADDR)
 CFLAGS += -DNRF52
 CFLAGS += -DBOOTLOADER_VERSION=\"$(VER)\"
 CFLAGS += -DUICR_BOARD_INDEX=1
-CFLAGS += -DDEBUG_LEDS # This is the debug flag to use the LEDs for visual feedback of the each step.
+# CFLAGS += -DDEBUG_LEDS # This is the debug flag to use the LEDs for visual feedback of the each step.
 CFLAGS += -DDEFAULT_HARDWARE_BOARD=$(DEFAULT_HARDWARE_BOARD)
 CFLAGS += -DBOARD_PCA10040
 CFLAGS += -DNRF52_PAN_12
