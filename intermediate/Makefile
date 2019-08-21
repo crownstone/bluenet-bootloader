@@ -70,7 +70,7 @@ VER = $(DEFVER)
 BOOTADDR = $(DEFBOOTADDR)
 endif
 
-PACKAGE_NAME = v_$(VER).zip
+PACKAGE_NAME = $(PACKAGE_PREFIX)v_$(VER).zip
 
 # Toolchain commands
 CC              := '$(GNU_INSTALL_ROOT)/bin/$(GNU_PREFIX)-gcc'
@@ -160,7 +160,7 @@ CFLAGS  = -DBOOTLOADER_START_ADDRESS=$(BOOTADDR)
 CFLAGS += -DNRF52
 CFLAGS += -DBOOTLOADER_VERSION=\"$(VER)\"
 CFLAGS += -DUICR_BOARD_INDEX=1
-# CFLAGS += -DDEBUG_LEDS # This is the debug flag to use the LEDs for visual feedback of the each step.
+CFLAGS += -DDEBUG_LEDS # This is the debug flag to use the LEDs for visual feedback of the each step.
 CFLAGS += -DDEFAULT_HARDWARE_BOARD=$(DEFAULT_HARDWARE_BOARD)
 CFLAGS += -DBOARD_PCA10040
 CFLAGS += -DNRF52_PAN_12
