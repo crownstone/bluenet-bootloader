@@ -43,9 +43,13 @@ The flow is explained clearly here flowchart.pdf. The intermediate bootloader fu
 * In the `Makefile` at `intermediate/`, change the variable `GNU_INSTALL_ROOT` to the path where `gcc-arm` is installed (which contains directories like bin, lib, share. For example: `GNU_INSTALL_ROOT = /home/workstation/Development/gcc-arm`
 * In the same Makefile, change the variable `SDK_PATH` to top level of `nRF SDK 11` directory.
 
+### Step 0
+
+To create the intermediate version at once, run the following command `$ create.sh debug_`. This will create two DFU packages namely, `debug_v1.8.0.zip` and `debug_v1.9.0.zip`. If this step is used, the first sub step of both step 1 and 2 can be skipped.
+
 ### Step 1
 
-* To create a bootloader of version 1.8.0, run the following command `$ create.sh debug 1.8.0`. This will create a DFU package of the version v1.8.0 with a package called `debug_v1.8.0.zip`
+* To create a bootloader of version 1.8.0, run the following command `$ create.sh debug_ 1.8.0`. This will create a DFU package of the version v1.8.0 with a package called `debug_v1.8.0.zip`
 * DFU the above created package ONLY when the read firmware version is `1.3.0`.
 
 ### Step 2
