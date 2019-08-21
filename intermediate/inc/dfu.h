@@ -133,6 +133,13 @@ void flash_page_erase(uint32_t *);
  */
 uint32_t dfu_init_pkt_complete(void);
 
+#ifdef DEBUG_LEDS
+#define DFU_UPDATE_LED          17
+#define DFU_SD_UPDATE_LED       18
+#define DFU_COMPLETE_LED        19
+#define BOOTLOADER_STARTUP_LED  20
+#endif
+
 #endif // DFU_H__
 
 /** @} */

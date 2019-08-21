@@ -343,7 +343,7 @@ uint32_t bootloader_dfu_sd_update_continue(void)
 #ifdef DEBUG_LEDS
     for (int i = 0; i < 5; i++)
     {
-        nrf_gpio_pin_toggle(17);
+        nrf_gpio_pin_toggle(DFU_UPDATE_LED);
         nrf_delay_ms(500);
     }
 #endif
@@ -354,7 +354,7 @@ uint32_t bootloader_dfu_sd_update_continue(void)
 #ifdef DEBUG_LEDS
     for (int i = 0; i < 5; i++)
     {
-        nrf_gpio_pin_toggle(18);
+        nrf_gpio_pin_toggle(DFU_SD_UPDATE_LED);
         nrf_delay_ms(500);
     }
 #endif

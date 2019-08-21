@@ -927,14 +927,6 @@ uint32_t dfu_bl_image_swap(void)
 
     status = copy_flash_content((uint32_t*)BL_ADDR, (uint32_t*)bl_image_start, bootloader_settings.bl_image_size);
 
-#ifdef DEBUG_LEDS
-    for (int i = 0; i < 5; i++)
-    {
-        nrf_gpio_pin_toggle(19);
-        nrf_delay_ms(500);
-    }
-#endif
-
     if (NRF_SUCCESS == status)
         status = set_uicr(BL_ADDR);
 

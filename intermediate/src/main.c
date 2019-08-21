@@ -241,7 +241,7 @@ int main(void)
 
     for (int i = 0; i < 5; i++)
     {
-        nrf_gpio_pin_toggle(20);
+        nrf_gpio_pin_toggle(BOOTLOADER_STARTUP_LED);
         nrf_delay_ms(500);
     }
 #endif
@@ -309,7 +309,7 @@ int main(void)
 #ifdef DEBUG_LEDS
         for (int i = 0; i < 5; i++)
         {
-            nrf_gpio_pin_toggle(18);
+            nrf_gpio_pin_toggle(DFU_COMPLETE_LED);
             nrf_delay_ms(500);
         }
         nrf_gpio_pin_set(UPDATE_IN_PROGRESS_LED);
