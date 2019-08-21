@@ -14,7 +14,7 @@
 #include "dfu.h"
 #include <dfu_types.h>
 #include <stddef.h>
-#include "boards.h"
+// #include "boards.h"
 #include "nrf.h"
 #include "nrf_sdm.h"
 #include "nrf_gpio.h"
@@ -40,16 +40,16 @@
 #define DFU_REV_MAJOR                        0x00                                                    /** DFU Major revision number to be exposed. */
 #define DFU_REV_MINOR                        0x08                                                    /** DFU Minor revision number to be exposed. */
 #define DFU_REVISION                         ((DFU_REV_MAJOR << 8) | DFU_REV_MINOR)                  /** DFU Revision number to be exposed. Combined of major and minor versions. */
-#define ADVERTISING_LED_PIN_NO               BSP_LED_0                                               /**< Is on when device is advertising. */
-#define CONNECTED_LED_PIN_NO                 BSP_LED_1                                               /**< Is on when device has connected. */
+// #define ADVERTISING_LED_PIN_NO               BSP_LED_0                                               /**< Is on when device is advertising. */
+// #define CONNECTED_LED_PIN_NO                 BSP_LED_1                                               /**< Is on when device has connected. */
 #define DFU_SERVICE_HANDLE                   0x000C                                                  /**< Handle of DFU service when DFU service is first service initialized. */
 #define BLE_HANDLE_MAX                       0xFFFF                                                  /**< Max handle value is BLE. */
 
 #define DEVICE_NAME                          "DfuTarg"                                               /**< Name of device. Will be included in the advertising data. */
 #define MANUFACTURER_NAME                    "NordicSemiconductor"                                   /**< Manufacturer. Will be passed to Device Information Service. */
 
-#define MIN_CONN_INTERVAL                    (uint16_t)(MSEC_TO_UNITS(15, UNIT_1_25_MS))             /**< Minimum acceptable connection interval (11.25 milliseconds). */
-#define MAX_CONN_INTERVAL                    (uint16_t)(MSEC_TO_UNITS(30, UNIT_1_25_MS))             /**< Maximum acceptable connection interval (15 milliseconds). */
+#define MIN_CONN_INTERVAL                    (uint16_t)(MSEC_TO_UNITS(11.25, UNIT_1_25_MS))             /**< Minimum acceptable connection interval (11.25 milliseconds). */
+#define MAX_CONN_INTERVAL                    (uint16_t)(MSEC_TO_UNITS(15, UNIT_1_25_MS))            /**< Maximum acceptable connection interval (15 milliseconds). */
 #define SLAVE_LATENCY                        0                                                       /**< Slave latency. */
 #define CONN_SUP_TIMEOUT                     (4 * 100)                                               /**< Connection supervisory timeout (4 seconds). */
 
@@ -1063,7 +1063,7 @@ uint32_t dfu_transport_update_start(void)
     VERIFY_SUCCESS(err_code);
 
     err_code = dfu_ble_peer_data_get(&m_ble_peer_data);
-    if (err_code == NRF_SUCCESS)
+    if (false)
     {
         m_ble_peer_data_valid = true;
     }
@@ -1075,7 +1075,7 @@ uint32_t dfu_transport_update_start(void)
         APP_ERROR_CHECK(err_code);
 
         // Increase the BLE address by one when advertising openly.
-        addr.addr[0] += 1;
+        // addr.addr[0] += 1;
 
         err_code = sd_ble_gap_address_set(BLE_GAP_ADDR_CYCLE_MODE_NONE, &addr);
         APP_ERROR_CHECK(err_code);

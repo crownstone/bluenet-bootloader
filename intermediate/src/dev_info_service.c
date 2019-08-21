@@ -13,9 +13,6 @@
 
 #include "cfg/cs_HardwareVersions.h"
 
-// #define BOOTLOADER_VERSION "0.0.7"
-// char BOOTLOADER_VERSION[] = "0.0.7";
-
 /**@brief     Function for initializing services that will be used by the application.
  */
 void dev_info_service_init(void)
