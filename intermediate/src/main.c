@@ -234,10 +234,10 @@ int main(void)
 
 #ifdef DEBUG_LEDS
     leds_init();
-    nrf_gpio_pin_dir_set(17,NRF_GPIO_PIN_DIR_OUTPUT);
-    nrf_gpio_pin_dir_set(18,NRF_GPIO_PIN_DIR_OUTPUT);
-    nrf_gpio_pin_dir_set(19,NRF_GPIO_PIN_DIR_OUTPUT);
-    nrf_gpio_pin_dir_set(20,NRF_GPIO_PIN_DIR_OUTPUT);
+    nrf_gpio_pin_dir_set(DFU_UPDATE_LED,NRF_GPIO_PIN_DIR_OUTPUT);
+    nrf_gpio_pin_dir_set(DFU_SD_UPDATE_LED,NRF_GPIO_PIN_DIR_OUTPUT);
+    nrf_gpio_pin_dir_set(DFU_COMPLETE_LED,NRF_GPIO_PIN_DIR_OUTPUT);
+    nrf_gpio_pin_dir_set(BOOTLOADER_STARTUP_LED,NRF_GPIO_PIN_DIR_OUTPUT);
 
     for (int i = 0; i < 5; i++)
     {
