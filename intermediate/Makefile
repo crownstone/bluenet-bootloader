@@ -12,6 +12,8 @@ TEMPLATE_PATH = $(SDK_PATH)/components/toolchain/gcc
 # include $(TEMPLATE_PATH)/Makefile.posix
 # endif
 
+include paths.config
+
 MK := mkdir
 RM := rm -rf
 
@@ -22,36 +24,13 @@ else
 NO_ECHO := @
 endif
 
-GNU_INSTALL_ROOT = /home/naveen/Development/gcc-arm
+ifndef GNU_INSTALL_ROOT
+$(error Paths are not configured in "paths.config". Hint: create a file "paths.config" with variables "GNU_INSTALL_ROOT" and "SDK_PATH" defined)
+else ifndef SDK_PATH
+$(error Paths are not configured in "paths.config". Hint: create a file "paths.config" with variables "GNU_INSTALL_ROOT" and "SDK_PATH" defined)
+endif
+
 GNU_PREFIX = arm-none-eabi
-SDK_PATH = /home/naveen/Development/nRF-sdk-11
-
-# Retrieve config settings
-ifndef BLUENET_CONFIG_DIR
-ifndef BLUENET_WORKSPACE_DIR
-$(error neither BLUENET_WORKSPACE_DIR nor BLUENET_CONFIG_DIR is not set. Make sure at least one of the two is set.)
-endif
-ifdef BLUENET_WORKSPACE_DIR
-export BLUENET_CONFIG_DIR=$(BLUENET_WORKSPACE_DIR)/config
-endif
-endif
-
-ifndef BLUENET_DIR
-ifndef BLUENET_WORKSPACE_DIR
-$(error neither BLUENET_WORKSPACE_DIR nor BLUENET_DIR is not set. Make sure at least one of the two is set.)
-endif
-ifdef BLUENET_WORKSPACE_DIR
-export BLUENET_DIR=$(BLUENET_WORKSPACE_DIR)/bluenet
-endif
-endif
-
-# TODO: is this optional this way?
-include $(BLUENET_DIR)/conf/cmake/CMakeBuild.config.default
-ifneq ("$(wildcard $(BLUENET_DIR)/CMakeBuild.config.local)","")
-include $(BLUENET_DIR)/CMakeBuild.config.local
-endif
-include $(BLUENET_CONFIG_DIR)/CMakeBuild.config
-
 DEFAULT_HARDWARE_BOARD=ACR01B2C
 
 VER_1_8 = "1.8.0"
