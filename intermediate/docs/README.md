@@ -39,8 +39,11 @@ The flow is explained clearly here in `flowchart.pdf`. The intermediate bootload
 * nRF SDK 15.3
 * nRF Crownstone's New (Current) Builds (Firmware, Bootloader)
 * `nrfutil` version `0.3.0`
-* In the `Makefile` at `intermediate/`, change the variable `GNU_INSTALL_ROOT` to the path where `gcc-arm` is installed (which contains directories like bin, lib, share. For example: `GNU_INSTALL_ROOT = /home/workstation/Development/gcc-arm`
-* In the same Makefile, change the variable `SDK_PATH` to top level of `nRF SDK 11` directory.
+* Create a file (named `paths.config`) in the same directory as `Makefile`. In this file, define the variables, `GNU_INSTALL_ROOT` to point to the path where `gcc-arm` is installed and `SDK_PATH` to top level of `nRF SDK 11` directory. This should looks as follows:
+```
+GNU_INSTALL_ROOT = /home/workspace/Development/gcc-arm
+SDK_PATH = /home/workspace/Development/nRF-sdk-11
+```
 
 ### Step 0
 
