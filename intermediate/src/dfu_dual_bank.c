@@ -368,7 +368,8 @@ uint32_t dfu_start_pkt_handle(dfu_update_packet_t * p_packet)
     m_image_size = m_start_packet.sd_image_size + m_start_packet.bl_image_size +
                    m_start_packet.app_image_size;
     
-    // Nordic's fix
+    // Nordic's fix: 
+    // https://devzone.nordicsemi.com/f/nordic-q-a/18199/dfu---updating-from-legacy-sdk-v11-0-0-bootloader-to-secure-sdk-v12-x-0-bootloader
     // if (m_start_packet.bl_image_size > DFU_BL_IMAGE_MAX_SIZE)
     // {
     //     return NRF_ERROR_DATA_SIZE;
@@ -911,6 +912,7 @@ uint32_t set_uicr(const uint32_t BL_ADDR)
 }
 
 // Nordic's new implementation
+// https://devzone.nordicsemi.com/f/nordic-q-a/18199/dfu---updating-from-legacy-sdk-v11-0-0-bootloader-to-secure-sdk-v12-x-0-bootloader
 uint32_t dfu_bl_image_swap(void)
 {
     uint32_t status = NRF_SUCCESS;
@@ -1033,6 +1035,7 @@ uint32_t dfu_sd_image_validate(void)
 }
 
 // This function relocates the incoming bootloader to 0x70000, which is initially at 0x79000.
+// https://devzone.nordicsemi.com/f/nordic-q-a/18199/dfu---updating-from-legacy-sdk-v11-0-0-bootloader-to-secure-sdk-v12-x-0-bootloader
 uint32_t dfu_relocate_bl()
 {
     uint32_t status = NRF_SUCCESS;
