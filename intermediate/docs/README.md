@@ -64,3 +64,11 @@ To create the intermediate version at once, run the following command `$ create.
 With the penultimate stage completed.
 * Create a DFU package for Softdevice 6.1, Crownstone's Bootloader (or Nordic's SDK 15.3 Secure bootloader), with the following command: `$ nrfutil dfu genpkg --bootloader <crownstone_bins_dir>/bootloader.hex --softdevice <softdevice_path/>s132_nrf52_6.1.1_softdevice.hex --sd-req 0x81 <package_name>.zip`.
 * DFU the above created package ONLY when the read firmware version is `1.9.0`.
+
+### File Changed with respect to bootloader v1.3.0
+* src/bootloader.c
+* src/dfu_dual_bank.c
+* src/dfu_transport_ble.c
+* src/main.c
+* inc/dfu_types.h
+* inc/dfu.h
