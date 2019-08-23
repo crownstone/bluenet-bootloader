@@ -1,6 +1,6 @@
 ## Intermediate bootloader
 
-This intermediate bootloader makes sure the upgrade process of the Legacy Bootloader + Softdevice v2.0 to Secure Bootloader + Softdevice v6.1 happens in a fault tolerant way. Each of the following process is illustrated in the `process.pdf`.
+This intermediate bootloader makes sure the upgrade process of the Legacy Bootloader + Softdevice v2.0 to Secure Bootloader + Softdevice v6.1 happens in a fault tolerant way. Each of the following process is illustrated in the `intermediate/docs/process.pdf`.
 
 ### Stage 0 (Bootloader (<=) v1.3.0)
 This current legacy bootloader is replaced by the next stage bootloader. In the later stages, the bootloader will not start the firmware app in case there exists one.
@@ -29,7 +29,7 @@ The following table shows the significance of each step in the final stage.
 | C | The new secure bootloader is copied into the address 0x76000 | No       | < 500 ms | Will fail to copy the new bootloader, however the copy operation would be retried as the bootloader (except for the BLE) is still operational at 0x70000. |  0x70000 |
 | D | The `BOOTLOADER_UICR` is set to 0x76000 | No       | < 100 ms | Will fail to transfer the control to the new bootloader, however the set operation would be retried as the bootloader (except for the BLE) is still operational at 0x70000. |  0x79000 |
 
-The flow is explained clearly here in `flowchart.pdf`. The intermediate bootloader functioning is show in green box in the flowchart.
+The flow is explained clearly here in `intermediate/docs/flowchart.pdf`. The intermediate bootloader functioning is show in green box in the flowchart.
 
 ## Build process:
 
