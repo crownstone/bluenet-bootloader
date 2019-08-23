@@ -103,7 +103,6 @@ $(abspath $(BLUENET_DIR)/src/cfg/cs_Boards.c) \
 ASM_SOURCE_FILES  = $(abspath $(SDK_PATH)/components/toolchain/gcc/gcc_startup_nrf52.s)
 
 #includes common to all targets
-INC_PATHS += -I$(abspath ./config)
 INC_PATHS += -I$(abspath ./config/bsp)
 INC_PATHS += -I$(abspath ./inc)
 INC_PATHS += -I$(abspath $(SDK_PATH)/components/libraries/scheduler)
