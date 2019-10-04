@@ -28,7 +28,7 @@
 #include "nrf_gpio.h"
 #include "nrf_delay.h"
 
-extern uint32_t INT_BL_ADDR, NEW_BL_ADDR, OLD_BL_ADDR;
+extern uint32_t INT_BL_ADDR, OLD_BL_ADDR;
 
 static dfu_state_t                  m_dfu_state;                /**< Current DFU state. */
 static uint32_t                     m_image_size;               /**< Size of the image that will be transmitted. */
@@ -908,11 +908,9 @@ uint32_t set_uicr(const uint32_t BL_ADDR)
 
 // Nordic's new implementation
 // https://devzone.nordicsemi.com/f/nordic-q-a/18199/dfu---updating-from-legacy-sdk-v11-0-0-bootloader-to-secure-sdk-v12-x-0-bootloader
-uint32_t dfu_bl_image_swap(void)
+uint32_t dfu_bl_image_swap(const uint32_t BL_ADDR)
 {
     uint32_t status = NRF_SUCCESS;
-
-    const uint32_t BL_ADDR = NEW_BL_ADDR;
 
     bootloader_settings_t bootloader_settings;
     bootloader_settings_get(&bootloader_settings);
@@ -1031,26 +1029,26 @@ uint32_t dfu_sd_image_validate(void)
 
 // This function relocates the incoming bootloader to 0x70000, which is initially at 0x79000.
 // https://devzone.nordicsemi.com/f/nordic-q-a/18199/dfu---updating-from-legacy-sdk-v11-0-0-bootloader-to-secure-sdk-v12-x-0-bootloader
-uint32_t dfu_relocate_bl()
-{
-    uint32_t status = NRF_SUCCESS;
-    const uint32_t DEST_BL_ADDR = INT_BL_ADDR;
+// uint32_t dfu_relocate_bl()
+// {
+//     uint32_t status = NRF_SUCCESS;
+//     const uint32_t DEST_BL_ADDR = INT_BL_ADDR;
 
-    bootloader_settings_t bootloader_settings;
-    bootloader_settings_get(&bootloader_settings);
+//     bootloader_settings_t bootloader_settings;
+//     bootloader_settings_get(&bootloader_settings);
 
-    uint32_t bl_image_start = (bootloader_settings.sd_image_size == 0) ?
-                                  DFU_BANK_1_REGION_START :
-                                  bootloader_settings.sd_image_start + 
-                                  bootloader_settings.sd_image_size;
+//     uint32_t bl_image_start = (bootloader_settings.sd_image_size == 0) ?
+//                                   DFU_BANK_1_REGION_START :
+//                                   bootloader_settings.sd_image_start + 
+//                                   bootloader_settings.sd_image_size;
 
-    status = copy_flash_content((uint32_t*)DEST_BL_ADDR, (uint32_t*)bl_image_start, bootloader_settings.bl_image_size);
+//     status = copy_flash_content((uint32_t*)DEST_BL_ADDR, (uint32_t*)bl_image_start, bootloader_settings.bl_image_size);
 
-    if (status == NRF_SUCCESS)
-    {
-        // The copy was successful, set the BOOTLOADER_UICR
-        status = set_uicr(DEST_BL_ADDR);
-    }
+//     if (status == NRF_SUCCESS)
+//     {
+//         // The copy was successful, set the BOOTLOADER_UICR
+//         status = set_uicr(DEST_BL_ADDR);
+//     }
 
-    return status;
-}
+//     return status;
+// }

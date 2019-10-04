@@ -368,14 +368,14 @@ uint32_t bootloader_dfu_sd_update_continue(void)
     if (uicr_content == INT_BL_ADDR)
     {
         // execute the final stage, which is to write the final secure bootloader to the final address (0x76000)
-        err_code = dfu_bl_image_swap();
+        err_code = dfu_bl_image_swap(NEW_BL_ADDR);
         // APP_ERROR_CHECK(err_code);
     }
     // This condition becomes true for the first stage
     else if (uicr_content == OLD_BL_ADDR)
     {
         // execute the second stage, which is to relocate the incoming bootloader to 0x70000
-        err_code = dfu_relocate_bl();
+        err_code = dfu_bl_image_swap(INT_BL_ADDR);
         // DON'T PERFORM A RESET HERE, the methods which are going to be executed later 
         // will clear the bootloader settings area.
     }

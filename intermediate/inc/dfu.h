@@ -114,7 +114,7 @@ uint32_t dfu_sd_image_validate(void);
  * @return NRF_SUCCESS on succesfull swapping. For error code please refer to 
  *         \ref sd_mbr_command_copy_bl_t.
  */
-uint32_t dfu_bl_image_swap(void);
+uint32_t dfu_bl_image_swap(const uint32_t);
 
 /**@brief Function for swapping existing SoftDevice with newly received.
  *        
@@ -122,8 +122,6 @@ uint32_t dfu_bl_image_swap(void);
  *         \ref sd_mbr_command_copy_sd_t.
  */
 uint32_t dfu_sd_image_swap(void);
-
-uint32_t dfu_relocate_bl(void);
 
 void flash_page_erase(uint32_t *);
 
