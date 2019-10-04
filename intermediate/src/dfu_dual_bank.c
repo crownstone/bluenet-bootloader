@@ -754,6 +754,7 @@ uint32_t dfu_sd_image_swap(void)
     return NRF_SUCCESS;
 }
 
+// Can be found in nRF-SDK ble_flash.c, reused this function.
 void flash_page_erase(uint32_t * p_page)
 {
     // Turn on flash erase enable and wait until the NVMC is ready.
@@ -780,6 +781,9 @@ void flash_page_erase(uint32_t * p_page)
 
 void erase_pages(uint32_t page_addr, const uint32_t size_words)
 {
+    // https://stackoverflow.com/questions/2745074/fast-ceiling-of-an-integer-division-in-c-c
+    // If basically ceils any fractional number of pages to 1. 
+    // Example: 1536 (1 and a half page) would be 2 pages.
     volatile uint32_t pages_required = (size_words + 0x400 - 1) / 0x400;
 
     for(uint8_t counter = 0; counter < pages_required; counter++)
@@ -916,7 +920,7 @@ uint32_t dfu_bl_image_swap(void)
     uint32_t bl_image_start = (bootloader_settings.sd_image_size == 0) ?
                                   DFU_BANK_1_REGION_START :
                                   bootloader_settings.sd_image_start + 
-                                  bootloader_settindfu_bl_image_swapgs.sd_image_size;
+                                  bootloader_settings.sd_image_size;
 
     status = copy_flash_content((uint32_t*)BL_ADDR, (uint32_t*)bl_image_start, bootloader_settings.bl_image_size);
 
