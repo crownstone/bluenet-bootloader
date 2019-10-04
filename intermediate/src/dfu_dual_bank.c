@@ -713,8 +713,9 @@ uint32_t dfu_sd_image_swap(void)
         uint32_t sd_start        = SOFTDEVICE_REGION_START;
         uint32_t block_size      = (boot_settings.sd_image_start - sd_start) / 2;
 
-        // The below fix given at:
+        // The below fix given at: 
         // https://devzone.nordicsemi.com/f/nordic-q-a/16774/updating-from-s132-v2-0-x-to-s132-v3-0-0-with-dual-bank-bootloader-from-sdk-v11-0-0-does-not-work/64161#64161
+        // Makes block_size a multiple of CODE_PAGE_SIZE.
         block_size &= ~(uint32_t)(CODE_PAGE_SIZE - 1);	
 
         uint32_t image_end       = boot_settings.sd_image_start + boot_settings.sd_image_size;
@@ -789,6 +790,11 @@ void erase_pages(uint32_t page_addr, const uint32_t size_words)
 }
 
 /* Copies "size_bytes" bytes of flash content from "src_addr" to "dest_addr"
+
+    This function manually copies the content from src to dest byte by byte. As opposed to 
+    the sd_mbr_command, the control is returned to the code (otherwise MBR performs the 
+    copy and resets). This function helps us ensure that we change the UICR BOOTADDR 
+    only when the copy is successful.
 
    Returns NRF_SUCCESS on success writes,
            NRF_ERROR_INVALID_DATA on failed writes */
@@ -908,7 +914,7 @@ uint32_t dfu_bl_image_swap(void)
     uint32_t bl_image_start = (bootloader_settings.sd_image_size == 0) ?
                                   DFU_BANK_1_REGION_START :
                                   bootloader_settings.sd_image_start + 
-                                  bootloader_settings.sd_image_size;
+                                  bootloader_settindfu_bl_image_swapgs.sd_image_size;
 
     status = copy_flash_content((uint32_t*)BL_ADDR, (uint32_t*)bl_image_start, bootloader_settings.bl_image_size);
 
