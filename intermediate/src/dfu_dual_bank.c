@@ -774,26 +774,6 @@ void flash_page_erase(uint32_t * p_page)
     }
 }
 
-uint32_t entrance_check()
-{
-    bootloader_settings_t bootloader_settings;
-    bootloader_settings_get(&bootloader_settings);
-
-    uint32_t bl_image_start = (bootloader_settings.sd_image_size == 0) ?
-                                  DFU_BANK_1_REGION_START :
-                                  bootloader_settings.sd_image_start + 
-                                  bootloader_settings.sd_image_size;
-
-    if (bl_image_start > (uint32_t)0xfffffff0) return true;
-
-    volatile uint32_t reset_handler_addr = *((uint32_t *)bl_image_start + 4);
-    volatile uint32_t myContent = *((uint32_t *)BOOTLOADER_REGION_START + 4);
-
-    uint32_t return_status = (myContent == reset_handler_addr) ? 0 : 1;
-
-    return return_status;
-}
-
 void erase_pages(uint32_t page_addr, const uint32_t size_words)
 {
     volatile uint32_t pages_required = (size_words + 0x400 - 1) / 0x400;
