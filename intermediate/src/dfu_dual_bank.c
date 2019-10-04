@@ -800,6 +800,7 @@ void erase_pages(uint32_t page_addr, const uint32_t size_words)
            NRF_ERROR_INVALID_DATA on failed writes */
 uint32_t copy_flash_content(uint32_t * const dest_addr, uint32_t const * const src_addr, uint32_t size_bytes)
 {
+    // The below logic is adapted from dfu_copy_sd().
     uint32_t size_words = size_bytes/sizeof(uint32_t);
     erase_pages((uint32_t)dest_addr, size_words);
 
@@ -823,6 +824,7 @@ uint32_t copy_flash_content(uint32_t * const dest_addr, uint32_t const * const s
 }
 
 // Nordic's new implementation
+// https://devzone.nordicsemi.com/f/nordic-q-a/18199/dfu---updating-from-legacy-sdk-v11-0-0-bootloader-to-secure-sdk-v12-x-0-bootloader
 uint32_t set_uicr(const uint32_t BL_ADDR)
 {
     uint32_t err_code = NRF_SUCCESS;
