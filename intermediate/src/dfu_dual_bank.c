@@ -712,6 +712,9 @@ uint32_t dfu_sd_image_swap(void)
         uint32_t err_code;
         uint32_t sd_start        = SOFTDEVICE_REGION_START;
         uint32_t block_size      = (boot_settings.sd_image_start - sd_start) / 2;
+
+        // The below fix given at:
+        // https://devzone.nordicsemi.com/f/nordic-q-a/16774/updating-from-s132-v2-0-x-to-s132-v3-0-0-with-dual-bank-bootloader-from-sdk-v11-0-0-does-not-work/64161#64161
         block_size &= ~(uint32_t)(CODE_PAGE_SIZE - 1);	
 
         uint32_t image_end       = boot_settings.sd_image_start + boot_settings.sd_image_size;
