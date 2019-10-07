@@ -28,7 +28,7 @@
 #include "nrf_gpio.h"
 #include "nrf_delay.h"
 
-extern uint32_t INT_BL_ADDR, OLD_BL_ADDR;
+extern uint32_t INT_BL_ADDR, NEW_BL_ADDR, OLD_BL_ADDR;
 
 static dfu_state_t                  m_dfu_state;                /**< Current DFU state. */
 static uint32_t                     m_image_size;               /**< Size of the image that will be transmitted. */
@@ -368,12 +368,11 @@ uint32_t dfu_start_pkt_handle(dfu_update_packet_t * p_packet)
     m_image_size = m_start_packet.sd_image_size + m_start_packet.bl_image_size +
                    m_start_packet.app_image_size;
     
-    // Nordic's fix: 
-    // https://devzone.nordicsemi.com/f/nordic-q-a/18199/dfu---updating-from-legacy-sdk-v11-0-0-bootloader-to-secure-sdk-v12-x-0-bootloader
-    // if (m_start_packet.bl_image_size > DFU_BL_IMAGE_MAX_SIZE)
-    // {
-    //     return NRF_ERROR_DATA_SIZE;
-    // }
+    // Use bootloader size of SDK 15.
+    if (m_start_packet.bl_image_size > (BOOTLOADER_SETTINGS_ADDRESS - NEW_BL_ADDR))
+    {
+        return NRF_ERROR_DATA_SIZE;
+    }
 
     if (IS_UPDATING_SD(m_start_packet))
     {
@@ -754,7 +753,10 @@ uint32_t dfu_sd_image_swap(void)
     return NRF_SUCCESS;
 }
 
-// Can be found in nRF-SDK ble_flash.c, reused this function.
+/**
+ * Taken from nRF-SDK ble_flash.c.
+ * Assumes p_page points to start of a page.
+ */
 void flash_page_erase(uint32_t * p_page)
 {
     // Turn on flash erase enable and wait until the NVMC is ready.
@@ -779,12 +781,14 @@ void flash_page_erase(uint32_t * p_page)
     }
 }
 
+/**
+ * Erase all pages required to store size_word words.
+ * Assumes page_addr points to the start of a page.
+ */
 void erase_pages(uint32_t page_addr, const uint32_t size_words)
 {
-    // https://stackoverflow.com/questions/2745074/fast-ceiling-of-an-integer-division-in-c-c
-    // If basically ceils any fractional number of pages to 1. 
-    // Example: 1536 (1 and a half page) would be 2 pages.
-    volatile uint32_t pages_required = (size_words + 0x400 - 1) / 0x400;
+    // Round up to integer number of pages of (CODE_PAGE_SIZE / 4) words.
+    volatile uint32_t pages_required = (size_words + (CODE_PAGE_SIZE / sizeof(uint32_t)) - 1) / (CODE_PAGE_SIZE / sizeof(uint32_t));
 
     for(uint8_t counter = 0; counter < pages_required; counter++)
     {
@@ -793,18 +797,21 @@ void erase_pages(uint32_t page_addr, const uint32_t size_words)
     }
 }
 
-/* Copies "size_bytes" bytes of flash content from "src_addr" to "dest_addr"
-
-    This function manually copies the content from src to dest byte by byte. As opposed to 
-    the sd_mbr_command, the control is returned to the code (otherwise MBR performs the 
-    copy and resets). This function helps us ensure that we change the UICR BOOTADDR 
-    only when the copy is successful.
-
-   Returns NRF_SUCCESS on success writes,
-           NRF_ERROR_INVALID_DATA on failed writes */
+/**
+ * Copies "size_bytes" bytes of flash content from "src_addr" to "dest_addr"
+ *
+ * This function manually copies the content from src to dest byte by byte. As opposed to
+ * the sd_mbr_command, the control is returned to the code (otherwise MBR performs the
+ * copy and resets). This function helps us ensure that we change the UICR BOOTADDR
+ * only when the copy is successful.
+ *
+ * Returns NRF_SUCCESS on success writes,
+ *         NRF_ERROR_INVALID_DATA on failed writes
+ */
 uint32_t copy_flash_content(uint32_t * const dest_addr, uint32_t const * const src_addr, uint32_t size_bytes)
 {
     // The below logic is adapted from dfu_copy_sd().
+    // Can also be found in examples/peripheral/flashwrite/main.c
     uint32_t size_words = size_bytes/sizeof(uint32_t);
     erase_pages((uint32_t)dest_addr, size_words);
 
