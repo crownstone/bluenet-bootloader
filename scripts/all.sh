@@ -19,7 +19,6 @@ source ${path}/_config.sh
 objcopy=${COMPILER_PATH}/bin/${COMPILER_TYPE}objcopy
 objsize=${COMPILER_PATH}/bin/${COMPILER_TYPE}size
 
-prefix=dobots
 device_variant=xxaa
 
 # create output and build directories
