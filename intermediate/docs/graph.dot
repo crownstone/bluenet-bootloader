@@ -1,0 +1,51 @@
+digraph {
+
+   "IF settings.bank_0 == valid_SD
+OR
+settings.bank_1 == valid_boot" -> "IF DFU_SD and DFU_BL
+match the flash content at 
+their respective addresses"[label="True"];
+   "IF settings.bank_0 == valid_SD
+OR
+settings.bank_1 == valid_boot" -> "Init BLE Stack and Scheduler"[label="False"];
+   "IF DFU_SD and DFU_BL
+match the flash content at 
+their respective addresses" -> "IF settings.sd_image_size != 0"[label="False"];
+   "IF settings.sd_image_size != 0" -> "Copy the softdevice from
+DFU bank to 0x1000"[label="True"];
+   "IF DFU_SD and DFU_BL
+match the flash content at 
+their respective addresses" -> "Init BLE Stack and scheduler"[label="True"];
+   "Init BLE Stack and scheduler" -> "Clear the settings region as the
+data is stale after the copy is done
+settings.bank_0 = INVALID
+settings.bank_1 = INVALID";
+    "Copy the softdevice from
+DFU bank to 0x1000" ->    "IF settings.bl_image_size != 0"
+   "IF settings.sd_image_size != 0" -> "IF settings.bl_image_size != 0"[label="False"];
+   "IF settings.bl_image_size != 0" -> "IF Current_bootloader =="[label="True"];
+   "IF Current_bootloader ==" -> "Copy the DFU Bootloader to 0x70000"[label="0x79000"]
+   "Copy the DFU Bootloader to 0x70000" -> "IF copy_success to 0x70000"
+   "IF copy_success to 0x70000" -> "Set UICR_BOOTADDR to 0x70000"[label="True"]
+   "IF copy_success to 0x70000" -> "Reset"[label="False"];
+   "IF Current_bootloader ==" -> "Copy the DFU Bootloader to 0x76000"[label="0x70000"];
+   "Copy the DFU Bootloader to 0x76000" -> "IF copy_success to 0x76000";
+   "IF copy_success to 0x76000" -> "Set UICR_BOOTADDR to 0x76000"[label="True"];
+   "IF copy_success to 0x76000" -> "Reset"[label="False"];
+"Clear the settings region as the
+data is stale after the copy is done
+settings.bank_0 = INVALID
+settings.bank_1 = INVALID" -> "Start advertising the DFU Listener";
+"Init BLE Stack and Scheduler" -> "Start advertising the DFU Listener";
+"IF settings.bl_image_size != 0" -> "Start advertising the DFU Listener"[label="False"];
+"Set UICR_BOOTADDR to 0x76000" -> "Start advertising the DFU Listener";
+"Set UICR_BOOTADDR to 0x70000" -> "Start advertising the DFU Listener";
+"Start advertising the DFU Listener" -> "Reset";
+
+"Start" -> "config board
+config gpio";
+"config board
+config gpio" -> "IF settings.bank_0 == valid_SD
+OR
+settings.bank_1 == valid_boot"
+}
