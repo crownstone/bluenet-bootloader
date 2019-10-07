@@ -137,6 +137,7 @@ BUILD_DIRECTORIES := $(sort $(OBJECT_DIRECTORY) $(OUTPUT_BINARY_DIRECTORY) $(LIS
 
 #flags common to all targets
 CFLAGS  = -DBOOTLOADER_START_ADDRESS=$(BOOTADDR)
+CFLAGS += -DSERIAL_VERBOSITY=SERIAL_NONE
 CFLAGS += -DNRF52
 CFLAGS += -DBOOTLOADER_VERSION=\"$(VER)\"
 CFLAGS += -DUICR_BOARD_INDEX=1
@@ -308,4 +309,6 @@ flash_softdevice:
 
 package: bootloader
 	@echo Creating a DFU package for $(VER)
+	@echo Make sure you have nrfutil 0.5.3 installed.
 	@nrfutil dfu genpkg --bootloader _build/bootloader.hex --sd-req 0x81 $(PACKAGE_NAME)
+
