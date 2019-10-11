@@ -32,9 +32,10 @@
 #define IRQ_ENABLED             0x01                    /**< Field identifying if an interrupt is enabled. */
 #define MAX_NUMBER_INTERRUPTS   32                      /**< Maximum number of interrupts available. */
 
-const uint32_t INT_BL_ADDR = 0x70000;
+const uint32_t INT_BL_SIZE = 0x5000;
 const uint32_t NEW_BL_ADDR = 0x76000;
 const uint32_t OLD_BL_ADDR = 0x79000;
+const uint32_t INT_BL_ADDR = (NEW_BL_ADDR - INT_BL_SIZE);
 
 /**@brief Enumeration for specifying current bootloader status.
  */

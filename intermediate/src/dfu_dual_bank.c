@@ -962,12 +962,12 @@ uint32_t dfu_bl_image_validate(void)
 
         if (BOOTLOADER_REGION_START == OLD_BL_ADDR)
         {
-            // bank_1_region = 0x48000;
+            // bank_1_region = 0x48000 = (((0x79000 − 0x5000 − 0x1C000) / 2) & 0xFFFFF000) + 0x1C000
             bank_1_region = find_bank_1_region(OLD_BL_ADDR);
         }
         else if (BOOTLOADER_REGION_START == INT_BL_ADDR)
         {
-            // bank_1_region = 0x46000;
+            // bank_1_region = 0x44000 = (((0x71000 − 0x5000 − 0x1C000) / 2) & 0xFFFFF000) + 0x1C000
             bank_1_region = find_bank_1_region(INT_BL_ADDR);
         }
 
