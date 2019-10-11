@@ -373,6 +373,9 @@ uint32_t bootloader_dfu_sd_update_continue(void)
         // execute the final stage, which is to write the final secure bootloader to the final address (0x76000)
         err_code = dfu_bl_image_swap(NEW_BL_ADDR);
         // APP_ERROR_CHECK(err_code);
+        // Clear pages that are reserved for app data.
+		// Unfortunately, this can't be done, as these pages is where the intermediate bootloader is located.
+//        erase_pages(NEW_BL_ADDR - DFU_APP_DATA_RESERVED, DFU_APP_DATA_RESERVED / sizeof(uint32_t));
     }
     // This condition becomes true for the first stage
     else if (uicr_content == OLD_BL_ADDR)
