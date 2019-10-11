@@ -309,6 +309,9 @@ flash_softdevice:
 
 package: bootloader
 	@echo Creating a DFU package for $(VER)
+	@echo -------------------------------------------
 	@echo Make sure you have nrfutil 0.5.3 installed.
+	@echo Use: sudo pip install nrfutil==0.5.3
+	@echo -------------------------------------------
 	@nrfutil dfu genpkg --bootloader _build/bootloader.hex --sd-req 0x81 $(PACKAGE_NAME)
 
