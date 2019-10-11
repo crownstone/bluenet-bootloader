@@ -35,7 +35,8 @@
 const uint32_t INT_BL_SIZE = 0x5000;
 const uint32_t NEW_BL_ADDR = 0x76000;
 const uint32_t OLD_BL_ADDR = 0x79000;
-const uint32_t INT_BL_ADDR = 0x71000; // = (NEW_BL_ADDR - INT_BL_SIZE)
+// Intermediate bootloader address: must match value in Makefile. Determined via: (NEW_BL_ADDR - INT_BL_SIZE).
+const uint32_t INT_BL_ADDR = 0x71000;
 
 /**@brief Enumeration for specifying current bootloader status.
  */
