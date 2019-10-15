@@ -31,26 +31,23 @@ $(error Paths are not configured in "paths.config". Hint: create a file "paths.c
 endif
 
 GNU_PREFIX = arm-none-eabi
-DEFAULT_HARDWARE_BOARD=ACR01B2C
+#DEFAULT_HARDWARE_BOARD=ACR01B2C
 
-VER_1_8 = "1.8.0"
-VER_1_9 = "1.9.0"
 # Must match OLD_BL_ADDR
 BOOTADDR_1_8 = 0x79000
 # Must match INT_BL_ADDR
 BOOTADDR_1_9 = 0x71000
 
-DEFVER = $(VER_1_8)
-DEFBOOTADDR = $(BOOTADDR_1_8)
-
-ifeq ("$(VER)",$(VER_1_8))
+ifeq ("$(VER)","1.8.0"))
 BOOTADDR = $(BOOTADDR_1_8)
-else ifeq ("$(VER)",$(VER_1_9))
+else ifeq ("$(VER)","1.8.1"))
+BOOTADDR = $(BOOTADDR_1_8)
+else ifeq ("$(VER)","1.9.0")
+BOOTADDR = $(BOOTADDR_1_9)
+else ifeq ("$(VER)","1.9.1")
 BOOTADDR = $(BOOTADDR_1_9)
 else
-VER = $(DEFVER)
-# $(info Defaulting to ADDR: $(DEFBOOTADDR))
-BOOTADDR = $(DEFBOOTADDR)
+$(error Unknown version: $(VER))
 endif
 
 PACKAGE_NAME = $(PACKAGE_PREFIX)_v$(VER).zip
