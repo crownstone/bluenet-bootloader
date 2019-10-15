@@ -210,6 +210,24 @@ static void gpio_init(boards_config_t* board)
 	}
 }
 
+static void check_board_uicr() {
+	uint32_t hardwareBoard = NRF_UICR->CUSTOMER[UICR_BOARD_INDEX];
+	if (hardwareBoard == 0xFFFFFFFF) {
+		uint32_t* hardwareBoardAddress = (uint32_t*)(NRF_UICR->CUSTOMER) + UICR_BOARD_INDEX;
+//		nrf_nvmc_write_word(hardwareBoardAddress, DEFAULT_HARDWARE_BOARD);
+
+		// Enable write.
+		NRF_NVMC->CONFIG = NVMC_CONFIG_WEN_Wen;
+		while (NRF_NVMC->READY == NVMC_READY_READY_Busy) {}
+
+		*hardwareBoardAddress = DEFAULT_HARDWARE_BOARD;
+		while (NRF_NVMC->READY == NVMC_READY_READY_Busy) {}
+
+		NRF_NVMC->CONFIG = NVMC_CONFIG_WEN_Ren;
+		while (NRF_NVMC->READY == NVMC_READY_READY_Busy) {}
+	}
+}
+
 /**@brief Function for bootloader main entry.
  */
 int main(void)
@@ -222,6 +240,8 @@ int main(void)
     // setting in the chip.
     APP_ERROR_CHECK_BOOL(*((uint32_t *)NRF_UICR_BOOT_START_ADDRESS) == BOOTLOADER_REGION_START);
     APP_ERROR_CHECK_BOOL(NRF_FICR->CODEPAGESIZE == CODE_PAGE_SIZE);
+
+    check_board_uicr();
 
     boards_config_t board = {};
 	configure_board(&board);
