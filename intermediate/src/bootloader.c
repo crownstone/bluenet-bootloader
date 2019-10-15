@@ -381,9 +381,9 @@ uint32_t bootloader_dfu_sd_update_continue(void)
     // This condition becomes true for the first stage
     else if (uicr_content == OLD_BL_ADDR)
     {
-        // execute the second stage, which is to relocate the incoming bootloader to 0x70000
+        // execute the second stage, which is to relocate the incoming bootloader to INT_BL_ADDR.
         err_code = dfu_bl_image_swap(INT_BL_ADDR);
-        // DON'T PERFORM A RESET HERE, the methods which are going to be executed later 
+        // DON'T PERFORM A RESET HERE, the methods which are going to be executed later
         // will clear the bootloader settings area.
     }
 
