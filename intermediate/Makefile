@@ -38,16 +38,19 @@ BOOTADDR_1_8 = 0x79000
 # Must match INT_BL_ADDR
 BOOTADDR_1_9 = 0x71000
 
-ifeq ("$(VER)","1.8.0"))
-BOOTADDR = $(BOOTADDR_1_8)
-else ifeq ("$(VER)","1.8.1"))
-BOOTADDR = $(BOOTADDR_1_8)
+ifeq ("$(VER)","1.8.0")
+	BOOTADDR = $(BOOTADDR_1_8)
+else ifeq ("$(VER)","1.8.1")
+	BOOTADDR = $(BOOTADDR_1_8)
 else ifeq ("$(VER)","1.9.0")
-BOOTADDR = $(BOOTADDR_1_9)
+	BOOTADDR = $(BOOTADDR_1_9)
 else ifeq ("$(VER)","1.9.1")
-BOOTADDR = $(BOOTADDR_1_9)
+	BOOTADDR = $(BOOTADDR_1_9)
 else
-$(error Unknown version: $(VER))
+	# Defaults
+	VER = "1.8.0"
+	BOOTADDR = 0x79000
+	DEFAULT_HARDWARE_BOARD = ACR01B2C
 endif
 
 PACKAGE_NAME = $(PACKAGE_PREFIX)_v$(VER).zip
