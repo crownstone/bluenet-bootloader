@@ -278,7 +278,7 @@ $(OUTPUT_BINARY_DIRECTORY)/$(OUTPUT_FILENAME).hex: $(OUTPUT_BINARY_DIRECTORY)/$(
 	@echo Preparing: $(OUTPUT_FILENAME).hex
 	$(NO_ECHO)$(OBJCOPY) -O ihex $(OUTPUT_BINARY_DIRECTORY)/$(OUTPUT_FILENAME).out $(OUTPUT_BINARY_DIRECTORY)/$(OUTPUT_FILENAME).hex
 
-finalize: genbin genhex echosize
+finalize: genbin genhex echosize copybins
 
 genbin:
 	@echo Preparing: $(OUTPUT_FILENAME).bin
@@ -292,6 +292,10 @@ echosize:
 	-@echo ''
 	$(NO_ECHO)$(SIZE) $(OUTPUT_BINARY_DIRECTORY)/$(OUTPUT_FILENAME).out
 	-@echo ''
+
+copybins:
+	$(MK) bin_$(VER)
+	@cp _build/*.hex _build/*.bin _build/*.elf bin_$(VER)
 
 clean:
 	$(RM) $(BUILD_DIRECTORIES)

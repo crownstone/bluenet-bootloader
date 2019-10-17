@@ -7,7 +7,7 @@ usage() {
 prepare() {
 	echo "Preparing package for $1"
 	make clean
-	make VER=$1 DEFAULT_HARDWARE_BOARD=$3 package PACKAGE_PREFIX=$2 
+	make VER=$1 DEFAULT_HARDWARE_BOARD=$3 package PACKAGE_PREFIX=$2
 }
 
 if [ $# -ne 1 ]; then
