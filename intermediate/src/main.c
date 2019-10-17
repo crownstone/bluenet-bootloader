@@ -241,13 +241,13 @@ int main(void)
     APP_ERROR_CHECK_BOOL(*((uint32_t *)NRF_UICR_BOOT_START_ADDRESS) == BOOTLOADER_REGION_START);
     APP_ERROR_CHECK_BOOL(NRF_FICR->CODEPAGESIZE == CODE_PAGE_SIZE);
 
-    check_board_uicr();
-
     boards_config_t board = {};
 	configure_board(&board);
 
 	gpio_init(&board);
 	// config_uart(board.pinGpioRx, board.pinGpioTx);
+
+	check_board_uicr();
 
     // Initialize.
     timers_init();
