@@ -36,6 +36,10 @@ This process is implemented in `dfu_sd_img_block_swap()`, used by `dfu_sd_image_
 - `0xA000 = 0x26000 - 0x1C000`
 - `0x37000 = 0x1C000 + 0x25000 - 0xA000`
 
+### Reserved app data
+For this upgrade, we don't need to preserve the app data. However, changing the reserved app data size, will change the bank1 address, leading to issues when the bootloader image gets validated. See this [post](https://devzone.nordicsemi.com/question/54242/updating-bootloader-to-bootloader-which-preserves-app-data/) and this [post](https://devzone.nordicsemi.com/question/81141/cant-update-bootlader-over-the-air-when-changing-dfu_app_data_reserved/).
+
+This can be fixed as done [here](https://github.com/crownstone/bluenet-bootloader/blob/d868454874f8b2829c2fb6f92c8bba2fa1a3a1fb/src/dfu_dual_bank.c#L923), but for the intermediate bootloader, we just kept the reserved app data the same, as it doesn't matter anyway.
 
 ### Bootloader 1.8.0 and 1.9.0 flow
 The program flow can be viewed in the [flowchart](flowchart.pdf).
