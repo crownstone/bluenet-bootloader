@@ -295,7 +295,7 @@ echosize:
 
 copybins:
 	$(MK) bin_$(VER)
-	@cp _build/*.hex _build/*.bin _build/*.elf bin_$(VER)
+	@cp _build/*.hex _build/*.elf bin_$(VER)
 
 clean:
 	$(RM) $(BUILD_DIRECTORIES)
